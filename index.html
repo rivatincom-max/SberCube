@@ -174,7 +174,7 @@
   <button class="pill" id="manBtn">✍️ Ввести цифрами</button>
   <div id="manual"></div>
   <button class="pill" id="ecoBtn">🔋 Экономия батареи: выкл</button>
-  <div id="msg"></div>
+  <div id="msg"></div><small style="color:var(--muted);text-align:center">Версия 5</small>
 </div>
 <div id="shiftbar" class="glass"><div id="shFill"></div><div class="shrow"><span id="shT">⏱ Начать смену</span><span id="shS"></span></div></div>
 <div id="sum" class="glass"></div>
@@ -664,6 +664,14 @@ swipeClose(stats, () => openPanel("none"));
 swipeClose(shiftpanel, () => openPanel("none"));
 swipeClose(builder, () => { bd = null; openPanel("none"); });
 swipeClose(sync, () => { sync.style.display = "none"; });
+
+// на iPhone в режиме «Домой» высота страницы иногда получается меньше экрана — растягиваем на весь экран
+function fit() {
+  if (!(navigator.standalone || matchMedia("(display-mode: standalone)").matches)) return;
+  const h = Math.max(innerHeight, innerHeight >= innerWidth ? screen.height : screen.width);
+  [document.documentElement, document.body].forEach(e => { e.style.bottom = "auto"; e.style.height = h + "px"; });
+}
+addEventListener("resize", fit); addEventListener("orientationchange", () => setTimeout(fit, 200)); fit();
 
 applyEco(); render(); syncTick();
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
