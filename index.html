@@ -19,9 +19,14 @@
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html { background: #000; }
   html, body { margin: 0; height: 100%; height: 100dvh; overflow: hidden; touch-action: manipulation; color: var(--text); font-family: -apple-system, "SF Pro Text", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
-  body { display: flex; flex-direction: column; gap: 8px; padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; overscroll-behavior: none; }
+  /* iOS 26, режим «Домой» + black-translucent: окно короче экрана на высоту статус-бара (WebKit 301108) —
+     добираем env(safe-area-inset-top). min(100lvh, …) не даёт вылезти за экран, если Apple починит баг. */
+  @media (display-mode: standalone) {
+    html, body { height: min(100lvh, calc(100dvh + env(safe-area-inset-top, 0px))); }
+  }
+  body { position: relative; display: flex; flex-direction: column; gap: 8px; padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; overscroll-behavior: none; }
   /* статичный фон: цветные пятна, на которых «играет» стекло (без анимации — экономит батарею) */
-  body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background:
+  body::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background:
     radial-gradient(60% 38% at 12% 8%, rgba(33, 160, 56, .30), transparent 70%),
     radial-gradient(55% 38% at 92% 32%, rgba(10, 150, 115, .24), transparent 70%),
     radial-gradient(60% 42% at 28% 96%, rgba(33, 160, 56, .22), transparent 70%), #000; }
