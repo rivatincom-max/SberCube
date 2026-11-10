@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="dark">
+<meta name="format-detection" content="telephone=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Звонки">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Звонки</title>
+<style>
+  :root { --text: #f5f7fb; --muted: rgba(235,240,255,.62); --stroke: rgba(255,255,255,.2); --spring: cubic-bezier(.34, 1.56, .64, 1); }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { position: fixed; inset: 0; width: 100%; overflow: hidden; touch-action: manipulation; margin: 0; height: 100%; height: 100dvh; background: #000; color: var(--text); font-family: -apple-system, "SF Pro Text", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  body { display: flex; flex-direction: column; gap: 8px; padding: calc(env(safe-area-inset-top, 0px) + 6px) max(10px, env(safe-area-inset-right)) max(12px, calc(env(safe-area-inset-bottom, 0px) - 8px)) max(10px, env(safe-area-inset-left)); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; overscroll-behavior: none; }
+  /* статичный фон: цветные пятна, на которых «играет» стекло (без анимации — экономит батарею) */
+  body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background:
+    radial-gradient(60% 38% at 12% 8%, rgba(33, 160, 56, .30), transparent 70%),
+    radial-gradient(55% 38% at 92% 32%, rgba(10, 150, 115, .24), transparent 70%),
+    radial-gradient(60% 42% at 28% 96%, rgba(33, 160, 56, .22), transparent 70%), #000; }
+
+  /* ===== Liquid Glass ===== */
+  .glass { background: linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.05)); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); border: 1px solid var(--stroke); box-shadow: inset 0 1px 0 rgba(255,255,255,.38), inset 0 -1px 0 rgba(255,255,255,.06), 0 8px 24px rgba(0,0,0,.38); }
+  body.eco .glass { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(28,30,38,.96); box-shadow: none; }
+  .pill { border: 1px solid var(--stroke); background: rgba(255,255,255,.1); color: var(--text); border-radius: 999px; padding: 7px 12px; font: 600 13px/1 inherit; box-shadow: inset 0 1px 0 rgba(255,255,255,.3); transition: transform .18s var(--spring); }
+  .pill:active { transform: scale(.94); }
+
+  body > * { flex-shrink: 0; } body > #grid { flex-shrink: 1; }
+  header { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 16px; border-radius: 34px; }
+  h1 { font-size: 19px; font-weight: 700; letter-spacing: -.3px; margin: 0; flex: 1; }
+
+  #shiftbar { position: relative; overflow: hidden; border-radius: 32px; padding: 10px 16px; }
+  #shFill { position: absolute; inset: 0 auto 0 0; width: 0; background: linear-gradient(90deg, rgba(52,196,70,.40), rgba(10,150,115,.40)); transition: width .6s ease; }
+  .shrow { position: relative; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  #shT { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.3px; }
+  #shS { font-size: 13px; color: var(--muted); text-align: right; }
+
+  #sum { border-radius: 28px; padding: 9px 16px; font-size: 13px; display: flex; justify-content: space-between; gap: 6px; color: var(--muted); }
+  #sum b { color: #fff; font-size: 15px; }
+  #sum b.bump { display: inline-block; animation: bump .45s; }
+
+  #stats, #shiftpanel { touch-action: pan-y; overscroll-behavior: contain; display: none; max-height: 44vh; overflow-y: auto; flex-direction: column; gap: 10px; animation: slideUp .28s var(--spring); }
+  .card { border-radius: 32px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+  .card .top { display: flex; justify-content: space-between; align-items: center; font-weight: 700; gap: 8px; }
+  .card .top button { background: none; border: 0; color: #34c446; font-size: 13px; font-weight: 600; }
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .kpi small, .wide small { display: block; color: var(--muted); font-size: 12px; line-height: 1.2; }
+  .kpi b, .wide b { font-size: 24px; color: #fff; font-variant-numeric: tabular-nums; }
+  .wide i, .ln i { font-style: normal; font-size: 12px; color: var(--muted); margin-left: 4px; }
+  .wide, .ln { border-top: 1px solid rgba(255,255,255,.12); padding-top: 10px; }
+  .ln { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; color: var(--muted); font-weight: 400; padding: 4px 2px; font-size: 12px; }
+  td { padding: 7px 2px; border-top: 1px solid rgba(255,255,255,.12); vertical-align: top; }
+  td b { color: #fff; }
+  td i { display: block; font-style: normal; font-size: 11px; color: var(--muted); }
+  .legend { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; font-size: 11px; }
+  .legend div { text-align: center; padding: 6px 2px; border-radius: 12px; background: rgba(255,255,255,.06); }
+  .legend b { display: block; font-size: 16px; }
+  small.m { color: var(--muted); font-size: 12px; }
+  .prog { display: flex; flex-direction: column; gap: 5px; }
+  .ph { display: flex; justify-content: space-between; align-items: center; font-size: 14px; gap: 8px; }
+  .bar { height: 7px; border-radius: 4px; background: rgba(255,255,255,.1); overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, #34c446, #0a9673); transition: width .5s ease; }
+  .pin, .mrow input { width: 62px; background: rgba(0,0,0,.35); color: #fff; border: 1px solid rgba(255,255,255,.18); border-radius: 12px; padding: 8px 4px; font-size: 16px; text-align: center; -webkit-user-select: text; user-select: text; }
+  .btns { display: flex; gap: 8px; }
+  .btns .pill { flex: 1; padding: 11px 8px; font-size: 14px; }
+  .mrow { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 14px; }
+
+  /* ===== квадраты ===== */
+  #grid { touch-action: pan-y; overscroll-behavior: contain; flex: 1; min-height: 110px; overflow-y: auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; align-content: start; grid-auto-rows: calc((100vw - 56px) / 5); padding: 2px; contain: content; -webkit-overflow-scrolling: touch; }
+  .sq { position: relative; overflow: hidden; aspect-ratio: 1; border-radius: 26px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 19px; color: #fff; background: rgba(255,255,255,.045); border: 1px dashed rgba(255,255,255,.16); }
+  .sq.next { border-style: solid; border-color: rgba(255,255,255,.55); }
+  .sq.f { border: 1px solid rgba(255,255,255,.34); background: linear-gradient(155deg, rgba(var(--c), .95), rgba(var(--c), .55)); box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 4px 12px rgba(var(--c), .25); text-shadow: 0 1px 2px rgba(0,0,0,.25); }
+  .sq.f.lt { color: #10131a; text-shadow: none; }
+  .sq .t { position: absolute; inset: 0 0 0 0; display: flex; align-items: center; justify-content: center; z-index: 1; }
+  .sq.x .t { bottom: 38%; }
+  .sq .xb { position: absolute; left: 0; right: 0; bottom: 0; height: 38%; display: flex; border-top: 1px solid rgba(255,255,255,.5); }
+  .sq .xb i { flex: 1; background: rgb(var(--c)); border-left: 1px solid rgba(0,0,0,.25); }
+  .sq .xb i:first-child { border-left: 0; }
+  .sq .xb i.r0 { opacity: .35; }
+  .sq .xb i.r2 { box-shadow: inset 0 0 0 2px rgba(255,255,255,.9); }
+  .sq.sel { outline: 2px solid #fff; outline-offset: 2px; transform: scale(1.05); }
+  .sq[data-m]::after { content: attr(data-m); position: absolute; left: 4px; top: 2px; z-index: 2; font-size: 10px; font-weight: 800; line-height: 1.3; padding: 0 4px; border-radius: 6px; background: rgba(0,0,0,.35); color: #fff; }
+  .sq.pop { animation: pop .5s var(--spring); }
+  .sq.shake { animation: shake .45s; }
+  #selTools { display: none; } #hint { font-size: 13px; color: var(--muted); text-align: center; }
+
+  /* ===== кнопки ===== */
+  #pad { display: flex; flex-direction: column; gap: 6px; }
+  .row { display: grid; gap: 6px; } .r3 { grid-template-columns: repeat(3, 1fr); } .r2 { grid-template-columns: 1fr 1fr; }
+  .btn { border: 1px solid rgba(255,255,255,.32); border-radius: 26px; padding: 6px 4px; min-height: 52px; font: 700 14px/1.15 inherit; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.25);
+    background: linear-gradient(180deg, rgba(var(--c), .8), rgba(var(--c), .5)); box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 6px 16px rgba(var(--c), .2); transition: transform .18s var(--spring), filter .18s; }
+  .btn:active { transform: scale(.94); filter: brightness(1.18); }
+  .btn.lt { color: #10131a; text-shadow: none; }
+  .panel { display: none; flex-direction: column; gap: 7px; padding: 10px; border-radius: 32px; animation: slideUp .28s var(--spring); }
+  .panel small { color: var(--muted); text-align: center; font-size: 12px; }
+  .xr { display: grid; grid-template-columns: 1.15fr repeat(3, 1fr); gap: 5px; align-items: center; }
+  .xr > span { font-size: 13px; font-weight: 600; line-height: 1.15; }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; background: rgb(var(--c)); }
+  .rb { border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: var(--text); border-radius: 20px; padding: 10px 2px; font: 600 12px/1.1 inherit; transition: transform .18s var(--spring), background .2s; }
+  .rb:active { transform: scale(.93); }
+  .rb.on { background: linear-gradient(180deg, rgba(var(--c), .95), rgba(var(--c), .6)); color: #10131a; border-color: rgba(255,255,255,.6); }
+  #mainRow { display: flex; align-items: center; gap: 3px; padding: 4px; border-radius: 999px; }
+  #mainRow > span { font-size: 11px; color: var(--muted); padding: 0 6px 0 10px; }
+  .chip { flex: 1; border: 0; background: transparent; color: var(--muted); font: 600 12px/1 inherit; padding: 10px 2px; border-radius: 999px; transition: background .2s, color .2s; }
+  .chip.on { background: rgba(255,255,255,.22); color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,.5); }
+
+  /* ===== анимации (короткие, без бесконечных циклов) ===== */
+  @keyframes pop { 0% { transform: scale(.2); opacity: 0; } 60% { transform: scale(1.18); opacity: 1; } 100% { transform: scale(1); } }
+  @keyframes shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6px) rotate(-3deg); } 40% { transform: translateX(6px) rotate(3deg); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+  @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.6); color: #34c446; } 100% { transform: scale(1); } }
+  @keyframes rise { 0% { opacity: 1; transform: translate(-50%, 0) scale(.7); } 100% { opacity: 0; transform: translate(-50%, -120px) scale(1.5); } }
+  @keyframes party { 0% { opacity: 0; transform: translateX(-50%) scale(.3); } 25% { opacity: 1; transform: translateX(-50%) scale(1.15); } 75% { opacity: 1; transform: translateX(-50%) scale(1); } 100% { opacity: 0; transform: translateX(-50%) scale(1.3); } }
+  .floatxp { position: fixed; z-index: 52; font-size: 30px; pointer-events: none; animation: rise 1s ease-out forwards; }
+  #fx { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
+  #party { position: fixed; left: 50%; top: 30%; font-size: 38px; font-weight: 800; color: #fff; text-shadow: 0 0 24px rgba(33,160,56,.95), 0 0 40px rgba(10,150,115,.7); opacity: 0; pointer-events: none; z-index: 51; white-space: nowrap; }
+  #party.on { animation: party 1.8s; }
+  #toast { position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 70px); transform: translateX(-50%) translateY(-12px) scale(.96); padding: 10px 18px; border-radius: 999px; font-weight: 600; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s, transform .3s var(--spring); white-space: nowrap; z-index: 51; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+
+  /* ===== анимации жидкого стекла (короткие, один раз) ===== */
+  @keyframes morph { 0% { opacity: 0; transform: scale(.9) translateY(18px); filter: blur(10px); } 60% { filter: blur(0); } 100% { opacity: 1; transform: none; filter: blur(0); } }
+  @keyframes drop { 0% { transform: scale(.35, .2); opacity: 0; filter: blur(8px); border-radius: 50%; } 45% { transform: scale(1.14, .9); opacity: 1; filter: blur(0); } 70% { transform: scale(.95, 1.06); } 100% { transform: none; } }
+  @keyframes sheen { 0% { transform: translateX(-130%) skewX(-20deg); opacity: 0; } 15% { opacity: 1; } 100% { transform: translateX(130%) skewX(-20deg); opacity: 0; } }
+  @keyframes lens { 0% { transform: translate(-50%, -50%) scale(.1); opacity: .9; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
+  @keyframes wobble { 0% { transform: scale(1); } 30% { transform: scale(1.08, .92); } 60% { transform: scale(.96, 1.05); } 100% { transform: scale(1); } }
+  .panel, #stats, #shiftpanel { animation: morph .45s var(--spring) backwards; }
+  .sq.pop { animation: drop .65s var(--spring); }
+  .sq.f::before { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.65) 50%, transparent 70%); opacity: 0; }
+  .sq.pop::before { animation: sheen .9s ease-out .1s; }
+  .btn:active, .pill:active, .rb:active { transform: scale(.93, .9); }
+  .btn, .pill { position: relative; overflow: hidden; }
+  .btn::after, .pill::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,.28), transparent 55%); pointer-events: none; }
+  .wob { animation: wobble .5s var(--spring); }
+  .lens { position: fixed; z-index: 49; width: 240px; height: 240px; border-radius: 50%; pointer-events: none; left: 0; top: 0;
+    background: radial-gradient(circle, rgba(255,255,255,0) 52%, rgba(255,255,255,.35) 60%, rgba(120,190,255,.25) 66%, rgba(255,255,255,0) 74%); animation: lens .8s ease-out forwards; }
+  body.eco .lens, body.eco .sq.f::before { display: none; }
+
+  /* ===== преломление и хроматическая аберрация, как в iOS ===== */
+  @keyframes aber { 0% { text-shadow: -3px 0 rgba(255,40,110,.9), 3px 0 rgba(40,200,255,.9); box-shadow: -3px 0 10px rgba(255,40,110,.55), 3px 0 10px rgba(40,200,255,.55), inset 0 1px 0 rgba(255,255,255,.7); transform: scale(1.09, 1.05); filter: brightness(1.25) saturate(1.3); }
+    35% { transform: scale(.97, 1.03); } 60% { transform: scale(1.02, .98); }
+    100% { text-shadow: 0 0 0 transparent; transform: none; filter: none; } }
+  .btn.ab, .pill.ab, .rb.ab, .chip.ab, .sq.ab { animation: aber .7s cubic-bezier(.2,.9,.3,1.2); }
+  .btn:active, .pill:active, .rb:active, .chip:active { transform: scale(1.06, 1.03); filter: brightness(1.2) saturate(1.25); text-shadow: -2px 0 rgba(255,40,110,.8), 2px 0 rgba(40,200,255,.8); }
+  .btn, .pill, .glass, .rb { box-shadow: inset 1.5px 1.5px 0 rgba(255,170,210,.4), inset -1.5px -1.5px 0 rgba(130,225,255,.4), inset 0 1px 0 rgba(255,255,255,.5), 0 6px 16px rgba(var(--c, 0,0,0), .22); }
+  .glass { box-shadow: inset 1px 1px 0 rgba(255,170,210,.25), inset -1px -1px 0 rgba(130,225,255,.25), inset 0 1px 0 rgba(255,255,255,.38), 0 8px 24px rgba(0,0,0,.38); }
+  body.eco .btn, body.eco .pill, body.eco .rb, body.eco .glass { box-shadow: none; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+  body.eco *, body.eco *::before, body.eco *::after { animation: none !important; }
+
+  #sync { display: none; border-radius: 32px; padding: 12px; gap: 8px; flex-direction: column; }
+  #sync textarea { width: 100%; height: 76px; background: rgba(0,0,0,.35); color: #ddd; border: 1px solid rgba(255,255,255,.18); border-radius: 14px; padding: 8px; font-size: 16px; user-select: text; -webkit-user-select: text; }
+  #sync .row2 { display: flex; gap: 8px; }
+  #sync .pill { flex: 1; padding: 11px 8px; font-size: 14px; }
+  #manual { display: none; flex-direction: column; gap: 6px; }
+  #manApply { background: rgba(52,199,150,.55) !important; font-weight: 700; }
+  #msg { font-size: 13px; color: #6ee7b7; min-height: 16px; }
+</style>
+</head>
+<body>
+<header class="glass"><h1>Звонки</h1><button class="pill" id="syncBtn">💾 Прогресс</button><button class="pill" id="reset">Сбросить</button></header>
+<div id="sync" class="glass">
+  <textarea id="code" placeholder="Здесь будет код прогресса. Чтобы загрузить — вставь код сюда."></textarea>
+  <div class="row2"><button class="pill" id="exp">Получить код</button><button class="pill" id="imp">Загрузить код</button></div>
+  <button class="pill" id="manBtn">✍️ Ввести цифрами</button>
+  <div id="manual"></div>
+  <button class="pill" id="ecoBtn">🔋 Экономия батареи: выкл</button>
+  <div id="msg"></div>
+</div>
+<div id="shiftbar" class="glass"><div id="shFill"></div><div class="shrow"><span id="shT">⏱ Начать смену</span><span id="shS"></span></div></div>
+<div id="sum" class="glass"></div>
+<div id="stats"></div>
+<div id="shiftpanel"></div>
+<div id="grid"></div>
+<div id="selTools"><div id="hint"></div></div>
+<div id="builder" class="panel glass"></div>
+<div id="pad">
+  <div class="row r3">
+    <button class="btn" style="--c:31,168,85" data-k="0">💰 Продажа</button>
+    <button class="btn" style="--c:59,130,246" data-k="1">🤝 СБОЛ</button>
+    <button class="btn lt" style="--c:241,196,15" data-k="2">📞 Перезвон</button>
+    <button class="btn" style="--c:231,76,60" data-k="3">❌ Отказ</button>
+    <button class="btn" style="--c:93,107,130" data-k="4">📵 Сбой</button>
+    <button class="btn" style="--c:230,126,34" data-k="5">🙅 Не слушал</button>
+  </div>
+  <button class="btn" style="--c:120,128,150;min-height:40px" id="undo">↩ Отменить</button>
+</div>
+<canvas id="fx"></canvas><div id="party"></div><div id="toast" class="glass"></div>
+<script>
+const KINDS = ["Продажа", "СБОЛ", "Перезвон", "Отказ", "Сбой звонка", "Отказ от презентации"];
+const KC = ["31,168,85", "59,130,246", "241,196,15", "231,76,60", "93,107,130", "230,126,34"];
+const KEMO = ["💰", "🤝", "📞", "❌", "📵", "🙅"];
+const PRODUCTS = ["Кредитная карта", "СберПрайм", "Вклад Лучший процент", "СберВклад"];   // кросс-продукты
+const PC = ["168,85,247", "244,114,182", "34,211,238", "190,242,100"];                 // цвет каждого кросс-продукта
+const RES = ["Предл.", "Со мной", "Сам"];                                              // 0 предложил (отказ), 1 оформил со мной, 2 СБОЛ
+const MAINS = ["Накопительный счёт", "СберПрайм", "Кредитная карта", "СберВклад"];
+const MSHORT = ["", "П", "К", "В"];
+const TOTAL = 300, H = 3600000;
+const $ = id => document.getElementById(id);
+const pad2 = n => String(n).padStart(2, "0");
+const blankCalls = () => new Array(TOTAL).fill(null);
+const padC = a => a.concat(new Array(Math.max(0, TOTAL - a.length)).fill(null));
+
+// ---------- данные ----------
+// звонок: {k: вид, m: основной продукт (-1 нет), x: [[кросс-продукт, результат], ...]}
+let calls = blankCalls();
+let pr = PRODUCTS.map(() => [0, 0]);   // добавка к кросс-счётчикам (старые данные / ручной ввод): [предложений, согласий]
+let plan = [0, 0, 0, 0], hist = [];
+let shift = { start: 0, pauseAt: 0, paused: 0, hours: 8, w: 0 };
+const rd = k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
+const rdA = k => { const x = rd(k); return Array.isArray(x) ? x : null; };
+const fromOld = (s, c) => s.map((v, i) => v < 0 ? -1 : v === 0 ? ((c[i] || 0) > 0 ? 0 : 1) : v + 1);
+const setPr = flat => { if (Array.isArray(flat)) pr = PRODUCTS.map((_, i) => [Math.max(0, +flat[i * 2] || 0), Math.max(0, +flat[i * 2 + 1] || 0)]); };
+// перевод старых статусов в новую модель (кросс-продукт неизвестен = -1, в счётчики продуктов не идёт: они уже в pr)
+function legacy(s, c, m) {
+  const X = (r, n) => Array.from({ length: n }, () => [-1, r]);
+  return s.map((v, i) => {
+    if (v < 0) return null;
+    const n = Math.max(1, (c && c[i]) || 0), mm = m && m[i] != null ? m[i] : -1;
+    switch (v) {
+      case 0: return { k: 0, m: mm, x: X(1, n) }; case 1: return { k: 0, m: mm, x: X(0, 1) }; case 6: return { k: 0, m: mm, x: [] };
+      case 2: return { k: 2, m: -1, x: [] }; case 3: return { k: 3, m: -1, x: [] }; case 4: return { k: 4, m: -1, x: [] }; case 5: return { k: 5, m: -1, x: [] };
+      case 7: return { k: 4, m: -1, x: X(0, 1) }; case 8: return { k: 3, m: -1, x: X(0, 1) };
+      case 9: return { k: 1, m: mm, x: [] }; case 10: return { k: 1, m: mm, x: X(1, n) }; default: return { k: 1, m: mm, x: X(0, 1) };
+    }
+  });
+}
+(function load() {
+  setPr(rdA("pr2"));
+  const p = rdA("plan2"); if (p) plan = [0, 1, 2, 3].map(i => Math.max(0, +p[i] || 0));
+  hist = rdA("hist2") || [];
+  const sh = rd("shift2"); if (sh && typeof sh === "object") shift = Object.assign(shift, sh);
+  const c3 = rdA("calls3"); if (c3) { calls = padC(c3); return; }
+  const s2 = rdA("sq2"), c2 = rdA("cr2");
+  if (s2) { calls = padC(legacy(s2, c2 || [], rdA("mp2") || [])); return; }
+  const s1 = rdA("sq"), c1 = rdA("cr");
+  if (s1) calls = padC(legacy(fromOld(s1, c1 || []), c1 || [], []));
+})();
+const save = () => { try { localStorage.setItem("calls3", JSON.stringify(calls)); localStorage.setItem("pr2", JSON.stringify(pr.flat())); } catch (e) {} };
+const saveMeta = () => { try { localStorage.setItem("plan2", JSON.stringify(plan)); localStorage.setItem("shift2", JSON.stringify(shift)); localStorage.setItem("hist2", JSON.stringify(hist)); } catch (e) {} };
+function clearAll() { calls = blankCalls(); pr = PRODUCTS.map(() => [0, 0]); sel = -1; bd = null; }
+
+// ---------- экономия батареи ----------
+let eco = false; try { eco = localStorage.getItem("eco") === "1"; } catch (e) {}
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const fancy = () => !eco && !reduce;
+function applyEco() { document.body.classList.toggle("eco", eco); $("ecoBtn").textContent = "🔋 Экономия батареи: " + (eco ? "вкл" : "выкл"); }
+
+// ---------- состояние ----------
+const grid = $("grid"), stats = $("stats"), sum = $("sum"), shiftpanel = $("shiftpanel"), builder = $("builder");
+let sel = -1, panel = "none", bd = null;   // bd — звонок, который сейчас собирается: {k, m, x}
+let popIdx = -1, popKind = "pop", lastPt = { x: innerWidth / 2, y: innerHeight * 0.7 };
+const prevSum = [];
+const lastIdx = () => { let l = -1; calls.forEach((v, i) => { if (v) l = i; }); return l; };
+const nextIdx = () => calls.indexOf(null);
+const buzz = () => { if (navigator.vibrate) try { navigator.vibrate(15); } catch (e) {} };
+const pct = (n, base) => base ? `${+(n / base * 100).toFixed(2)}%` : "0%";
+
+// ---------- эффекты ----------
+const restart = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
+function toast(t) { const el = $("toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 1600); }
+const fx = $("fx"), fctx = fx.getContext("2d"); let parts = [], raf = 0;
+const sizeFx = () => { fx.width = innerWidth; fx.height = innerHeight; };
+addEventListener("resize", sizeFx); sizeFx();
+function burst(x, y, n, power = 1) {
+  if (!fancy() || document.hidden) return;
+  const cols = ["#34c446", "#21a038", "#f1c40f", "#0a9673", "#ff453a", "#2dd4bf", "#ffffff"];
+  n = Math.min(n, 160 - parts.length); if (n <= 0) return;
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, s = (3 + Math.random() * 6) * power;
+    parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 4 * power, r: 3 + Math.random() * 3, c: cols[i % cols.length], life: 50 + Math.random() * 30, rot: Math.random() * 6, vr: (Math.random() - .5) * .4 });
+  }
+  if (!raf) raf = requestAnimationFrame(tick);
+}
+function tick() {
+  fctx.clearRect(0, 0, fx.width, fx.height);
+  parts = parts.filter(p => p.life > 0);
+  for (const p of parts) {
+    p.x += p.vx; p.y += p.vy; p.vy += .25; p.vx *= .99; p.life--; p.rot += p.vr;
+    fctx.save(); fctx.globalAlpha = Math.min(1, p.life / 25); fctx.translate(p.x, p.y); fctx.rotate(p.rot);
+    fctx.fillStyle = p.c; fctx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r); fctx.restore();
+  }
+  raf = parts.length ? requestAnimationFrame(tick) : 0;
+  if (!parts.length) fctx.clearRect(0, 0, fx.width, fx.height);
+}
+function floatEmoji(t) {
+  if (!fancy()) return;
+  const el = document.createElement("div"); el.className = "floatxp"; el.textContent = t;
+  el.style.left = lastPt.x + "px"; el.style.top = (lastPt.y - 30) + "px";
+  document.body.appendChild(el); setTimeout(() => el.remove(), 1000);
+}
+// «линза» жидкого стекла: расходящееся стеклянное кольцо от точки нажатия
+function lens(scale = 1) {
+  if (!fancy()) return;
+  const el = document.createElement("div"); el.className = "lens";
+  el.style.left = lastPt.x + "px"; el.style.top = lastPt.y + "px"; el.style.width = el.style.height = 240 * scale + "px";
+  document.body.appendChild(el); setTimeout(() => el.remove(), 850);
+}
+document.addEventListener("pointerdown", e => {
+  lastPt = { x: e.clientX, y: e.clientY };
+  if (!fancy()) return;
+  const t = e.target.closest(".btn,.pill,.rb,.chip,.sq"); if (t) { restart(t, "ab"); setTimeout(() => t.classList.remove("ab"), 750); }
+}, true);
+function celebrate(rec, total) {
+  floatEmoji(KEMO[rec.k]); lens(rec.k < 2 ? 1.6 : 1);
+  const good = rec.k < 2, nx = rec.x.length;
+  if (good) burst(lastPt.x, lastPt.y, rec.k === 0 ? 55 : 35, rec.k === 0 ? 1.2 : 1);
+  toast(KINDS[rec.k] + " " + KEMO[rec.k] + (nx ? ` · кросс +${nx}` : ""));
+  if (total > 0 && total % 20 === 0) setTimeout(() => toast("💾 Сохрани код прогресса в заметки"), 2200);
+  if (total > 0 && total % 10 === 0 && fancy()) {
+    $("party").textContent = `🎉 ${total} звонков!`; restart($("party"), "on");
+    burst(innerWidth * .25, innerHeight * .5, 35, 1.3); burst(innerWidth * .75, innerHeight * .5, 35, 1.3); burst(innerWidth * .5, innerHeight * .35, 50, 1.5);
+    buzz();
+  }
+}
+
+// ---------- подсчёты ----------
+function counts() {
+  const cnt = new Array(6).fill(0), salesBy = [0, 0, 0, 0], selfBy = [0, 0, 0, 0]; let salesNone = 0, selfNone = 0;
+  const co = PRODUCTS.map(() => [0, 0, 0]);   // из звонков: предложено, со мной, сам
+  calls.forEach(c => {
+    if (!c) return; cnt[c.k]++;
+    if (c.k === 0) { if (c.m >= 0) salesBy[c.m]++; else salesNone++; }
+    else if (c.k === 1) { if (c.m >= 0) selfBy[c.m]++; else selfNone++; }
+    c.x.forEach(([p, r]) => { if (p >= 0) { co[p][0]++; if (r === 1) co[p][1]++; if (r === 2) co[p][2]++; } });
+  });
+  const total = cnt.reduce((a, b) => a + b, 0);
+  const prod = PRODUCTS.map((_, i) => ({ off: pr[i][0] + co[i][0], agr: pr[i][1] + co[i][1] + co[i][2], self: co[i][2] }));
+  return { cnt, total, sales: cnt[0], sbol: cnt[1], salesBy, selfBy, salesNone, selfNone, prod,
+    pres: total - cnt[4] - cnt[5],              // презентации: все, кроме сбоя и «не слушал»
+    agree: cnt[0] + cnt[1],                     // согласия = продажи + СБОЛ
+    offers: prod.reduce((a, x) => a + x.off, 0) };
+}
+function statsText(o) {
+  return [`Дозвоны: ${o.total}`, `Презентации: ${o.pres}`, `Согласия: ${o.agree}`,
+    `Всего предложений по кросс-продуктам: ${o.offers} (${pct(o.offers, o.total)} от дозвонов)`,
+    `СБОЛ: ${o.sbol} (${pct(o.sbol, o.total)} от дозвона)`, `Основные продукты (продаж / СБОЛ):`]
+    .concat(MAINS.map((n, i) => `${n}: ${o.salesBy[i]} / ${o.selfBy[i]}`)).concat([`Кросс-продукты:`])
+    .concat(PRODUCTS.map((n, i) => `${n}: предложений ${o.prod[i].off} (${pct(o.prod[i].off, o.offers)} от дозвона), согласий ${o.prod[i].agr} (${pct(o.prod[i].agr, o.prod[i].off)} от предложений), из них сам ${o.prod[i].self}`)).join("\n");
+}
+
+// ---------- смена ----------
+const elapsed = () => shift.start ? ((shift.pauseAt || Date.now()) - shift.start - shift.paused) : 0;
+const fmt = ms => { ms = Math.max(0, Math.floor(ms / 1000)); return `${Math.floor(ms / 3600)}:${pad2(Math.floor(ms % 3600 / 60))}:${pad2(ms % 60)}`; };
+const hhmm = ts => new Date(ts).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+let topInfo = { sales: 0, planSum: 0, total: 0 }, tickId = 0;
+function updateShift() {
+  const len = shift.hours * H, el = elapsed(), rem = len - el;
+  if (!shift.start) { $("shT").textContent = "⏱ Начать смену"; $("shFill").style.width = "0%"; }
+  else {
+    $("shT").textContent = (shift.pauseAt ? "⏸ " : "⏱ ") + (rem >= 0 ? fmt(rem) : "+" + fmt(-rem));
+    $("shFill").style.width = Math.min(100, el / len * 100) + "%";
+    if (!shift.pauseAt) {
+      if (rem <= H && rem > 0 && shift.w < 1) { shift.w = 1; saveMeta(); toast("⏳ До конца смены остался час"); }
+      if (rem <= 0 && shift.w < 2) { shift.w = 2; saveMeta(); toast("🎉 Смена закончилась"); burst(innerWidth / 2, innerHeight * .4, 60, 1.3); buzz(); }
+    }
+  }
+  $("shS").textContent = `Продаж ${topInfo.sales}` + (topInfo.planSum ? ` / ${topInfo.planSum}` : "");
+  if (panel === "shift" && $("shLive")) {
+    const endMs = shift.start + len + shift.paused + (shift.pauseAt ? Date.now() - shift.pauseAt : 0);
+    $("shLive").textContent = !shift.start ? "не начата" : (shift.pauseAt ? "пауза · " : "") + (rem > 0 ? "до " + hhmm(endMs) : "время вышло");
+    const hrs = el / H;
+    $("shPace").textContent = shift.start && el >= 600000 ? `Темп: ${(topInfo.total / hrs).toFixed(1)} зв./час. К концу смены по такому темпу ≈ ${Math.round(topInfo.total / hrs * shift.hours)} звонков и ≈ ${Math.round(topInfo.sales / hrs * shift.hours)} продаж.` : "Темп появится через 10 минут после начала смены.";
+  }
+}
+function syncTick() {
+  clearInterval(tickId); tickId = 0;
+  if (shift.start && !shift.pauseAt && !document.hidden) tickId = setInterval(updateShift, 1000);
+  updateShift();
+}
+document.addEventListener("visibilitychange", () => { if (document.hidden) parts = []; syncTick(); });
+
+// ---------- панели ----------
+function openPanel(name) { panel = name; lastFocus = -2; render(); }
+const toggle = n => openPanel(panel === n ? "none" : n);
+
+// ---------- отрисовка ----------
+const cells = []; let lastFocus = -2;
+function cellHTML(c) {
+  const nx = c.x.length;
+  return `<span class="t">${nx ? "+" + nx : ""}</span>` + (nx ? `<div class="xb">${c.x.map(([p, r]) => `<i class="r${r}" style="--c:${p >= 0 ? PC[p] : "205,210,225"}"></i>`).join("")}</div>` : "");
+}
+function renderGrid() {
+  const n = calls.length, next = nextIdx();
+  while (cells.length < n) { const d = document.createElement("div"); d.dataset.i = cells.length; grid.appendChild(d); cells.push(d); }
+  for (let i = 0; i < n; i++) {
+    const c = calls[i], d = cells[i];
+    const m = c && c.k < 2 && c.m > 0 ? MSHORT[c.m] : "";
+    const key = (c ? JSON.stringify(c) : "") + "|" + (i === next && sel < 0) + "|" + (i === sel);
+    if (d._k !== key || i === popIdx) {
+      d._k = key;
+      d.className = "sq" + (c ? " f" + (c.k === 2 ? " lt" : "") + (c.x.length ? " x" : "") : "") + (i === next && sel < 0 ? " next" : "") + (i === sel ? " sel" : "") + (i === popIdx ? " " + popKind : "");
+      if (c) { d.style.setProperty("--c", KC[c.k]); d.innerHTML = cellHTML(c); } else { d.style.removeProperty("--c"); d.textContent = ""; }
+      if (m) d.dataset.m = m; else delete d.dataset.m;
+    }
+  }
+  popIdx = -1;
+  const focus = sel >= 0 ? sel : next;
+  if (focus !== lastFocus && cells[focus]) { lastFocus = focus; cells[focus].scrollIntoView({ block: "nearest" }); }
+}
+grid.onclick = e => { const c = e.target.closest(".sq"); if (!c) return; const i = +c.dataset.i; sel = sel === i ? -1 : i; if (panel === "build") { panel = "none"; bd = null; } lens(.7); render(); };
+
+function builderHTML() {
+  const hints = ["Продажа: выбери основной продукт и кросс-продукты, которые предлагал.", "СБОЛ (клиент оформил сам): основной продукт и кросс, если был.", "", "Отказ: если кросс не предлагал — просто «Записать» (отказ от всего).", "Сбой звонка: если сбросили в самом начале — «Записать», если на кроссе — отметь, что предлагал."];
+  const kind = bd.k;
+  return `<div class="top"><span>${KEMO[kind]} ${KINDS[kind]}${sel >= 0 ? " · №" + (sel + 1) : ""}</span></div>
+    ${kind < 2 ? `<div id="mainRow" class="glass"><span>Основной:</span>${MAINS.map((n, i) => `<button class="chip${bd.m === i ? " on" : ""}" data-m="${i}">${["Накопит.", "СберПрайм", "Кредитка", "СберВклад"][i]}</button>`).join("")}</div>` : ""}
+    <small>${hints[kind]}<br>Кросс: «Предл.» — предложил, отказали · «Со мной» — оформили со мной · «Сам» — СБОЛ</small>
+    ${PRODUCTS.map((n, p) => { const e = bd.x.find(a => a[0] === p); return `<div class="xr" style="--c:${PC[p]}"><span><i class="dot"></i>${n}</span>${RES.map((r, j) => `<button class="rb${e && e[1] === j ? " on" : ""}" data-p="${p}" data-r="${j}">${r}</button>`).join("")}</div>`; }).join("")}
+    <div class="row r2"><button class="btn" style="--c:120,128,150" data-b="cancel">Отмена</button><button class="btn" style="--c:31,168,85" data-b="ok">✓ Записать${bd.x.length ? " (+" + bd.x.length + ")" : ""}</button></div>`;
+}
+function shiftPanelHTML(o) {
+  const run = !!shift.start, planSum = plan.reduce((a, b) => a + b, 0);
+  const startVal = run ? `${pad2(new Date(shift.start).getHours())}:${pad2(new Date(shift.start).getMinutes())}` : "";
+  const main = !run ? `<button class="pill" data-sh="start">▶ Начать смену</button>` : shift.pauseAt ? `<button class="pill" data-sh="resume">▶ Продолжить</button>` : `<button class="pill" data-sh="pause">⏸ Пауза</button>`;
+  return `<div class="card glass">
+      <div class="top"><span>Смена</span><span id="shLive" style="font-weight:500;color:var(--muted);font-size:13px"></span></div>
+      <div class="btns">${main}${run ? `<button class="pill" data-sh="reset">⏹ Сбросить</button>` : ""}</div>
+      <div class="mrow"><span>Длина смены, часов</span><input class="pin" id="shHours" type="number" inputmode="decimal" step="0.5" min="1" max="24" value="${shift.hours}"></div>
+      <div class="mrow"><span>Начало смены</span><input class="pin" style="width:96px" id="shStart" type="time" value="${startVal}"></div>
+      <small class="m" id="shPace"></small>
+    </div>
+    <div class="card glass">
+      <div class="top"><span>План на продажи</span><span style="font-weight:500;color:var(--muted);font-size:13px">${o.sales}${planSum ? " / " + planSum : ""}</span></div>
+      ${MAINS.map((n, i) => `<div class="prog"><div class="ph"><span>${n}</span><span>${o.salesBy[i]} / <input class="pin" id="pl${i}" type="number" inputmode="numeric" min="0" placeholder="0" value="${plan[i] || ""}"></span></div>
+        <div class="bar"><i style="width:${plan[i] ? Math.min(100, o.salesBy[i] / plan[i] * 100) : 0}%"></i></div></div>`).join("")}
+      ${planSum ? `<div class="ln"><span>Осталось до плана</span><b>${Math.max(0, planSum - o.sales)}</b></div>` : `<small class="m">Впиши план по нужным продуктам — появится прогресс.</small>`}
+      <small class="m">СБОЛ по продуктам: ${MAINS.map((n, i) => `${["НС", "П", "К", "В"][i]} ${o.selfBy[i]}`).join(" · ")}${o.salesNone || o.selfNone ? ` · без продукта: ${o.salesNone} прод., ${o.selfNone} СБОЛ` : ""}</small>
+    </div>
+    ${histHTML(o)}`;
+}
+function snap(o) {
+  const el = elapsed(), h = el > 600000 ? el / H : 0;
+  return { d: Date.now(), h: +h.toFixed(2), t: o.total, p: o.pres, a: o.agree, s: o.sbol, l: o.sales, o: o.offers };
+}
+function histHTML(o) {
+  const rows = hist.map((r, i) => ({ r, i })), cols = ["t", "a", "s", "l", "o"];
+  const rate = r => r.h > 0 ? r.t / r.h : 0;
+  const best = {}; cols.forEach(k => best[k] = Math.max(0, ...hist.map(r => r[k]))); best.v = Math.max(0, ...hist.map(rate));
+  const avg = k => hist.length ? (hist.reduce((a, r) => a + r[k], 0) / hist.length).toFixed(1) : 0;
+  const cell = (r, k) => `<td${r[k] && r[k] === best[k] && hist.length > 1 ? ' style="color:#6ee7b7"' : ""}><b>${r[k]}</b></td>`;
+  const dt = ts => new Date(ts).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" });
+  return `<div class="card glass">
+    <div class="top"><span>Смены</span><span style="font-weight:500;color:var(--muted);font-size:13px">${hist.length}</span></div>
+    <div class="btns"><button class="pill" data-sh="save">💾 Сохранить</button><button class="pill" data-sh="close">✅ Закрыть смену</button></div>
+    <small class="m">«Сохранить» — снимок текущих цифр. «Закрыть смену» — снимок и чистый лист для новой (квадраты, кросс-счётчики и смена обнулятся).</small>
+    ${hist.length ? `<table><tr><th>Дата</th><th>Зв.</th><th>Согл.</th><th>СБОЛ</th><th>Прод.</th><th>Кросс</th><th>Зв/ч</th><th></th></tr>
+      ${rows.map(({ r, i }) => `<tr><td>${dt(r.d)}</td>${cols.map(k => cell(r, k)).join("")}<td${rate(r) && rate(r) === best.v && hist.length > 1 ? ' style="color:#6ee7b7"' : ""}><b>${r.h ? rate(r).toFixed(1) : "—"}</b></td><td><button class="pill" style="padding:4px 8px" data-del="${i}">✕</button></td></tr>`).join("")}
+      <tr><td><i>Среднее</i></td>${cols.map(k => `<td><i>${avg(k)}</i></td>`).join("")}<td></td><td></td></tr>
+      <tr><td><i>Сейчас</i></td><td><i>${o.total}</i></td><td><i>${o.agree}</i></td><td><i>${o.sbol}</i></td><td><i>${o.sales}</i></td><td><i>${o.offers}</i></td><td><i>${elapsed() > 600000 ? (o.total / (elapsed() / H)).toFixed(1) : "—"}</i></td><td></td></tr>
+    </table><small class="m">Зелёным — лучший результат по столбцу. Зв/ч считается, если смена шла больше 10 минут.</small>` : ""}
+  </div>`;
+}
+function statsHTML(o) {
+  return `<div class="card glass">
+      <div class="top"><span>Статистика</span><button id="copyStat">Копировать статистику</button></div>
+      <div class="kpis">
+        <div class="kpi"><small>Дозвоны по проекту</small><b>${o.total}</b></div>
+        <div class="kpi"><small>Презентации по проекту</small><b>${o.pres}</b></div>
+        <div class="kpi"><small>Согласия по проекту</small><b>${o.agree}</b></div>
+      </div>
+      <div class="wide"><small>Всего предложений по кросс-продуктам</small><b>${o.offers}</b><i>(${pct(o.offers, o.total)} от дозвонов)</i></div>
+      <div class="ln"><span>СБОЛ:</span><span><b>${o.sbol}</b><i>(${pct(o.sbol, o.total)} от дозвона)</i></span></div>
+      <table><tr><th>Основные продукты</th><th>Продаж</th><th>СБОЛ</th></tr>
+        ${MAINS.map((n, i) => `<tr><td>${n}</td><td><b>${o.salesBy[i]}</b></td><td><b>${o.selfBy[i]}</b></td></tr>`).join("")}
+        ${o.salesNone || o.selfNone ? `<tr><td>Не указан</td><td><b>${o.salesNone}</b></td><td><b>${o.selfNone}</b></td></tr>` : ""}
+      </table>
+      <table><tr><th>Кросс-продукты</th><th>Предложений</th><th>Согласий</th></tr>
+        ${PRODUCTS.map((n, i) => `<tr><td><i class="dot" style="--c:${PC[i]}"></i>${n}</td><td><b>${o.prod[i].off}</b><i>(${pct(o.prod[i].off, o.offers)} от дозвона)</i></td><td><b>${o.prod[i].agr}</b><i>(${pct(o.prod[i].agr, o.prod[i].off)} от предложений${o.prod[i].self ? `, сам: ${o.prod[i].self}` : ""})</i></td></tr>`).join("")}
+      </table>
+    </div>
+    <div class="legend">${KINDS.map((n, i) => `<div style="border-bottom:3px solid rgb(${KC[i]})"><b>${o.cnt[i]}</b>${n}</div>`).join("")}</div>
+    <small class="m">Нижняя полоска квадрата — кросс-продукты (цвет продукта): тусклая — предложил, отказали; яркая — оформили со мной; с белой рамкой — СБОЛ.</small>`;
+}
+function render() {
+  renderGrid();
+  const building = panel === "build" && bd;
+  builder.style.display = building ? "flex" : "none"; $("pad").style.display = building ? "none" : "flex";
+  $("selTools").style.display = sel >= 0 && !building ? "block" : "none";
+  $("hint").textContent = sel >= 0 ? `Правка квадрата №${sel + 1}: нажми вид звонка, чтобы поменять. Тап по нему ещё раз — отмена.` : "";
+  $("undo").textContent = sel >= 0 ? "🗑 Очистить квадрат" : "↩ Отменить последний";
+  if (building) { builder.innerHTML = builderHTML(); builder.firstElementChild.style.setProperty("--c", KC[bd.k]); }
+  const o = counts();
+  topInfo = { sales: o.sales, planSum: plan.reduce((a, b) => a + b, 0), total: o.total };
+  sum.innerHTML = `<span>Дозвоны <b>${o.total}</b></span><span>Согл. <b>${o.agree}</b></span><span>СБОЛ <b>${o.sbol}</b></span><span>Кросс <b>${o.offers}</b></span>`;
+  if (fancy()) sum.querySelectorAll("b").forEach((el, i) => { if (prevSum[i] !== undefined && prevSum[i] !== el.textContent) el.classList.add("bump"); prevSum[i] = el.textContent; });
+  const showStats = panel === "stats", showShift = panel === "shift";
+  if (showStats && stats.style.display !== "flex") stats.style.animation = "none", void stats.offsetWidth, stats.style.animation = "";
+  stats.style.display = showStats ? "flex" : "none"; shiftpanel.style.display = showShift ? "flex" : "none";
+  if (showStats) {
+    stats.innerHTML = statsHTML(o);
+    $("copyStat").onclick = () => {
+      const t = statsText(o); $("code").value = t; $("sync").style.display = "flex";
+      try { navigator.clipboard.writeText(t).then(() => $("msg").textContent = "Статистика скопирована.", () => $("msg").textContent = "Скопируй текст вручную."); }
+      catch (e) { $("msg").textContent = "Скопируй текст вручную."; }
+    };
+  }
+  if (showShift) shiftpanel.innerHTML = shiftPanelHTML(o);
+  updateShift();
+}
+
+// ---------- ввод звонка ----------
+function commit(rec) {
+  const isNew = sel < 0; let i = sel;
+  if (isNew) { i = nextIdx(); if (i < 0) { calls = calls.concat(blankCalls()); i = nextIdx(); } }
+  calls[i] = rec; popIdx = i; popKind = rec.k >= 3 ? "shake" : "pop";
+  sel = -1; bd = null; panel = "none"; save(); render(); buzz();
+  if (isNew) celebrate(rec, counts().total); else lens(.7);
+  if (!isNew) { const d = cells[i]; if (d && fancy()) restart(d, "wob"); }
+}
+document.querySelectorAll("[data-k]").forEach(b => b.onclick = () => {
+  const k = +b.dataset.k;
+  if (k === 2 || k === 5) { commit({ k, m: -1, x: [] }); return; }
+  const ex = sel >= 0 ? calls[sel] : null;
+  bd = { k, m: k < 2 ? (ex && ex.k < 2 && ex.m >= 0 ? ex.m : 0) : -1, x: ex ? ex.x.map(a => a.slice()) : [] };
+  lens(.8); openPanel("build");
+});
+builder.onclick = e => {
+  const chip = e.target.closest(".chip"); if (chip) { bd.m = +chip.dataset.m; buzz(); return render(); }
+  const rb = e.target.closest(".rb");
+  if (rb) {
+    const p = +rb.dataset.p, r = +rb.dataset.r, i = bd.x.findIndex(a => a[0] === p);
+    if (i < 0) bd.x.push([p, r]); else if (bd.x[i][1] === r) bd.x.splice(i, 1); else bd.x[i][1] = r;
+    buzz(); return render();
+  }
+  const bt = e.target.closest("[data-b]"); if (!bt) return;
+  if (bt.dataset.b === "cancel") { bd = null; openPanel("none"); return; }
+  commit({ k: bd.k, m: bd.m, x: bd.x });
+};
+$("undo").onclick = () => {
+  const l = sel >= 0 ? sel : lastIdx();
+  if (l >= 0) { calls[l] = null; sel = -1; save(); render(); }
+};
+$("shiftbar").onclick = () => toggle("shift");
+sum.onclick = () => toggle("stats");
+
+// смена и план
+let closeArm = 0, delArm = -1;
+shiftpanel.onclick = e => {
+  const dl = e.target.closest("button[data-del]");
+  if (dl) { const i = +dl.dataset.del; if (delArm !== i) { delArm = i; dl.textContent = "?"; setTimeout(() => { delArm = -1; if (dl.isConnected) dl.textContent = "✕"; }, 2500); return; } hist.splice(i, 1); delArm = -1; saveMeta(); render(); return; }
+  const b = e.target.closest("button[data-sh]"); if (!b) return;
+  const a = b.dataset.sh, now = Date.now();
+  if (a === "save") { hist.push(snap(counts())); saveMeta(); render(); toast("💾 Смена сохранена"); return; }
+  if (a === "close") {
+    if (!closeArm) { closeArm = 1; b.textContent = "Точно? Нажми ещё раз"; setTimeout(() => { closeArm = 0; if (b.isConnected) b.textContent = "✅ Закрыть смену"; }, 3000); return; }
+    closeArm = 0; hist.push(snap(counts())); clearAll();
+    shift.start = 0; shift.pauseAt = 0; shift.paused = 0; shift.w = 0;
+    save(); saveMeta(); syncTick(); render(); toast("✅ Смена закрыта и сохранена"); return;
+  }
+  if (a === "start") { shift.start = now; shift.pauseAt = 0; shift.paused = 0; shift.w = 0; }
+  else if (a === "pause") shift.pauseAt = now;
+  else if (a === "resume") { shift.paused += now - shift.pauseAt; shift.pauseAt = 0; }
+  else if (a === "reset") { shift.start = 0; shift.pauseAt = 0; shift.paused = 0; shift.w = 0; }
+  saveMeta(); syncTick(); render(); buzz();
+};
+shiftpanel.onchange = e => {
+  const t = e.target;
+  if (t.id === "shHours") { shift.hours = Math.min(24, Math.max(1, +t.value || 8)); t.value = shift.hours; shift.w = 0; }
+  else if (t.id === "shStart") {
+    const [h, m] = (t.value || "").split(":").map(Number);
+    if (!isNaN(h) && !isNaN(m)) { const d = new Date(); d.setHours(h, m, 0, 0); if (d.getTime() > Date.now()) d.setDate(d.getDate() - 1); shift.start = d.getTime(); shift.paused = 0; shift.pauseAt = 0; shift.w = 0; syncTick(); }
+  }
+  else if (t.id && t.id.startsWith("pl")) { plan[+t.id.slice(2)] = Math.max(0, Math.floor(+t.value) || 0); topInfo.planSum = plan.reduce((a, b) => a + b, 0); }
+  saveMeta(); updateShift();
+};
+
+// ручной ввод цифр
+const MAN = KINDS.map((n, i) => [i, n]);
+const num = id => Math.max(0, Math.floor(+$(id).value) || 0);
+function manTotal() { $("mTot").textContent = MAN.reduce((s, m) => s + num("mc" + m[0]), 0); }
+function buildManual() {
+  const el = $("manual");
+  el.innerHTML = `<small class="m">Впиши, сколько было звонков каждого типа. Текущие данные будут заменены. Основным считаю накопительный, кросс — только общими цифрами.</small>`
+    + MAN.map(([c, n]) => `<div class="mrow"><span>${n}</span><input class="pin" type="number" inputmode="numeric" min="0" id="mc${c}" value="0"></div>`).join("")
+    + `<div class="mrow"><b>Всего звонков</b><b id="mTot">0</b></div><small class="m">Кросс-продукты: предложений и согласий</small>`
+    + PRODUCTS.map((n, i) => `<div class="mrow"><span>${n}</span><span><input class="pin" type="number" inputmode="numeric" min="0" id="mo${i}" value="0"> <input class="pin" type="number" inputmode="numeric" min="0" id="ma${i}" value="0"></span></div>`).join("")
+    + `<button class="pill" id="manApply">Заменить мои данные</button>`;
+  el.oninput = manTotal; manTotal();
+  let arm = false;
+  $("manApply").onclick = e => {
+    if (!arm) { arm = true; e.target.textContent = "Точно заменить? Нажми ещё раз"; setTimeout(() => { arm = false; e.target.textContent = "Заменить мои данные"; }, 3000); return; }
+    const arr = []; MAN.forEach(([c]) => { for (let k = 0; k < num("mc" + c); k++) arr.push({ k: c, m: c < 2 ? 0 : -1, x: [] }); });
+    calls = padC(arr); sel = -1;
+    pr = PRODUCTS.map((_, i) => { const a = num("ma" + i); return [Math.max(num("mo" + i), a), a]; });
+    save(); render(); arm = false; e.target.textContent = "Заменить мои данные"; $("msg").textContent = `Готово: ${arr.length} звонков.`;
+  };
+}
+$("manBtn").onclick = () => { const el = $("manual"); if (!el.innerHTML) buildManual(); el.style.display = el.style.display === "flex" ? "none" : "flex"; };
+let armed = false;
+$("reset").onclick = e => {
+  if (!armed) { armed = true; e.target.textContent = "Точно?"; setTimeout(() => { armed = false; e.target.textContent = "Сбросить"; }, 2500); return; }
+  clearAll(); armed = false; e.target.textContent = "Сбросить"; save(); render();
+};
+$("ecoBtn").onclick = () => { eco = !eco; try { localStorage.setItem("eco", eco ? "1" : "0"); } catch (e) {} applyEco(); };
+
+// перенос прогресса: KV4 (новый); KV1–KV3 тоже принимаются
+const sync = $("sync"), code = $("code"), msg = $("msg");
+$("syncBtn").onclick = () => { sync.style.display = sync.style.display === "flex" ? "none" : "flex"; msg.textContent = ""; };
+$("exp").onclick = () => {
+  const n = Math.max(lastIdx() + 1, 0);
+  code.value = "KV4:" + JSON.stringify({ k: calls.slice(0, n), p: pr.flat(), q: plan, h: hist });
+  code.select();
+  try { navigator.clipboard.writeText(code.value).then(() => msg.textContent = "Код скопирован. Если нет — выдели и скопируй вручную.", () => msg.textContent = "Скопируй код вручную."); }
+  catch (e) { msg.textContent = "Скопируй код вручную."; }
+};
+$("imp").onclick = () => {
+  try {
+    const t = code.value.trim(), v = t.slice(0, 4);
+    if (!["KV1:", "KV2:", "KV3:", "KV4:"].includes(v)) throw 0;
+    const o = JSON.parse(t.slice(4));
+    if (v === "KV4:") {
+      if (!Array.isArray(o.k)) throw 0;
+      calls = padC(o.k.map(c => c && typeof c.k === "number" ? { k: c.k, m: c.m, x: Array.isArray(c.x) ? c.x : [] } : null));
+      setPr(o.p); if (Array.isArray(o.q)) plan = [0, 1, 2, 3].map(i => Math.max(0, +o.q[i] || 0)); if (Array.isArray(o.h)) hist = o.h;
+    } else {
+      if (!Array.isArray(o.s) || !Array.isArray(o.c)) throw 0;
+      calls = padC(legacy(v === "KV1:" ? fromOld(o.s, o.c) : o.s, o.c, Array.isArray(o.m) ? o.m : []));
+      if (v === "KV3:") { setPr(o.p); if (Array.isArray(o.q)) plan = [0, 1, 2, 3].map(i => Math.max(0, +o.q[i] || 0)); }
+    }
+    sel = -1; save(); saveMeta(); render(); msg.textContent = "Прогресс загружен.";
+  } catch (e) { msg.textContent = "Не получилось: код неверный или обрезан."; }
+};
+
+// ---------- фиксация страницы: без зума, без случайных сдвигов ----------
+["gesturestart", "gesturechange", "gestureend"].forEach(n => document.addEventListener(n, e => e.preventDefault(), { passive: false }));
+document.addEventListener("touchmove", e => {
+  if (e.touches.length > 1) { e.preventDefault(); return; }                      // щипок
+  if (!e.target.closest("#grid, #stats, #shiftpanel, textarea")) e.preventDefault(); // страница не двигается
+}, { passive: false });
+document.addEventListener("dblclick", e => e.preventDefault());
+
+// ---------- закрытие вкладок свайпом вниз ----------
+function swipeClose(el, close) {
+  let y0 = 0, dy = 0, on = false;
+  el.addEventListener("touchstart", e => {
+    if (e.touches.length !== 1 || e.target.closest("textarea,input")) return;
+    y0 = e.touches[0].clientY; dy = 0; on = el.scrollTop <= 0; el.style.transition = "none";
+  }, { passive: true });
+  el.addEventListener("touchmove", e => {
+    if (!on) return; dy = Math.max(0, e.touches[0].clientY - y0);
+    el.style.transform = `translateY(${dy * .7}px) scale(${1 - dy / 2500})`; el.style.opacity = Math.max(.35, 1 - dy / 450);
+  }, { passive: true });
+  el.addEventListener("touchend", () => {
+    if (!on) return; on = false;
+    el.style.transition = "transform .3s cubic-bezier(.34,1.56,.64,1), opacity .25s";
+    if (dy > 90) {
+      el.style.transform = "translateY(60%) scale(.9)"; el.style.opacity = 0; buzz();
+      setTimeout(() => { el.style.transition = el.style.transform = el.style.opacity = ""; close(); }, 230);
+    } else { el.style.transform = ""; el.style.opacity = ""; setTimeout(() => { el.style.transition = ""; }, 320); }
+    dy = 0;
+  }, { passive: true });
+}
+swipeClose(stats, () => openPanel("none"));
+swipeClose(shiftpanel, () => openPanel("none"));
+swipeClose(builder, () => { bd = null; openPanel("none"); });
+swipeClose(sync, () => { sync.style.display = "none"; });
+
+applyEco(); render(); syncTick();
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+if ("serviceWorker" in navigator) { try { navigator.serviceWorker.register("sw.js").catch(() => {}); } catch (e) {} }
+</script>
+</body>
+</html>
