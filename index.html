@@ -191,7 +191,7 @@
   <button class="pill" id="manBtn">✍️ Ввести цифрами</button>
   <div id="manual"></div>
   <button class="pill" id="ecoBtn">🔋 Экономия батареи: выкл</button>
-  <div id="msg"></div><small style="color:var(--muted);text-align:center">Версия 8</small>
+  <div id="msg"></div><small style="color:var(--muted);text-align:center">Версия 9</small>
 </div>
 </div>
 <div id="selTools"><div id="hint"></div></div>
@@ -681,7 +681,7 @@ swipeClose(sync, () => { sync.style.display = "none"; });
 
 applyEco(); render(); syncTick();
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-if ("serviceWorker" in navigator) { try { navigator.serviceWorker.register("sw.js").catch(() => {}); } catch (e) {} }
+if ("serviceWorker" in navigator) { try { navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(r => document.addEventListener("visibilitychange", () => { if (!document.hidden) r.update(); })).catch(() => {}); } catch (e) {} }
 </script>
 </body>
 </html>
