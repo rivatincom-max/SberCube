@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <meta name="color-scheme" content="dark">
 <meta name="format-detection" content="telephone=no">
@@ -17,9 +17,9 @@
 <style>
   :root { --text: #f5f7fb; --muted: rgba(235,240,255,.62); --stroke: rgba(255,255,255,.2); --spring: cubic-bezier(.34, 1.56, .64, 1); }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html { position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; overflow: hidden; background: #000; margin: 0; }
-  body { position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: auto; overflow: hidden; touch-action: manipulation; margin: 0; background: #000; color: var(--text); font-family: -apple-system, "SF Pro Text", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
-  body { display: flex; flex-direction: column; gap: 8px; padding: calc(env(safe-area-inset-top, 0px) + 6px) max(10px, env(safe-area-inset-right)) max(12px, calc(env(safe-area-inset-bottom, 0px) - 8px)) max(10px, env(safe-area-inset-left)); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; overscroll-behavior: none; }
+  html { background: #000; }
+  html, body { margin: 0; height: 100%; height: 100dvh; overflow: hidden; touch-action: manipulation; color: var(--text); font-family: -apple-system, "SF Pro Text", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  body { display: flex; flex-direction: column; gap: 8px; padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; overscroll-behavior: none; }
   /* статичный фон: цветные пятна, на которых «играет» стекло (без анимации — экономит батарею) */
   body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background:
     radial-gradient(60% 38% at 12% 8%, rgba(33, 160, 56, .30), transparent 70%),
@@ -75,8 +75,8 @@
   .mrow { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 14px; }
 
   /* ===== квадраты ===== */
-  #grid { touch-action: pan-y; overscroll-behavior: contain; flex: 1; min-height: 110px; overflow-y: auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; align-content: start; grid-auto-rows: calc((100vw - 56px) / 5); padding: 2px; contain: content; -webkit-overflow-scrolling: touch; }
-  .sq { position: relative; overflow: hidden; aspect-ratio: 1; border-radius: 26px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 19px; color: #fff; background: rgba(255,255,255,.045); border: 1px dashed rgba(255,255,255,.16); }
+  #grid { scroll-snap-type: y proximity; scroll-padding-top: 2px; touch-action: pan-y; overscroll-behavior: contain; flex: 1; min-height: 110px; overflow-y: auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; align-content: start; grid-auto-rows: calc((100vw - 56px) / 5); padding: 2px; contain: content; -webkit-overflow-scrolling: touch; }
+  .sq { scroll-snap-align: start; position: relative; overflow: hidden; aspect-ratio: 1; border-radius: 26px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 19px; color: #fff; background: rgba(255,255,255,.045); border: 1px dashed rgba(255,255,255,.16); }
   .sq.next { border-style: solid; border-color: rgba(255,255,255,.55); }
   .sq.f { border: 1px solid rgba(255,255,255,.34); background: linear-gradient(155deg, rgba(var(--c), .95), rgba(var(--c), .55)); box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 4px 12px rgba(var(--c), .25); text-shadow: 0 1px 2px rgba(0,0,0,.25); }
   .sq.f.lt { color: #10131a; text-shadow: none; }
@@ -174,7 +174,7 @@
   <button class="pill" id="manBtn">✍️ Ввести цифрами</button>
   <div id="manual"></div>
   <button class="pill" id="ecoBtn">🔋 Экономия батареи: выкл</button>
-  <div id="msg"></div><small style="color:var(--muted);text-align:center">Версия 5</small>
+  <div id="msg"></div><small style="color:var(--muted);text-align:center">Версия 8</small>
 </div>
 <div id="shiftbar" class="glass"><div id="shFill"></div><div class="shrow"><span id="shT">⏱ Начать смену</span><span id="shS"></span></div></div>
 <div id="sum" class="glass"></div>
@@ -665,13 +665,6 @@ swipeClose(shiftpanel, () => openPanel("none"));
 swipeClose(builder, () => { bd = null; openPanel("none"); });
 swipeClose(sync, () => { sync.style.display = "none"; });
 
-// на iPhone в режиме «Домой» высота страницы иногда получается меньше экрана — растягиваем на весь экран
-function fit() {
-  if (!(navigator.standalone || matchMedia("(display-mode: standalone)").matches)) return;
-  const h = Math.max(innerHeight, innerHeight >= innerWidth ? screen.height : screen.width);
-  [document.documentElement, document.body].forEach(e => { e.style.bottom = "auto"; e.style.height = h + "px"; });
-}
-addEventListener("resize", fit); addEventListener("orientationchange", () => setTimeout(fit, 200)); fit();
 
 applyEco(); render(); syncTick();
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
