@@ -178,6 +178,8 @@
   .rnd { width: 40px; height: 40px; padding: 0; border-radius: 50%; display: grid; place-items: center; font-size: 19px; flex: none; }
   #settings { display: none; border-radius: 32px; padding: 14px; gap: 10px; flex-direction: column; z-index: 22; }
   .seg { display: flex; gap: 3px; padding: 4px; border-radius: 999px; }
+  .hgrid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; padding: 5px; border-radius: 24px; }
+  .hgrid .chip { padding: 11px 0; font-size: 15px; }
   .seg .chip { padding: 10px 6px; font-size: 13px; white-space: nowrap; }
 
   /* ===== статистика по основным продуктам ===== */
@@ -539,7 +541,7 @@ function shiftPanelHTML(o) {
   return `<div class="card glass">
       <div class="top"><span>Смена</span><span id="shLive" style="font-weight:500;color:var(--muted);font-size:13px"></span></div>
       <div class="btns">${main}${run || o.total ? `<button class="pill" data-sh="end">🏁 Завершить смену</button>` : ""}</div>
-      <div class="mrow"><span>Длина смены, часов</span><input class="pin" id="shHours" type="number" inputmode="decimal" step="0.5" min="1" max="24" value="${shift.hours}"></div>
+      <div class="mrow"><span>Длина смены, часов</span><input class="pin" id="shHours" type="number" inputmode="decimal" step="0.5" min="1" max="12" value="${shift.hours}"></div>
       <div class="mrow"><span>Начало смены</span><input class="pin" style="width:96px" id="shStart" type="time" value="${startVal}"></div>
       <small class="m" id="shPace"></small>
     </div>
@@ -684,7 +686,7 @@ shiftpanel.onclick = e => {
 };
 shiftpanel.onchange = e => {
   const t = e.target;
-  if (t.id === "shHours") { shift.hours = Math.min(24, Math.max(1, +t.value || 8)); t.value = shift.hours; shift.w = 0; }
+  if (t.id === "shHours") { shift.hours = Math.min(12, Math.max(1, +t.value || 8)); t.value = shift.hours; shift.w = 0; }
   else if (t.id === "shStart") {
     const [h, m] = (t.value || "").split(":").map(Number);
     if (!isNaN(h) && !isNaN(m)) { const d = new Date(); d.setHours(h, m, 0, 0); if (d.getTime() > Date.now()) d.setDate(d.getDate() - 1); shift.start = d.getTime(); shift.paused = 0; shift.pauseAt = 0; shift.w = 0; syncTick(); }
@@ -811,14 +813,14 @@ function boot() {
   if (fancy()) setTimeout(() => { if (!done) burst(innerWidth / 2, innerHeight * .42, 40, .9); }, 1150);
 }
 let su = null;
-function openSetup() { su = { h: shift.hours || 8, pl: plan.slice() }; renderSetup(); showOv("setup"); }
+function openSetup() { su = { h: Math.min(12, shift.hours || 8), pl: plan.slice() }; renderSetup(); showOv("setup"); }
 function renderSetup() {
   const tot = su.pl.reduce((a, b) => a + b, 0);
   $("setupBody").innerHTML = `<div class="card glass">
     <div class="top"><span>⏱ Новая смена</span></div>
     <small class="m">Сколько часов смена</small>
-    <div class="seg glass">${[4, 6, 8, 10, 12].map(h => `<button class="chip${su.h === h ? " on" : ""}" data-su="h:${h}">${h} ч</button>`).join("")}</div>
-    <div class="mrow"><span>Точнее</span><span class="step"><button class="pill" data-su="hs:-0.5">−</button><b>${su.h} ч</b><button class="pill" data-su="hs:0.5">+</button></span></div>
+    <div class="hgrid glass">${Array.from({ length: 12 }, (_, i) => i + 1).map(h => `<button class="chip${su.h === h ? " on" : ""}" data-su="h:${h}">${h}</button>`).join("")}</div>
+    <div class="mrow"><span>Смена, часов</span><span class="step"><button class="pill" data-su="hs:-0.5">−</button><b>${su.h} ч</b><button class="pill" data-su="hs:0.5">+</button></span></div>
   </div>
   <div class="card glass">
     <div class="top"><span>🎯 План продаж</span><span style="font-weight:500;color:var(--muted);font-size:13px">всего ${tot}</span></div>
@@ -833,7 +835,7 @@ $("setup").onclick = e => {
   if (a === "go") return startShift();
   if (a === "later") return closeOv("setup");
   if (a === "h") su.h = +v;
-  else if (a === "hs") su.h = Math.min(24, Math.max(1, su.h + +v));
+  else if (a === "hs") su.h = Math.min(12, Math.max(1, su.h + +v));
   else if (a[0] === "p") { const i = +a.slice(1); su.pl[i] = Math.max(0, su.pl[i] + +v); }
   buzz(); renderSetup();
 };
