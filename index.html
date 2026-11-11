@@ -208,6 +208,12 @@
   .pc b em { font-style: normal; font-size: 12px; font-weight: 500; color: var(--muted); margin-left: 4px; }
   .pc .pcl { font-size: 12px; line-height: 1.35; color: var(--muted); }
   .pc .pcl b { font-size: 12px; color: var(--text); }
+  .pcx { border-top: 1px solid rgba(255,255,255,.1); margin-top: 4px; padding-top: 6px; display: flex; flex-direction: column; gap: 5px; }
+  .light .pcx { border-top-color: rgba(0,0,0,.08); }
+  .xcs { display: flex; flex-wrap: wrap; gap: 4px; }
+  .xc { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; padding: 3px 7px 3px 5px; border-radius: 999px; background: rgba(255,255,255,.08); white-space: nowrap; }
+  .light .xc { background: rgba(0,0,0,.05); }
+  .xc .dot { width: 7px; height: 7px; margin-right: 4px; }
 
   /* ===== полноэкранные слои: заставка, начало смены, приветствие, итоги ===== */
   .ov { position: absolute; inset: 0; z-index: 60; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
@@ -462,16 +468,18 @@ function counts() {
   const cnt = new Array(6).fill(0), salesBy = MAINS.map(() => 0), selfBy = MAINS.map(() => 0); let salesNone = 0, selfNone = 0;
   const co = PRODUCTS.map(() => [0, 0, 0]);   // из звонков: предложено, со мной, сам
   const mb = MAINS.map(() => [0, 0, 0, 0, 0]); // по основному продукту: дозвоны, продажи, СБОЛ, отказы, сбои
+  const mx = MAINS.map(() => PRODUCTS.map(() => [0, 0])); // кросс внутри звонков по основному продукту: [предложено, согласий]
   calls.forEach(c => {
     if (!c) return; cnt[c.k]++;
-    if (c.m >= 0 && mb[c.m]) { const b = mb[c.m]; b[0]++; if (c.k === 0) b[1]++; else if (c.k === 1) b[2]++; else if (c.k === 3) b[3]++; else if (c.k === 4) b[4]++; }
+    if (c.m >= 0 && mb[c.m]) { const b = mb[c.m]; b[0]++; if (c.k === 0) b[1]++; else if (c.k === 1) b[2]++; else if (c.k === 3) b[3]++; else if (c.k === 4) b[4]++;
+      c.x.forEach(([p, r]) => { if (p >= 0 && mx[c.m][p]) { mx[c.m][p][0]++; if (r > 0) mx[c.m][p][1]++; } }); }
     if (c.k === 0) { if (c.m >= 0) salesBy[c.m]++; else salesNone++; }
     else if (c.k === 1) { if (c.m >= 0) selfBy[c.m]++; else selfNone++; }
     c.x.forEach(([p, r]) => { if (p >= 0) { co[p][0]++; if (r === 1) co[p][1]++; if (r === 2) co[p][2]++; } });
   });
   const total = cnt.reduce((a, b) => a + b, 0);
   const prod = PRODUCTS.map((_, i) => ({ off: pr[i][0] + co[i][0], agr: pr[i][1] + co[i][1] + co[i][2], self: co[i][2] }));
-  return { cnt, total, sales: cnt[0], sbol: cnt[1], salesBy, selfBy, salesNone, selfNone, prod, mb,
+  return { cnt, total, sales: cnt[0], sbol: cnt[1], salesBy, selfBy, salesNone, selfNone, prod, mb, mx,
     pres: total - cnt[4] - cnt[5],              // презентации: все, кроме сбоя и «не слушал»
     agree: cnt[0] + cnt[1],                     // согласия = продажи + СБОЛ
     offers: prod.reduce((a, x) => a + x.off, 0) };
@@ -597,6 +605,13 @@ function histHTML(o) {
     </table><small class="m">Зелёным — лучший результат по столбцу. Зв/ч считается, если смена шла больше 10 минут.</small>` : ""}
   </div>`;
 }
+// кросс-продажи внутри звонков по одному основному продукту
+function crossLine(x) {
+  const off = x.reduce((a, q) => a + q[0], 0), agr = x.reduce((a, q) => a + q[1], 0);
+  if (!off) return `<div class="pcx"><span class="pcl">🔁 кросс не предлагался</span></div>`;
+  return `<div class="pcx"><span class="pcl">🔁 кросс: согласий <b>${agr}</b> из <b>${off}</b></span>
+    <div class="xcs">${x.map((q, p) => q[0] ? `<span class="xc"><i class="dot" style="--c:${PC[p]}"></i>${PRODUCTS[p]} ${q[1]}/${q[0]}</span>` : "").join("")}</div></div>`;
+}
 function statsHTML(o) {
   return `<div class="card glass">
       <div class="top"><span>Статистика</span><button id="copyStat">Копировать статистику</button></div>
@@ -610,7 +625,7 @@ function statsHTML(o) {
       <div class="top"><span>Основные продукты</span></div>
       <div class="pgrid">${MAINS.map((n, i) => { const b = o.mb[i]; return `<div class="pc"><small>${n}</small><b>${b[0]}<em>дозвонов</em></b>
         <div class="pcl">💰 продаж <b>${b[1]}</b> · 🤝 СБОЛ <b>${b[2]}</b><br>❌ отказов <b>${b[3]}</b> · 📵 сбоев <b>${b[4]}</b></div>
-        <div class="bar"><i style="width:${b[0] ? (b[1] + b[2]) / b[0] * 100 : 0}%"></i></div><div class="pcl">конверсия ${pct(b[1] + b[2], b[0])}</div></div>`; }).join("")}</div>
+        <div class="bar"><i style="width:${b[0] ? (b[1] + b[2]) / b[0] * 100 : 0}%"></i></div><div class="pcl">конверсия ${pct(b[1] + b[2], b[0])}</div>${crossLine(o.mx[i])}</div>`; }).join("")}</div>
       ${o.salesNone || o.selfNone ? `<small class="m">Без основного продукта: продаж ${o.salesNone}, СБОЛ ${o.selfNone}</small>` : ""}
       <table><tr><th>Кросс-продукты</th><th>Предложений</th><th>Согласий</th></tr>
         ${PRODUCTS.map((n, i) => `<tr><td><i class="dot" style="--c:${PC[i]}"></i>${n}</td><td><b>${o.prod[i].off}</b><i>(${pct(o.prod[i].off, o.offers)} от дозвона)</i></td><td><b>${o.prod[i].agr}</b><i>(${pct(o.prod[i].agr, o.prod[i].off)} от предложений${o.prod[i].self ? `, сам: ${o.prod[i].self}` : ""})</i></td></tr>`).join("")}
