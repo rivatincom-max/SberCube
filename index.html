@@ -42,9 +42,18 @@
   /* вкладки (статистика, смена, прогресс) — стеклянные листы поверх квадратиков */
   #main { position: relative; min-height: 110px; display: flex; flex-direction: column; }
   .sheet { position: absolute; left: 0; right: 0; top: 0; z-index: 20; max-height: 100%; overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
-  #stats.sheet, #shiftpanel.sheet { padding: 6px; border-radius: 34px; background: rgba(4,14,8,.55); -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%); box-shadow: 0 12px 32px rgba(0,0,0,.5); }
-  #sync.sheet, #settings.sheet { z-index: 21; background: rgba(4,14,8,.6); }
-  body.eco #stats.sheet, body.eco #shiftpanel.sheet, body.eco #sync.sheet, body.eco #settings.sheet { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(8,12,10,.97); }
+  /* вкладки поверх квадратиков: одна цельная стеклянная панель, без рамок внутри рамок */
+  .sheet { border-radius: 30px; padding: 4px 4px 10px; background: rgba(14,20,16,.9); -webkit-backdrop-filter: blur(26px) saturate(150%); backdrop-filter: blur(26px) saturate(150%);
+    border: 1px solid rgba(255,255,255,.14); box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 18px 44px rgba(0,0,0,.6); animation: sheetIn .32s cubic-bezier(.2,.8,.2,1) backwards; }
+  @keyframes sheetIn { from { opacity: 0; transform: translateY(-12px) scale(.985); } }
+  .sheet.glass { background: rgba(14,20,16,.9); }
+  .light .sheet.glass { background: rgba(250,253,251,.88); }
+  .sheet .card { background: none; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; border-radius: 0; }
+  .sheet .card + .card { border-top: 1px solid rgba(255,255,255,.1); }
+  .sheet > small.m, .sheet > .legend { margin: 0 12px; }
+  #sync.sheet, #settings.sheet { padding: 14px; }
+  #sync.sheet, #settings.sheet { z-index: 21; }
+  body.eco .sheet { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(14,18,16,.98); }
   header { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 16px; border-radius: 34px; }
   h1 { font-size: 19px; font-weight: 700; letter-spacing: -.3px; margin: 0; flex: 1; }
 
@@ -62,7 +71,7 @@
   #sum b { color: #fff; font-size: 15px; }
   #sum b.bump { display: inline-block; animation: bump .45s; }
 
-  #stats, #shiftpanel { display: none; flex-direction: column; gap: 10px; animation: slideUp .28s var(--spring); }
+  #stats, #shiftpanel { display: none; flex-direction: column; gap: 6px; }
   .card { border-radius: 32px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
   .card .top { display: flex; justify-content: space-between; align-items: center; font-weight: 700; gap: 8px; }
   .card .top button { background: none; border: 0; color: #34c446; font-size: 13px; font-weight: 600; }
@@ -150,7 +159,7 @@
   @keyframes sheen { 0% { transform: translateX(-130%) skewX(-20deg); opacity: 0; } 15% { opacity: 1; } 100% { transform: translateX(130%) skewX(-20deg); opacity: 0; } }
   @keyframes lens { 0% { transform: translate(-50%, -50%) scale(.1); opacity: .9; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
   @keyframes wobble { 0% { transform: scale(1); } 30% { transform: scale(1.08, .92); } 60% { transform: scale(.96, 1.05); } 100% { transform: scale(1); } }
-  .panel, #stats, #shiftpanel { animation: morph .45s var(--spring) backwards; }
+  .panel { animation: slideUp .32s cubic-bezier(.2,.8,.2,1) backwards; }
   .sq.pop { animation: drop .65s var(--spring); }
   .sq.f::before { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.65) 50%, transparent 70%); opacity: 0; }
   .sq.pop::before { animation: sheen .9s ease-out .1s; }
@@ -172,7 +181,7 @@
   body.eco *, body.eco *::before, body.eco *::after { animation: none !important; }
 
   #sync { display: none; border-radius: 32px; padding: 12px; gap: 8px; flex-direction: column; }
-  #sync textarea { width: 100%; height: 76px; background: rgba(0,0,0,.35); color: #ddd; border: 1px solid rgba(255,255,255,.18); border-radius: 14px; padding: 8px; font-size: 16px; user-select: text; -webkit-user-select: text; }
+  #sync textarea { font-family: inherit; width: 100%; height: 76px; background: rgba(0,0,0,.35); color: #ddd; border: 1px solid rgba(255,255,255,.18); border-radius: 14px; padding: 8px; font-size: 16px; user-select: text; -webkit-user-select: text; }
   #sync .row2 { display: flex; gap: 8px; }
   #sync .pill { flex: 1; padding: 11px 8px; font-size: 14px; }
   #manual { display: none; flex-direction: column; gap: 6px; }
@@ -271,15 +280,16 @@
   .light .sq.sel { outline-color: #0f1a14; }
   .light .pin, .light .mrow input, .light #sync textarea { background: rgba(255,255,255,.75); color: var(--text); border-color: rgba(0,0,0,.12); }
   .light #msg { color: #15803d; }
-  .light #stats.sheet, .light #shiftpanel.sheet { background: rgba(255,255,255,.5); box-shadow: 0 12px 32px rgba(20,70,40,.18); }
-  .light #sync.sheet, .light #settings.sheet { background: rgba(255,255,255,.72); }
+  .light .sheet { background: rgba(250,253,251,.88); border-color: rgba(0,0,0,.06); box-shadow: inset 0 1px 0 #fff, 0 18px 44px rgba(20,70,40,.2); }
+  .light .sheet .card + .card { border-top-color: rgba(0,0,0,.08); }
+
   .light .ov:not(#splash):not(#greet) { background: rgba(238,246,241,.6); }
   .light body.eco .glass { background: rgba(255,255,255,.96); }
-  .light body.eco #stats.sheet, .light body.eco #shiftpanel.sheet, .light body.eco #sync.sheet, .light body.eco #settings.sheet { background: rgba(244,249,246,.98); }
+  .light body.eco .sheet { background: rgba(246,250,247,.99); }
 </style>
 </head>
 <body>
-<header class="glass"><h1>SBERCUBE</h1><button class="pill" id="syncBtn">💾 Прогресс</button><button class="pill rnd" id="setBtn" aria-label="Настройки">⚙︎</button></header>
+<header class="glass"><h1>SBERCUBE</h1><button class="pill rnd" id="syncBtn" aria-label="Прогресс"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 0 1-14.3 4.9"/><path d="M4 12a8 8 0 0 1 14.3-4.9"/><path d="M18.6 3v4.3h-4.3"/><path d="M5.4 21v-4.3h4.3"/></svg></button><button class="pill rnd" id="setBtn" aria-label="Настройки">⚙︎</button></header>
 <div id="shiftbar" class="glass"><div id="shFill"></div><div class="shrow"><span id="shT">⏱ Начать смену</span><span id="shS"></span></div></div>
 <div id="sum" class="glass"></div>
 <div id="main">
@@ -287,6 +297,7 @@
 <div id="stats" class="sheet"></div>
 <div id="shiftpanel" class="sheet"></div>
 <div id="sync" class="glass sheet">
+  <div class="mrow"><b>Прогресс</b><small class="m">перенос данных</small></div>
   <textarea id="code" placeholder="Здесь будет код прогресса. Чтобы загрузить — вставь код сюда."></textarea>
   <div class="row2"><button class="pill" id="exp">Получить код</button><button class="pill" id="imp">Загрузить код</button></div>
   <button class="pill" id="manBtn">✍️ Ввести цифрами</button>
