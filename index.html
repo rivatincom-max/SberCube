@@ -123,7 +123,8 @@
   .rb { border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: var(--text); border-radius: 20px; padding: 10px 2px; font: 600 12px/1.1 inherit; transition: transform .18s var(--spring), background .2s; }
   .rb:active { transform: scale(.93); }
   .rb.on { background: linear-gradient(180deg, rgba(var(--c), .95), rgba(var(--c), .6)); color: #10131a; border-color: rgba(255,255,255,.6); }
-  #mainRow { display: flex; align-items: center; gap: 3px; padding: 4px; border-radius: 999px; }
+  #mainRow { display: flex; align-items: center; gap: 2px; padding: 4px; border-radius: 999px; }
+  #mainRow .chip { padding: 10px 1px; white-space: nowrap; }
   #mainRow > span { font-size: 11px; color: var(--muted); padding: 0 6px 0 10px; }
   .chip { flex: 1; border: 0; background: transparent; color: var(--muted); font: 600 12px/1 inherit; padding: 10px 2px; border-radius: 999px; transition: background .2s, color .2s; }
   .chip.on { background: rgba(255,255,255,.22); color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,.5); }
@@ -190,6 +191,7 @@
 
   /* ===== статистика по основным продуктам ===== */
   .pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pgrid .pc:last-child:nth-child(odd) { grid-column: span 2; }
   .pc { padding: 10px 12px; border-radius: 20px; background: rgba(255,255,255,.06); display: flex; flex-direction: column; gap: 4px; min-width: 0; }
   .pc small { color: var(--muted); font-size: 12px; }
   .pc b { font-size: 22px; font-variant-numeric: tabular-nums; }
@@ -323,8 +325,8 @@ const KEMO = ["💰", "🤝", "📞", "❌", "📵", "🙅"];
 const PRODUCTS = ["Кредитная карта", "СберПрайм", "Вклад Лучший процент", "СберВклад", "Накопительный счёт"];   // кросс-продукты
 const PC = ["168,85,247", "244,114,182", "34,211,238", "190,242,100", "129,140,248"];                 // цвет каждого кросс-продукта
 const RES = ["Предл.", "Со мной", "Сам"];                                              // 0 предложил (отказ), 1 оформил со мной, 2 СБОЛ
-const MAINS = ["Накопительный счёт", "СберПрайм", "Кредитная карта", "СберВклад"];
-const MSH = ["Н", "П", "К", "В"], MCHIP = ["Накопит.", "СберПрайм", "Кредитка", "СберВклад"];
+const MAINS = ["Накопительный счёт", "СберПрайм", "Кредитная карта", "СберВклад", "Потребительский кредит"];
+const MSH = ["Н", "П", "К", "В", "ПК"], MCHIP = ["Накопит.", "Прайм", "Кредитка", "Вклад", "Потреб."];
 const WITH_MAIN = [0, 1, 3, 4];   // у каких видов звонка выбирается основной продукт
 const TOTAL = 300, H = 3600000;
 const $ = id => document.getElementById(id);
@@ -336,7 +338,7 @@ const padC = a => a.concat(new Array(Math.max(0, TOTAL - a.length)).fill(null));
 // звонок: {k: вид, m: основной продукт (-1 нет), x: [[кросс-продукт, результат], ...]}
 let calls = blankCalls();
 let pr = PRODUCTS.map(() => [0, 0]);   // добавка к кросс-счётчикам (старые данные / ручной ввод): [предложений, согласий]
-let plan = [0, 0, 0, 0], hist = [];
+let plan = MAINS.map(() => 0), hist = [];
 let shift = { start: 0, pauseAt: 0, paused: 0, hours: 8, w: 0 };
 const rd = k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
 const rdA = k => { const x = rd(k); return Array.isArray(x) ? x : null; };
@@ -358,7 +360,7 @@ function legacy(s, c, m) {
 }
 (function load() {
   setPr(rdA("pr2"));
-  const p = rdA("plan2"); if (p) plan = [0, 1, 2, 3].map(i => Math.max(0, +p[i] || 0));
+  const p = rdA("plan2"); if (p) plan = MAINS.map((_, i) => Math.max(0, +p[i] || 0));
   hist = rdA("hist2") || [];
   const sh = rd("shift2"); if (sh && typeof sh === "object") shift = Object.assign(shift, sh);
   const c3 = rdA("calls3"); if (c3) { calls = padC(c3); return; }
@@ -445,7 +447,7 @@ function celebrate(rec, total) {
 
 // ---------- подсчёты ----------
 function counts() {
-  const cnt = new Array(6).fill(0), salesBy = [0, 0, 0, 0], selfBy = [0, 0, 0, 0]; let salesNone = 0, selfNone = 0;
+  const cnt = new Array(6).fill(0), salesBy = MAINS.map(() => 0), selfBy = MAINS.map(() => 0); let salesNone = 0, selfNone = 0;
   const co = PRODUCTS.map(() => [0, 0, 0]);   // из звонков: предложено, со мной, сам
   const mb = MAINS.map(() => [0, 0, 0, 0, 0]); // по основному продукту: дозвоны, продажи, СБОЛ, отказы, сбои
   calls.forEach(c => {
@@ -556,7 +558,7 @@ function shiftPanelHTML(o) {
       ${MAINS.map((n, i) => `<div class="prog"><div class="ph"><span>${n}</span><span>${o.salesBy[i]} / <input class="pin" id="pl${i}" type="number" inputmode="numeric" min="0" placeholder="0" value="${plan[i] || ""}"></span></div>
         <div class="bar"><i style="width:${plan[i] ? Math.min(100, o.salesBy[i] / plan[i] * 100) : 0}%"></i></div></div>`).join("")}
       ${planSum ? `<div class="ln"><span>Осталось до плана</span><b>${Math.max(0, planSum - o.sales)}</b></div>` : `<small class="m">Впиши план по нужным продуктам — появится прогресс.</small>`}
-      <small class="m">СБОЛ по продуктам: ${MAINS.map((n, i) => `${["НС", "П", "К", "В"][i]} ${o.selfBy[i]}`).join(" · ")}${o.salesNone || o.selfNone ? ` · без продукта: ${o.salesNone} прод., ${o.selfNone} СБОЛ` : ""}</small>
+      <small class="m">СБОЛ по продуктам: ${MAINS.map((n, i) => `${MSH[i]} ${o.selfBy[i]}`).join(" · ")}${o.salesNone || o.selfNone ? ` · без продукта: ${o.salesNone} прод., ${o.selfNone} СБОЛ` : ""}</small>
     </div>
     ${histHTML(o)}`;
 }
@@ -759,11 +761,11 @@ $("imp").onclick = () => {
     if (v === "KV4:") {
       if (!Array.isArray(o.k)) throw 0;
       calls = padC(o.k.map(c => c && typeof c.k === "number" ? { k: c.k, m: c.m, x: Array.isArray(c.x) ? c.x : [] } : null));
-      setPr(o.p); if (Array.isArray(o.q)) plan = [0, 1, 2, 3].map(i => Math.max(0, +o.q[i] || 0)); if (Array.isArray(o.h)) hist = o.h;
+      setPr(o.p); if (Array.isArray(o.q)) plan = MAINS.map((_, i) => Math.max(0, +o.q[i] || 0)); if (Array.isArray(o.h)) hist = o.h;
     } else {
       if (!Array.isArray(o.s) || !Array.isArray(o.c)) throw 0;
       calls = padC(legacy(v === "KV1:" ? fromOld(o.s, o.c) : o.s, o.c, Array.isArray(o.m) ? o.m : []));
-      if (v === "KV3:") { setPr(o.p); if (Array.isArray(o.q)) plan = [0, 1, 2, 3].map(i => Math.max(0, +o.q[i] || 0)); }
+      if (v === "KV3:") { setPr(o.p); if (Array.isArray(o.q)) plan = MAINS.map((_, i) => Math.max(0, +o.q[i] || 0)); }
     }
     sel = -1; save(); saveMeta(); render(); msg.textContent = "Прогресс загружен.";
   } catch (e) { msg.textContent = "Не получилось: код неверный или обрезан."; }
@@ -870,9 +872,9 @@ function resultsHTML(r, fin) {
       <div class="dleg">${KINDS.map((n, i) => `<div><i class="dot" style="--c:${KC[i]}"></i><span>${n}</span><b>${r.c[i]}</b><small>${pct(r.c[i], tot)}</small></div>`).join("")}</div></div></div>`;
   }
   if (r.mb) {
-    const mx = Math.max(1, ...r.mb.map(b => b[1]));
+    const mx = Math.max(1, ...r.mb.map(b => b[1]));   // в старых сменах продуктов могло быть меньше
     h += `<div class="card glass"><div class="top"><span>Продажи по продуктам</span>${planSum ? `<span style="font-weight:500;color:var(--muted);font-size:13px">${r.l} из ${planSum}</span>` : ""}</div>
-      ${MAINS.map((n, i) => { const b = r.mb[i], pl = r.pl ? r.pl[i] : 0, w = pl ? Math.min(100, b[1] / pl * 100) : b[1] / mx * 100;
+      ${MAINS.map((n, i) => { const b = r.mb[i] || [0, 0, 0, 0, 0], pl = r.pl && r.pl[i] || 0, w = pl ? Math.min(100, b[1] / pl * 100) : b[1] / mx * 100;
         return `<div class="prog"><div class="ph"><span>${n}</span><b>${b[1]}${pl ? ` / ${pl}` : ""}${pl && b[1] >= pl ? " ✅" : ""}</b></div><div class="bar rbar"><i style="--w:${w}%"></i></div>
         <small class="m">дозвонов ${b[0]} · СБОЛ ${b[2]} · отказов ${b[3]} · сбоев ${b[4]}</small></div>`; }).join("")}</div>`;
   }
