@@ -9,11 +9,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Звонки">
+<meta name="apple-mobile-web-app-title" content="SBERCUBE">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
-<title>Звонки</title>
+<title>SBERCUBE</title>
+<script>try { if (localStorage.getItem("theme") === "light") document.documentElement.classList.add("light"); } catch (e) {}</script>
 <style>
   :root { --text: #f5f7fb; --muted: rgba(235,240,255,.62); --stroke: rgba(255,255,255,.2); --spring: cubic-bezier(.34, 1.56, .64, 1); }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -41,15 +42,28 @@
   /* вкладки (статистика, смена, прогресс) — стеклянные листы поверх квадратиков */
   #main { position: relative; min-height: 110px; display: flex; flex-direction: column; }
   .sheet { position: absolute; left: 0; right: 0; top: 0; z-index: 20; max-height: 100%; overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
-  #stats.sheet, #shiftpanel.sheet { padding: 6px; border-radius: 34px; background: rgba(4,14,8,.55); -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%); box-shadow: 0 12px 32px rgba(0,0,0,.5); }
-  #sync.sheet { z-index: 21; background: rgba(4,14,8,.6); }
-  body.eco #stats.sheet, body.eco #shiftpanel.sheet, body.eco #sync.sheet { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(8,12,10,.97); }
+  /* вкладки поверх квадратиков: одна цельная стеклянная панель, без рамок внутри рамок */
+  .sheet { border-radius: 30px; padding: 4px 4px 10px; background: rgba(14,20,16,.9); -webkit-backdrop-filter: blur(26px) saturate(150%); backdrop-filter: blur(26px) saturate(150%);
+    border: 1px solid rgba(255,255,255,.14); box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 18px 44px rgba(0,0,0,.6); animation: sheetIn .32s cubic-bezier(.2,.8,.2,1) backwards; }
+  @keyframes sheetIn { from { opacity: 0; transform: translateY(-12px) scale(.985); } }
+  .sheet.glass { background: rgba(14,20,16,.9); }
+  .light .sheet.glass { background: rgba(250,253,251,.88); }
+  .sheet .card { background: none; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; border-radius: 0; }
+  .sheet .card + .card { border-top: 1px solid rgba(255,255,255,.1); }
+  .sheet > small.m, .sheet > .legend { margin: 0 12px; }
+  #sync.sheet, #settings.sheet { padding: 14px; }
+  #sync.sheet, #settings.sheet { z-index: 21; }
+  body.eco .sheet { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(14,18,16,.98); }
   header { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 16px; border-radius: 34px; }
   h1 { font-size: 19px; font-weight: 700; letter-spacing: -.3px; margin: 0; flex: 1; }
 
   #shiftbar { position: relative; overflow: hidden; border-radius: 32px; padding: 10px 16px; }
-  #shFill { position: absolute; inset: 0 auto 0 0; width: 0; background: linear-gradient(90deg, rgba(52,196,70,.40), rgba(10,150,115,.40)); transition: width .6s ease; }
+  /* зелёная полоса = сколько смены осталось: в начале во всю ширину, к концу смены тает до нуля */
+  #shFill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: inherit; background: linear-gradient(90deg, rgba(52,196,70,.62), rgba(10,150,115,.55));
+    box-shadow: inset -2px 0 0 rgba(160,255,180,.75), 0 0 18px rgba(52,196,70,.35); transition: width 1s linear; }
+  .light #shFill { background: linear-gradient(90deg, rgba(52,196,70,.5), rgba(10,150,115,.42)); }
   .shrow { position: relative; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  #shT small { font-size: 13px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
   #shT { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.3px; }
   #shS { font-size: 13px; color: var(--muted); text-align: right; }
 
@@ -57,7 +71,7 @@
   #sum b { color: #fff; font-size: 15px; }
   #sum b.bump { display: inline-block; animation: bump .45s; }
 
-  #stats, #shiftpanel { display: none; flex-direction: column; gap: 10px; animation: slideUp .28s var(--spring); }
+  #stats, #shiftpanel { display: none; flex-direction: column; gap: 6px; }
   .card { border-radius: 32px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
   .card .top { display: flex; justify-content: space-between; align-items: center; font-weight: 700; gap: 8px; }
   .card .top button { background: none; border: 0; color: #34c446; font-size: 13px; font-weight: 600; }
@@ -119,7 +133,8 @@
   .rb { border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: var(--text); border-radius: 20px; padding: 10px 2px; font: 600 12px/1.1 inherit; transition: transform .18s var(--spring), background .2s; }
   .rb:active { transform: scale(.93); }
   .rb.on { background: linear-gradient(180deg, rgba(var(--c), .95), rgba(var(--c), .6)); color: #10131a; border-color: rgba(255,255,255,.6); }
-  #mainRow { display: flex; align-items: center; gap: 3px; padding: 4px; border-radius: 999px; }
+  #mainRow { display: flex; align-items: center; gap: 2px; padding: 4px; border-radius: 999px; }
+  #mainRow .chip { padding: 10px 1px; white-space: nowrap; }
   #mainRow > span { font-size: 11px; color: var(--muted); padding: 0 6px 0 10px; }
   .chip { flex: 1; border: 0; background: transparent; color: var(--muted); font: 600 12px/1 inherit; padding: 10px 2px; border-radius: 999px; transition: background .2s, color .2s; }
   .chip.on { background: rgba(255,255,255,.22); color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,.5); }
@@ -132,10 +147,10 @@
   @keyframes rise { 0% { opacity: 1; transform: translate(-50%, 0) scale(.7); } 100% { opacity: 0; transform: translate(-50%, -120px) scale(1.5); } }
   @keyframes party { 0% { opacity: 0; transform: translateX(-50%) scale(.3); } 25% { opacity: 1; transform: translateX(-50%) scale(1.15); } 75% { opacity: 1; transform: translateX(-50%) scale(1); } 100% { opacity: 0; transform: translateX(-50%) scale(1.3); } }
   .floatxp { position: fixed; z-index: 52; font-size: 30px; pointer-events: none; animation: rise 1s ease-out forwards; }
-  #fx { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
+  #fx { position: fixed; inset: 0; pointer-events: none; z-index: 65; }
   #party { position: fixed; left: 50%; top: 30%; font-size: 38px; font-weight: 800; color: #fff; text-shadow: 0 0 24px rgba(33,160,56,.95), 0 0 40px rgba(10,150,115,.7); opacity: 0; pointer-events: none; z-index: 51; white-space: nowrap; }
   #party.on { animation: party 1.8s; }
-  #toast { position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 70px); transform: translateX(-50%) translateY(-12px) scale(.96); padding: 10px 18px; border-radius: 999px; font-weight: 600; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s, transform .3s var(--spring); white-space: nowrap; z-index: 51; }
+  #toast { position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 70px); transform: translateX(-50%) translateY(-12px) scale(.96); padding: 10px 18px; border-radius: 999px; font-weight: 600; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s, transform .3s var(--spring); white-space: nowrap; z-index: 66; }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
 
   /* ===== анимации жидкого стекла (короткие, один раз) ===== */
@@ -144,11 +159,10 @@
   @keyframes sheen { 0% { transform: translateX(-130%) skewX(-20deg); opacity: 0; } 15% { opacity: 1; } 100% { transform: translateX(130%) skewX(-20deg); opacity: 0; } }
   @keyframes lens { 0% { transform: translate(-50%, -50%) scale(.1); opacity: .9; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
   @keyframes wobble { 0% { transform: scale(1); } 30% { transform: scale(1.08, .92); } 60% { transform: scale(.96, 1.05); } 100% { transform: scale(1); } }
-  .panel, #stats, #shiftpanel { animation: morph .45s var(--spring) backwards; }
+  .panel { animation: slideUp .32s cubic-bezier(.2,.8,.2,1) backwards; }
   .sq.pop { animation: drop .65s var(--spring); }
   .sq.f::before { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.65) 50%, transparent 70%); opacity: 0; }
   .sq.pop::before { animation: sheen .9s ease-out .1s; }
-  .btn:active, .pill:active, .rb:active { transform: scale(.93, .9); }
   .btn, .pill { position: relative; overflow: hidden; }
   .btn::after, .pill::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,.28), transparent 55%); pointer-events: none; }
   .wob { animation: wobble .5s var(--spring); }
@@ -156,67 +170,236 @@
     background: radial-gradient(circle, rgba(255,255,255,0) 52%, rgba(255,255,255,.35) 60%, rgba(120,190,255,.25) 66%, rgba(255,255,255,0) 74%); animation: lens .8s ease-out forwards; }
   body.eco .lens, body.eco .sq.f::before { display: none; }
 
-  /* ===== преломление и хроматическая аберрация, как в iOS ===== */
-  @keyframes aber { 0% { text-shadow: -3px 0 rgba(255,40,110,.9), 3px 0 rgba(40,200,255,.9); box-shadow: -3px 0 10px rgba(255,40,110,.55), 3px 0 10px rgba(40,200,255,.55), inset 0 1px 0 rgba(255,255,255,.7); transform: scale(1.09, 1.05); filter: brightness(1.25) saturate(1.3); }
-    35% { transform: scale(.97, 1.03); } 60% { transform: scale(1.02, .98); }
-    100% { text-shadow: 0 0 0 transparent; transform: none; filter: none; } }
-  .btn.ab, .pill.ab, .rb.ab, .chip.ab, .sq.ab { animation: aber .7s cubic-bezier(.2,.9,.3,1.2); }
-  .btn:active, .pill:active, .rb:active, .chip:active { transform: scale(1.06, 1.03); filter: brightness(1.2) saturate(1.25); text-shadow: -2px 0 rgba(255,40,110,.8), 2px 0 rgba(40,200,255,.8); }
-  .btn, .pill, .glass, .rb { box-shadow: inset 1.5px 1.5px 0 rgba(255,170,210,.4), inset -1.5px -1.5px 0 rgba(130,225,255,.4), inset 0 1px 0 rgba(255,255,255,.5), 0 6px 16px rgba(var(--c, 0,0,0), .22); }
-  .glass { box-shadow: inset 1px 1px 0 rgba(255,170,210,.25), inset -1px -1px 0 rgba(130,225,255,.25), inset 0 1px 0 rgba(255,255,255,.38), 0 8px 24px rgba(0,0,0,.38); }
+  /* ===== стеклянные блики кнопок ===== */
+  /* плавное нажатие без хроматической аберрации */
+  .btn, .pill, .rb, .chip { transition: transform .32s cubic-bezier(.25,.8,.25,1), filter .32s ease, background .25s ease; }
+  .btn:active, .pill:active, .rb:active, .chip:active { transform: scale(.96); filter: brightness(1.1); transition-duration: .12s; }
+  .btn, .pill, .glass, .rb { box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 6px 16px rgba(var(--c, 0,0,0), .22); }
+  .glass { box-shadow: inset 0 1px 0 rgba(255,255,255,.38), 0 8px 24px rgba(0,0,0,.38); }
   body.eco .btn, body.eco .pill, body.eco .rb, body.eco .glass { box-shadow: none; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
   body.eco *, body.eco *::before, body.eco *::after { animation: none !important; }
 
   #sync { display: none; border-radius: 32px; padding: 12px; gap: 8px; flex-direction: column; }
-  #sync textarea { width: 100%; height: 76px; background: rgba(0,0,0,.35); color: #ddd; border: 1px solid rgba(255,255,255,.18); border-radius: 14px; padding: 8px; font-size: 16px; user-select: text; -webkit-user-select: text; }
+  #sync textarea { font-family: inherit; width: 100%; height: 76px; background: rgba(0,0,0,.35); color: #ddd; border: 1px solid rgba(255,255,255,.18); border-radius: 14px; padding: 8px; font-size: 16px; user-select: text; -webkit-user-select: text; }
   #sync .row2 { display: flex; gap: 8px; }
   #sync .pill { flex: 1; padding: 11px 8px; font-size: 14px; }
   #manual { display: none; flex-direction: column; gap: 6px; }
   #manApply { background: rgba(52,199,150,.55) !important; font-weight: 700; }
   #msg { font-size: 13px; color: #6ee7b7; min-height: 16px; }
+
+  /* ===== круглая кнопка настроек и лист настроек ===== */
+  .ic { width: 1.2em; height: 1.2em; vertical-align: -.24em; flex: none; }
+  .rnd .ic { width: 21px; height: 21px; }
+  .floatxp .ic { width: 34px; height: 34px; color: #fff; filter: drop-shadow(0 2px 8px rgba(0,0,0,.5)); }
+  .rnd { width: 40px; height: 40px; padding: 0; border-radius: 50%; display: grid; place-items: center; font-size: 19px; flex: none; }
+  #settings { display: none; border-radius: 32px; padding: 14px; gap: 10px; flex-direction: column; z-index: 22; }
+  .seg { display: flex; gap: 3px; padding: 4px; border-radius: 999px; }
+  /* выбор часов: на iPhone открывается системное колесо выбора снизу */
+  .hsel { -webkit-appearance: none; appearance: none; border: 1px solid var(--stroke); border-radius: 999px; padding: 10px 40px 10px 18px; font-family: inherit; font-size: 17px; font-weight: 700; color: var(--text);
+    background: rgba(255,255,255,.1) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%2334c446' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 16px center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.3); }
+  .light .hsel { background-color: rgba(255,255,255,.7); border-color: rgba(0,0,0,.1); }
+  .seg .chip { padding: 10px 6px; font-size: 13px; white-space: nowrap; }
+
+  /* ===== статистика по основным продуктам ===== */
+  .pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pgrid .pc:last-child:nth-child(odd) { grid-column: span 2; }
+  .pc { padding: 10px 12px; border-radius: 20px; background: rgba(255,255,255,.06); display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .pc small { color: var(--muted); font-size: 12px; }
+  .pc b { font-size: 22px; font-variant-numeric: tabular-nums; }
+  .pc b em { font-style: normal; font-size: 12px; font-weight: 500; color: var(--muted); margin-left: 4px; }
+  .pc .pcl { font-size: 12px; line-height: 1.35; color: var(--muted); }
+  .pc .pcl b { font-size: 12px; color: var(--text); }
+  .pcx { border-top: 1px solid rgba(255,255,255,.1); margin-top: 4px; padding-top: 6px; display: flex; flex-direction: column; gap: 5px; }
+  .light .pcx { border-top-color: rgba(0,0,0,.08); }
+  .xcs { display: flex; flex-wrap: wrap; gap: 4px; }
+  .xc { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; padding: 3px 7px 3px 5px; border-radius: 999px; background: rgba(255,255,255,.08); white-space: nowrap; }
+  .light .xc { background: rgba(0,0,0,.05); }
+  .xc .dot { width: 7px; height: 7px; margin-right: 4px; }
+
+  /* ===== полноэкранные слои: заставка, начало смены, приветствие, итоги ===== */
+  .ov { position: absolute; inset: 0; z-index: 60; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+    padding: max(20px, env(safe-area-inset-top)) 14px max(20px, env(safe-area-inset-bottom)); background: rgba(0,0,0,.55); -webkit-backdrop-filter: blur(22px) saturate(160%); backdrop-filter: blur(22px) saturate(160%); }
+  .ov.on { display: flex; animation: ovIn .35s ease both; }
+  .ov.out { animation: ovOut .4s ease forwards; }
+  @keyframes ovIn { from { opacity: 0; } }
+  @keyframes ovOut { to { opacity: 0; transform: scale(1.04); } }
+  .ovs { overflow-y: auto; justify-content: flex-start; touch-action: pan-y; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  .ovw { width: min(100%, 420px); display: flex; flex-direction: column; gap: 10px; margin: auto 0; }
+
+  #splash { z-index: 70; color: #fff; background: radial-gradient(55% 35% at 50% 44%, rgba(33,160,56,.42), transparent 70%), radial-gradient(40% 25% at 70% 60%, rgba(10,150,115,.3), transparent 70%), #000; }
+  /* логотип как на иконке: сетка 3×3 из зелёных контуров, центр залит градиентом */
+  .logo { display: grid; grid-template-columns: repeat(3, 44px); gap: 14px; animation: logoPulse .6s var(--spring) 1.25s; }
+  .logo i { width: 44px; height: 44px; border-radius: 14px; border: 2.5px solid #21a038; box-shadow: 0 0 12px rgba(33,160,56,.35), inset 0 0 8px rgba(33,160,56,.2);
+    opacity: 0; animation: sqIn .75s var(--spring) var(--d) forwards; }
+  .logo i.c { border: 0; background: linear-gradient(135deg, #34c446, #0a9673); box-shadow: 0 0 28px rgba(52,196,70,.75); animation: coreIn .7s var(--spring) .8s forwards; }
+  @keyframes coreIn { 0% { opacity: 0; transform: scale(0) rotate(-90deg); } 60% { opacity: 1; transform: scale(1.3); } 100% { opacity: 1; transform: none; } }
+  @keyframes sqIn { 0% { opacity: 0; transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(.2); filter: blur(6px); } 100% { opacity: 1; transform: none; filter: none; } }
+  @keyframes logoPulse { 40% { transform: scale(1.12); filter: brightness(1.35) drop-shadow(0 0 22px rgba(33,160,56,.9)); } }
+  #splash h2 { margin: 6px 0 0; font-size: 36px; font-weight: 800; letter-spacing: -.6px; text-shadow: 0 0 26px rgba(33,160,56,.85); opacity: 0; animation: titleIn .6s ease 1s forwards; }
+  #splash p { margin: 0; color: rgba(235,240,255,.62); font-size: 14px; opacity: 0; animation: titleIn .6s ease 1.2s forwards; }
+  @keyframes titleIn { from { opacity: 0; transform: translateY(12px); filter: blur(8px); } to { opacity: 1; transform: none; filter: none; } }
+
+  .step { display: flex; align-items: center; gap: 8px; }
+  .step .pill { width: 38px; height: 38px; padding: 0; border-radius: 50%; font-size: 20px; line-height: 1; }
+  .step b { min-width: 46px; text-align: center; font-size: 18px; font-variant-numeric: tabular-nums; }
+  .gob { min-height: 56px; font-size: 17px; }
+
+  #greet { z-index: 45; color: #fff; background: rgba(0,0,0,.5); }
+  .gtxt { font-size: 36px; font-weight: 800; line-height: 1.15; text-align: center; letter-spacing: -.5px; text-shadow: 0 0 28px rgba(33,160,56,.95), 0 0 50px rgba(10,150,115,.6); animation: greetIn .9s var(--spring) .9s both; }
+  /* «Хорошей смены»: столбики растут, линия роста прорисовывается, стрелка выстреливает, искры мерцают, иконка дышит */
+  .gem { animation: gemIn .7s var(--spring) backwards, gemFloat 2.2s ease-in-out 1.6s infinite; }
+  .gup { width: 150px; height: 125px; overflow: visible; filter: drop-shadow(0 0 22px rgba(52,196,70,.75)); animation: gemGlow 1.6s ease-in-out 1.5s infinite; }
+  .gb { transform-box: fill-box; transform-origin: 50% 100%; animation: barUp .6s var(--spring) backwards; }
+  .gb:nth-child(1) { animation-delay: .15s; } .gb:nth-child(2) { animation-delay: .3s; } .gb:nth-child(3) { animation-delay: .45s; }
+  .gline { stroke-dasharray: 100; animation: lineDraw .7s cubic-bezier(.6,0,.3,1) .7s backwards; filter: drop-shadow(0 0 6px rgba(255,255,255,.8)); }
+  .ghead { transform-box: fill-box; transform-origin: 100% 0; animation: headPop .5s var(--spring) 1.3s backwards; }
+  .gspark path { transform-box: fill-box; transform-origin: center; animation: spark 1.4s ease-in-out infinite backwards; }
+  .gspark path:nth-child(1) { animation-delay: 1.4s; } .gspark path:nth-child(2) { animation-delay: 1.7s; } .gspark path:nth-child(3) { animation-delay: 2s; }
+  @keyframes gemIn { from { opacity: 0; transform: scale(.3) translateY(40px); } }
+  @keyframes gemFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  @keyframes gemGlow { 0%, 100% { filter: drop-shadow(0 0 18px rgba(52,196,70,.6)); } 50% { filter: drop-shadow(0 0 34px rgba(52,196,70,1)); } }
+  @keyframes barUp { from { transform: scaleY(0); } }
+  @keyframes lineDraw { from { stroke-dashoffset: 100; } }
+  @keyframes headPop { 0% { transform: scale(0) translate(-10px, 10px); opacity: 0; } }
+  @keyframes spark { 0%, 100% { transform: scale(.2) rotate(0); opacity: 0; } 50% { transform: scale(1.2) rotate(45deg); opacity: 1; } }
+  @keyframes greetIn { 0% { opacity: 0; transform: scale(.4) translateY(30px); filter: blur(10px); } 100% { opacity: 1; transform: none; filter: none; } }
+
+  .rhead { display: flex; flex-direction: column; gap: 2px; }
+  .rhead b { font-size: 22px; }
+  .kpi i.m { display: block; font-style: normal; font-size: 12px; color: var(--muted); }
+  .drow { display: flex; align-items: center; gap: 14px; }
+  .dwrap { position: relative; width: 132px; height: 132px; flex: none; }
+  .donut { position: absolute; inset: 0; border-radius: 50%; -webkit-mask: radial-gradient(circle, transparent 57%, #000 58%); mask: radial-gradient(circle, transparent 57%, #000 58%); animation: donutIn 1s var(--spring) both .15s; }
+  @keyframes donutIn { from { transform: rotate(-120deg) scale(.6); opacity: 0; } }
+  .dmid { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .dmid b { font-size: 26px; } .dmid small { font-size: 11px; color: var(--muted); }
+  .dleg { flex: 1; display: flex; flex-direction: column; gap: 5px; font-size: 13px; min-width: 0; }
+  .dleg div { display: flex; align-items: center; gap: 2px; }
+  .dleg span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dleg small { color: var(--muted); width: 48px; text-align: right; font-size: 11px; }
+  .rbar i { width: var(--w); animation: grow 1s cubic-bezier(.2,.9,.3,1) both .3s; }
+  @keyframes grow { from { width: 0; } }
+  .lnk { text-decoration: underline; text-decoration-color: rgba(52,196,70,.7); text-underline-offset: 3px; }
+  body.eco .logo i, body.eco #splash h2, body.eco #splash p { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .logo i, #splash h2, #splash p { opacity: 1; } }
+
+  /* ===== светлая тема ===== */
+  html.light { background: #eef5f0; color-scheme: light; }
+  .light body { --text: #0f1a14; --muted: rgba(20,45,30,.6); --stroke: rgba(255,255,255,.9); }
+  .light body::before { background: radial-gradient(60% 38% at 12% 8%, rgba(33,160,56,.28), transparent 70%), radial-gradient(55% 38% at 92% 32%, rgba(10,150,115,.2), transparent 70%), radial-gradient(60% 42% at 28% 96%, rgba(33,160,56,.22), transparent 70%), #f1f7f3; }
+  .light body::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: env(safe-area-inset-top, 0px); z-index: 80; pointer-events: none; background: linear-gradient(90deg, #21a038, #0a9673); } /* под белыми часами статус-бара */
+  .light .glass { background: linear-gradient(135deg, rgba(255,255,255,.78), rgba(255,255,255,.45)); box-shadow: inset 0 1px 0 #fff, 0 8px 24px rgba(20,70,40,.12); }
+  .light .pill, .light .rb { background: rgba(255,255,255,.65); color: var(--text); border-color: rgba(0,0,0,.08); }
+  .light .rb.on { color: #10131a; }
+  .light .btn { background: linear-gradient(180deg, rgba(var(--c), .97), rgba(var(--c), .78)); }
+  .light .chip.on { background: rgba(33,160,56,.2); color: var(--text); box-shadow: inset 0 1px 0 #fff; }
+  .light .kpi b, .light .wide b, .light td b, .light #sum b { color: var(--text); }
+  .light td, .light .wide, .light .ln { border-color: rgba(0,0,0,.08); }
+  .light .legend div, .light .pc { background: rgba(255,255,255,.55); }
+  .light .bar { background: rgba(0,0,0,.08); }
+  .light .sq:not(.f) { background: rgba(255,255,255,.45); border-color: rgba(0,0,0,.16); }
+  .light .sq.next:not(.f) { border-color: rgba(0,0,0,.5); }
+  .light .sq.sel { outline-color: #0f1a14; }
+  .light .pin, .light .mrow input, .light #sync textarea { background: rgba(255,255,255,.75); color: var(--text); border-color: rgba(0,0,0,.12); }
+  .light #msg { color: #15803d; }
+  .light .sheet { background: rgba(250,253,251,.88); border-color: rgba(0,0,0,.06); box-shadow: inset 0 1px 0 #fff, 0 18px 44px rgba(20,70,40,.2); }
+  .light .sheet .card + .card { border-top-color: rgba(0,0,0,.08); }
+
+  .light .ov:not(#splash):not(#greet) { background: rgba(238,246,241,.6); }
+  .light body.eco .glass { background: rgba(255,255,255,.96); }
+  .light body.eco .sheet { background: rgba(246,250,247,.99); }
 </style>
 </head>
 <body>
-<header class="glass"><h1>Звонки</h1><button class="pill" id="syncBtn">💾 Прогресс</button><button class="pill" id="reset">Сбросить</button></header>
-<div id="shiftbar" class="glass"><div id="shFill"></div><div class="shrow"><span id="shT">⏱ Начать смену</span><span id="shS"></span></div></div>
+<header class="glass"><h1>SBERCUBE</h1><button class="pill rnd" id="syncBtn" aria-label="Прогресс"><i data-ic="sync"></i></button><button class="pill rnd" id="setBtn" aria-label="Настройки"><i data-ic="gear"></i></button></header>
+<div id="shiftbar" class="glass"><div id="shFill"></div><div class="shrow"><span id="shT"><i data-ic="timer"></i> Начать смену</span><span id="shS"></span></div></div>
 <div id="sum" class="glass"></div>
 <div id="main">
 <div id="grid"></div>
 <div id="stats" class="sheet"></div>
 <div id="shiftpanel" class="sheet"></div>
 <div id="sync" class="glass sheet">
+  <div class="mrow"><b>Прогресс</b><small class="m">перенос данных</small></div>
   <textarea id="code" placeholder="Здесь будет код прогресса. Чтобы загрузить — вставь код сюда."></textarea>
   <div class="row2"><button class="pill" id="exp">Получить код</button><button class="pill" id="imp">Загрузить код</button></div>
-  <button class="pill" id="manBtn">✍️ Ввести цифрами</button>
+  <button class="pill" id="manBtn"><i data-ic="pencil"></i> Ввести цифрами</button>
   <div id="manual"></div>
-  <button class="pill" id="ecoBtn">🔋 Экономия батареи: выкл</button>
-  <div id="msg"></div><small style="color:var(--muted);text-align:center">Версия 9</small>
+  <div id="msg"></div>
+</div>
+<div id="settings" class="glass sheet">
+  <div class="mrow"><b>Настройки</b></div>
+  <div class="mrow"><span>Тема</span><div class="seg glass"><button class="chip" data-theme="dark"><i data-ic="moon"></i> Тёмная</button><button class="chip" data-theme="light"><i data-ic="sun"></i> Светлая</button></div></div>
+  <button class="pill" id="ecoBtn"><i data-ic="battery"></i> Экономия батареи: выкл</button>
+  <button class="pill" id="reset"><i data-ic="trash"></i> Сбросить квадраты</button>
+  <small style="color:var(--muted);text-align:center">Версия 11</small>
 </div>
 </div>
 <div id="selTools"><div id="hint"></div></div>
 <div id="builder" class="panel glass"></div>
 <div id="pad">
   <div class="row r3">
-    <button class="btn" style="--c:31,168,85" data-k="0">💰 Продажа</button>
-    <button class="btn" style="--c:59,130,246" data-k="1">🤝 СБОЛ</button>
-    <button class="btn lt" style="--c:241,196,15" data-k="2">📞 Перезвон</button>
-    <button class="btn" style="--c:231,76,60" data-k="3">❌ Отказ</button>
-    <button class="btn" style="--c:93,107,130" data-k="4">📵 Сбой</button>
-    <button class="btn" style="--c:230,126,34" data-k="5">🙅 Не слушал</button>
+    <button class="btn" style="--c:31,168,85" data-k="0"><i data-ic="sale"></i> Продажа</button>
+    <button class="btn" style="--c:59,130,246" data-k="1"><i data-ic="sbol"></i> СБОЛ</button>
+    <button class="btn lt" style="--c:241,196,15" data-k="2"><i data-ic="call"></i> Перезвон</button>
+    <button class="btn" style="--c:231,76,60" data-k="3"><i data-ic="refuse"></i> Отказ</button>
+    <button class="btn" style="--c:93,107,130" data-k="4"><i data-ic="fail"></i> Сбой</button>
+    <button class="btn" style="--c:230,126,34" data-k="5"><i data-ic="nolisten"></i> Не слушал</button>
   </div>
-  <button class="btn" style="--c:120,128,150;min-height:40px" id="undo">↩ Отменить</button>
+  <button class="btn" style="--c:120,128,150;min-height:40px" id="undo"><i data-ic="undo"></i> Отменить</button>
 </div>
+<div id="splash" class="ov"><div class="logo" id="logo"></div><h2>SBERCUBE</h2></div>
+<div id="setup" class="ov ovs"><div class="ovw" id="setupBody"></div></div>
+<div id="greet" class="ov"><div class="gem"><svg class="gup" viewBox="-6 0 120 100" aria-hidden="true">
+  <defs><linearGradient id="gupG" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#0a9673"/><stop offset="1" stop-color="#34c446"/></linearGradient></defs>
+  <g class="gbars" fill="url(#gupG)"><rect class="gb" x="17" y="62" width="18" height="30" rx="6"/><rect class="gb" x="45" y="46" width="18" height="46" rx="6"/><rect class="gb" x="73" y="30" width="18" height="62" rx="6"/></g>
+  <path class="gline" d="M8 58 L36 36 L54 46 L98 10" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" pathLength="100"/>
+  <path class="ghead" d="M80 8 H100 V28" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <g class="gspark" fill="#b9f7c6"><path d="M106 44l2.5 5.5 5.5 2.5-5.5 2.5-2.5 5.5-2.5-5.5-5.5-2.5 5.5-2.5z"/><path d="M24 20l2 4 4 2-4 2-2 4-2-4-4-2 4-2z"/><path d="M112 78l1.8 3.6 3.6 1.8-3.6 1.8-1.8 3.6-1.8-3.6-3.6-1.8 3.6-1.8z"/></g>
+</svg></div><div class="gtxt">Хорошей смены<br>и больших продаж!</div></div>
+<div id="res" class="ov ovs"><div class="ovw" id="resBody"></div></div>
 <canvas id="fx"></canvas><div id="party"></div><div id="toast" class="glass"></div>
 <script>
+const ICONS = {
+  sale: '<path d="M9 21V3h5.5a4.5 4.5 0 0 1 0 9H6"/><path d="M6 16.5h9"/>',
+  sbol: '<rect x="6" y="2" width="12" height="20" rx="3"/><path d="M9.5 11.5l2 2 3.5-4"/><path d="M11 18.5h2"/>',
+  call: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/><path d="M15 3h6v6"/><path d="M21 3l-6 6"/>',
+  refuse: '<circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/>',
+  fail: '<path d="M13 2L4 14h8l-1 8 9-12h-8z"/>',
+  nolisten: '<circle cx="9" cy="7" r="4"/><path d="M2 21v-1.5A4.5 4.5 0 0 1 6.5 15h5a4.5 4.5 0 0 1 4.5 4.5V21"/><path d="M17 8l5 5M22 8l-5 5"/>',
+  undo: '<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+  trash: '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/>',
+  timer: '<circle cx="12" cy="13.5" r="8"/><path d="M12 9.5v4l2.5 2.5"/><path d="M9.5 2h5"/>',
+  pause: '<path d="M9 5v14M15 5v14"/>',
+  play: '<path d="M7 4.5l12 7.5-12 7.5z"/>',
+  flag: '<path d="M5 22V3"/><path d="M5 4h12l-2.5 4.5L17 13H5"/>',
+  chart: '<path d="M3 21h18"/><path d="M6 21v-7M11 21V4M16 21v-10"/>',
+  save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-7H7v7M7 3v4h7"/>',
+  target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+  pencil: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+  moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M19.0 12.0L21.5 12.0"/><path d="M16.9 16.9L18.7 18.7"/><path d="M12.0 19.0L12.0 21.5"/><path d="M7.1 16.9L5.3 18.7"/><path d="M5.0 12.0L2.5 12.0"/><path d="M7.1 7.1L5.3 5.3"/><path d="M12.0 5.0L12.0 2.5"/><path d="M16.9 7.1L18.7 5.3"/>',
+  battery: '<rect x="2" y="7" width="17" height="10" rx="2.5"/><path d="M22 11v2"/><path d="M6 10.5v3M9.5 10.5v3"/>',
+  gear: '<polygon points="12.0,4.4 14.0,2.2 15.8,2.8 16.2,5.7 17.4,6.6 20.3,6.4 21.2,8.2 19.5,10.5 19.6,12.0 21.8,14.0 21.2,15.8 18.3,16.2 17.4,17.4 17.6,20.3 15.8,21.2 13.5,19.5 12.0,19.6 10.0,21.8 8.2,21.2 7.8,18.3 6.6,17.4 3.7,17.6 2.8,15.8 4.5,13.5 4.4,12.0 2.2,10.0 2.8,8.2 5.7,7.8 6.6,6.6 6.4,3.7 8.2,2.8 10.5,4.5"/><circle cx="12" cy="12" r="3"/>',
+  sync: '<path d="M20 12a8 8 0 0 1-14.3 4.9"/><path d="M4 12a8 8 0 0 1 14.3-4.9"/><path d="M18.6 3v4.3h-4.3"/><path d="M5.4 21v-4.3h4.3"/>',
+  cross: '<path d="M17 2l4 4-4 4"/><path d="M3 11V10a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>',
+  check: '<path d="M20 6L9 17l-5-5"/>',
+  x: '<path d="M18 6L6 18M6 6l12 12"/>',
+  up: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+  star: '<path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/>'
+};
+const ic = (n, cls = "") => `<svg class="ic ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
+document.querySelectorAll("i[data-ic]").forEach(e => { e.outerHTML = ic(e.dataset.ic, e.className); });
 const KINDS = ["Продажа", "СБОЛ", "Перезвон", "Отказ", "Сбой звонка", "Отказ от презентации"];
 const KC = ["31,168,85", "59,130,246", "241,196,15", "231,76,60", "93,107,130", "230,126,34"];
-const KEMO = ["💰", "🤝", "📞", "❌", "📵", "🙅"];
-const PRODUCTS = ["Кредитная карта", "СберПрайм", "Вклад Лучший процент", "СберВклад"];   // кросс-продукты
-const PC = ["168,85,247", "244,114,182", "34,211,238", "190,242,100"];                 // цвет каждого кросс-продукта
+const KICON = ["sale", "sbol", "call", "refuse", "fail", "nolisten"], KEMO = KICON.map(n => ic(n));
+const PRODUCTS = ["КК", "ПРАЙМ", "ЛУЧШИЙ%", "ВКЛАД", "НС", "ПК"];   // кросс-продукты
+const PC = ["168,85,247", "244,114,182", "34,211,238", "190,242,100", "129,140,248", "234,179,8"];                 // цвет каждого кросс-продукта
 const RES = ["Предл.", "Со мной", "Сам"];                                              // 0 предложил (отказ), 1 оформил со мной, 2 СБОЛ
-const MAINS = ["Накопительный счёт", "СберПрайм", "Кредитная карта", "СберВклад"];
-const MSHORT = ["", "П", "К", "В"];
+const MAINS = ["НС", "ПРАЙМ", "КК", "ВКЛАД", "ПК"];
+const MSH = ["НС", "ПР", "КК", "ВК", "ПК"], MCHIP = MAINS;   // MSH — метка в углу квадрата
+const WITH_MAIN = [0, 1, 3, 4];   // у каких видов звонка выбирается основной продукт
 const TOTAL = 300, H = 3600000;
 const $ = id => document.getElementById(id);
 const pad2 = n => String(n).padStart(2, "0");
@@ -227,7 +410,7 @@ const padC = a => a.concat(new Array(Math.max(0, TOTAL - a.length)).fill(null));
 // звонок: {k: вид, m: основной продукт (-1 нет), x: [[кросс-продукт, результат], ...]}
 let calls = blankCalls();
 let pr = PRODUCTS.map(() => [0, 0]);   // добавка к кросс-счётчикам (старые данные / ручной ввод): [предложений, согласий]
-let plan = [0, 0, 0, 0], hist = [];
+let plan = MAINS.map(() => 0), hist = [];
 let shift = { start: 0, pauseAt: 0, paused: 0, hours: 8, w: 0 };
 const rd = k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
 const rdA = k => { const x = rd(k); return Array.isArray(x) ? x : null; };
@@ -249,7 +432,7 @@ function legacy(s, c, m) {
 }
 (function load() {
   setPr(rdA("pr2"));
-  const p = rdA("plan2"); if (p) plan = [0, 1, 2, 3].map(i => Math.max(0, +p[i] || 0));
+  const p = rdA("plan2"); if (p) plan = MAINS.map((_, i) => Math.max(0, +p[i] || 0));
   hist = rdA("hist2") || [];
   const sh = rd("shift2"); if (sh && typeof sh === "object") shift = Object.assign(shift, sh);
   const c3 = rdA("calls3"); if (c3) { calls = padC(c3); return; }
@@ -266,7 +449,7 @@ function clearAll() { calls = blankCalls(); pr = PRODUCTS.map(() => [0, 0]); sel
 let eco = false; try { eco = localStorage.getItem("eco") === "1"; } catch (e) {}
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const fancy = () => !eco && !reduce;
-function applyEco() { document.body.classList.toggle("eco", eco); $("ecoBtn").textContent = "🔋 Экономия батареи: " + (eco ? "вкл" : "выкл"); }
+function applyEco() { document.body.classList.toggle("eco", eco); $("ecoBtn").innerHTML = ic("battery") + " Экономия батареи: " + (eco ? "вкл" : "выкл"); }
 
 // ---------- состояние ----------
 const grid = $("grid"), stats = $("stats"), sum = $("sum"), shiftpanel = $("shiftpanel"), builder = $("builder");
@@ -280,7 +463,7 @@ const pct = (n, base) => base ? `${+(n / base * 100).toFixed(2)}%` : "0%";
 
 // ---------- эффекты ----------
 const restart = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
-function toast(t) { const el = $("toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 1600); }
+function toast(t) { const el = $("toast"); el.innerHTML = t; el.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 1600); }
 const fx = $("fx"), fctx = fx.getContext("2d"); let parts = [], raf = 0;
 const sizeFx = () => { fx.width = innerWidth; fx.height = innerHeight; };
 addEventListener("resize", sizeFx); sizeFx();
@@ -307,7 +490,7 @@ function tick() {
 }
 function floatEmoji(t) {
   if (!fancy()) return;
-  const el = document.createElement("div"); el.className = "floatxp"; el.textContent = t;
+  const el = document.createElement("div"); el.className = "floatxp"; el.innerHTML = t;
   el.style.left = lastPt.x + "px"; el.style.top = (lastPt.y - 30) + "px";
   document.body.appendChild(el); setTimeout(() => el.remove(), 1000);
 }
@@ -320,17 +503,15 @@ function lens(scale = 1) {
 }
 document.addEventListener("pointerdown", e => {
   lastPt = { x: e.clientX, y: e.clientY };
-  if (!fancy()) return;
-  const t = e.target.closest(".btn,.pill,.rb,.chip,.sq"); if (t) { restart(t, "ab"); setTimeout(() => t.classList.remove("ab"), 750); }
 }, true);
 function celebrate(rec, total) {
   floatEmoji(KEMO[rec.k]); lens(rec.k < 2 ? 1.6 : 1);
   const good = rec.k < 2, nx = rec.x.length;
   if (good) burst(lastPt.x, lastPt.y, rec.k === 0 ? 55 : 35, rec.k === 0 ? 1.2 : 1);
   toast(KINDS[rec.k] + " " + KEMO[rec.k] + (nx ? ` · кросс +${nx}` : ""));
-  if (total > 0 && total % 20 === 0) setTimeout(() => toast("💾 Сохрани код прогресса в заметки"), 2200);
+  if (total > 0 && total % 20 === 0) setTimeout(() => toast(ic("save") + " Сохрани код прогресса в заметки"), 2200);
   if (total > 0 && total % 10 === 0 && fancy()) {
-    $("party").textContent = `🎉 ${total} звонков!`; restart($("party"), "on");
+    $("party").innerHTML = `${ic("star")} ${total} звонков!`; restart($("party"), "on");
     burst(innerWidth * .25, innerHeight * .5, 35, 1.3); burst(innerWidth * .75, innerHeight * .5, 35, 1.3); burst(innerWidth * .5, innerHeight * .35, 50, 1.5);
     buzz();
   }
@@ -338,17 +519,21 @@ function celebrate(rec, total) {
 
 // ---------- подсчёты ----------
 function counts() {
-  const cnt = new Array(6).fill(0), salesBy = [0, 0, 0, 0], selfBy = [0, 0, 0, 0]; let salesNone = 0, selfNone = 0;
+  const cnt = new Array(6).fill(0), salesBy = MAINS.map(() => 0), selfBy = MAINS.map(() => 0); let salesNone = 0, selfNone = 0;
   const co = PRODUCTS.map(() => [0, 0, 0]);   // из звонков: предложено, со мной, сам
+  const mb = MAINS.map(() => [0, 0, 0, 0, 0]); // по основному продукту: дозвоны, продажи, СБОЛ, отказы, сбои
+  const mx = MAINS.map(() => PRODUCTS.map(() => [0, 0])); // кросс внутри звонков по основному продукту: [предложено, согласий]
   calls.forEach(c => {
     if (!c) return; cnt[c.k]++;
+    if (c.m >= 0 && mb[c.m]) { const b = mb[c.m]; b[0]++; if (c.k === 0) b[1]++; else if (c.k === 1) b[2]++; else if (c.k === 3) b[3]++; else if (c.k === 4) b[4]++;
+      c.x.forEach(([p, r]) => { if (p >= 0 && mx[c.m][p]) { mx[c.m][p][0]++; if (r > 0) mx[c.m][p][1]++; } }); }
     if (c.k === 0) { if (c.m >= 0) salesBy[c.m]++; else salesNone++; }
     else if (c.k === 1) { if (c.m >= 0) selfBy[c.m]++; else selfNone++; }
     c.x.forEach(([p, r]) => { if (p >= 0) { co[p][0]++; if (r === 1) co[p][1]++; if (r === 2) co[p][2]++; } });
   });
   const total = cnt.reduce((a, b) => a + b, 0);
   const prod = PRODUCTS.map((_, i) => ({ off: pr[i][0] + co[i][0], agr: pr[i][1] + co[i][1] + co[i][2], self: co[i][2] }));
-  return { cnt, total, sales: cnt[0], sbol: cnt[1], salesBy, selfBy, salesNone, selfNone, prod,
+  return { cnt, total, sales: cnt[0], sbol: cnt[1], salesBy, selfBy, salesNone, selfNone, prod, mb, mx,
     pres: total - cnt[4] - cnt[5],              // презентации: все, кроме сбоя и «не слушал»
     agree: cnt[0] + cnt[1],                     // согласия = продажи + СБОЛ
     offers: prod.reduce((a, x) => a + x.off, 0) };
@@ -356,8 +541,8 @@ function counts() {
 function statsText(o) {
   return [`Дозвоны: ${o.total}`, `Презентации: ${o.pres}`, `Согласия: ${o.agree}`,
     `Всего предложений по кросс-продуктам: ${o.offers} (${pct(o.offers, o.total)} от дозвонов)`,
-    `СБОЛ: ${o.sbol} (${pct(o.sbol, o.total)} от дозвона)`, `Основные продукты (продаж / СБОЛ):`]
-    .concat(MAINS.map((n, i) => `${n}: ${o.salesBy[i]} / ${o.selfBy[i]}`)).concat([`Кросс-продукты:`])
+    `СБОЛ: ${o.sbol} (${pct(o.sbol, o.total)} от дозвона)`, `Основные продукты:`]
+    .concat(MAINS.map((n, i) => { const b = o.mb[i]; return `${n}: дозвонов ${b[0]}, продаж ${b[1]}, СБОЛ ${b[2]}, отказов ${b[3]}, сбоев ${b[4]}`; })).concat([`Кросс-продукты:`])
     .concat(PRODUCTS.map((n, i) => `${n}: предложений ${o.prod[i].off} (${pct(o.prod[i].off, o.offers)} от дозвона), согласий ${o.prod[i].agr} (${pct(o.prod[i].agr, o.prod[i].off)} от предложений), из них сам ${o.prod[i].self}`)).join("\n");
 }
 
@@ -368,13 +553,13 @@ const hhmm = ts => new Date(ts).toLocaleTimeString("ru-RU", { hour: "2-digit", m
 let topInfo = { sales: 0, planSum: 0, total: 0 }, tickId = 0;
 function updateShift() {
   const len = shift.hours * H, el = elapsed(), rem = len - el;
-  if (!shift.start) { $("shT").textContent = "⏱ Начать смену"; $("shFill").style.width = "0%"; }
+  if (!shift.start) { $("shT").innerHTML = ic("timer") + " Начать смену"; $("shFill").style.width = "0%"; }
   else {
-    $("shT").textContent = (shift.pauseAt ? "⏸ " : "⏱ ") + (rem >= 0 ? fmt(rem) : "+" + fmt(-rem));
-    $("shFill").style.width = Math.min(100, el / len * 100) + "%";
+    $("shT").innerHTML = ic(shift.pauseAt ? "pause" : "timer") + " " + (rem >= 0 ? fmt(rem) + "<small> осталось</small>" : "+" + fmt(-rem) + "<small> сверх смены</small>");
+    $("shFill").style.width = Math.max(0, Math.min(100, rem / len * 100)) + "%";
     if (!shift.pauseAt) {
-      if (rem <= H && rem > 0 && shift.w < 1) { shift.w = 1; saveMeta(); toast("⏳ До конца смены остался час"); }
-      if (rem <= 0 && shift.w < 2) { shift.w = 2; saveMeta(); toast("🎉 Смена закончилась"); burst(innerWidth / 2, innerHeight * .4, 60, 1.3); buzz(); }
+      if (rem <= H && rem > 0 && shift.w < 1) { shift.w = 1; saveMeta(); toast(ic("timer") + " До конца смены остался час"); }
+      if (rem <= 0 && shift.w < 2) { shift.w = 2; saveMeta(); toast(ic("flag") + " Смена закончилась"); burst(innerWidth / 2, innerHeight * .4, 60, 1.3); buzz(); }
     }
   }
   $("shS").textContent = `Продаж ${topInfo.sales}` + (topInfo.planSum ? ` / ${topInfo.planSum}` : "");
@@ -407,7 +592,7 @@ function renderGrid() {
   while (cells.length < n) { const d = document.createElement("div"); d.dataset.i = cells.length; grid.appendChild(d); cells.push(d); }
   for (let i = 0; i < n; i++) {
     const c = calls[i], d = cells[i];
-    const m = c && c.k < 2 && c.m > 0 ? MSHORT[c.m] : "";
+    const m = c && c.m >= 0 && WITH_MAIN.includes(c.k) && !(c.k < 2 && c.m === 0) ? MSH[c.m] : "";
     const key = (c ? JSON.stringify(c) : "") + "|" + (i === next && sel < 0) + "|" + (i === sel);
     if (d._k !== key || i === popIdx) {
       d._k = key;
@@ -423,22 +608,22 @@ function renderGrid() {
 grid.onclick = e => { const c = e.target.closest(".sq"); if (!c) return; const i = +c.dataset.i; sel = sel === i ? -1 : i; if (panel === "build") { panel = "none"; bd = null; } lens(.7); render(); };
 
 function builderHTML() {
-  const hints = ["Продажа: выбери основной продукт и кросс-продукты, которые предлагал.", "СБОЛ (клиент оформил сам): основной продукт и кросс, если был.", "", "Отказ: если кросс не предлагал — просто «Записать» (отказ от всего).", "Сбой звонка: если сбросили в самом начале — «Записать», если на кроссе — отметь, что предлагал."];
+  const hints = ["Продажа: выбери основной продукт и кросс-продукты, которые предлагал.", "СБОЛ (клиент оформил сам): основной продукт и кросс, если был.", "", "Отказ: выбери продукт, от которого отказались (можно не выбирать). Кросс — если предлагал.", "Сбой звонка: выбери продукт, если успел его предложить. Если сбросили на кроссе — отметь, что предлагал."];
   const kind = bd.k;
   return `<div class="top"><span>${KEMO[kind]} ${KINDS[kind]}${sel >= 0 ? " · №" + (sel + 1) : ""}</span></div>
-    ${kind < 2 ? `<div id="mainRow" class="glass"><span>Основной:</span>${MAINS.map((n, i) => `<button class="chip${bd.m === i ? " on" : ""}" data-m="${i}">${["Накопит.", "СберПрайм", "Кредитка", "СберВклад"][i]}</button>`).join("")}</div>` : ""}
+    ${WITH_MAIN.includes(kind) ? `<div id="mainRow" class="glass"><span>Основной:</span>${MAINS.map((n, i) => `<button class="chip${bd.m === i ? " on" : ""}" data-m="${i}">${MCHIP[i]}</button>`).join("")}</div>` : ""}
     <small>${hints[kind]}<br>Кросс: «Предл.» — предложил, отказали · «Со мной» — оформили со мной · «Сам» — СБОЛ</small>
     ${PRODUCTS.map((n, p) => { const e = bd.x.find(a => a[0] === p); return `<div class="xr" style="--c:${PC[p]}"><span><i class="dot"></i>${n}</span>${RES.map((r, j) => `<button class="rb${e && e[1] === j ? " on" : ""}" data-p="${p}" data-r="${j}">${r}</button>`).join("")}</div>`; }).join("")}
-    <div class="row r2"><button class="btn" style="--c:120,128,150" data-b="cancel">Отмена</button><button class="btn" style="--c:31,168,85" data-b="ok">✓ Записать${bd.x.length ? " (+" + bd.x.length + ")" : ""}</button></div>`;
+    <div class="row r2"><button class="btn" style="--c:120,128,150" data-b="cancel">Отмена</button><button class="btn" style="--c:31,168,85" data-b="ok">${ic("check")} Записать${bd.x.length ? " (+" + bd.x.length + ")" : ""}</button></div>`;
 }
 function shiftPanelHTML(o) {
   const run = !!shift.start, planSum = plan.reduce((a, b) => a + b, 0);
   const startVal = run ? `${pad2(new Date(shift.start).getHours())}:${pad2(new Date(shift.start).getMinutes())}` : "";
-  const main = !run ? `<button class="pill" data-sh="start">▶ Начать смену</button>` : shift.pauseAt ? `<button class="pill" data-sh="resume">▶ Продолжить</button>` : `<button class="pill" data-sh="pause">⏸ Пауза</button>`;
+  const main = !run ? `<button class="pill" data-sh="setup">${ic("play")} Начать смену</button>` : shift.pauseAt ? `<button class="pill" data-sh="resume">${ic("play")} Продолжить</button>` : `<button class="pill" data-sh="pause">${ic("pause")} Пауза</button>`;
   return `<div class="card glass">
       <div class="top"><span>Смена</span><span id="shLive" style="font-weight:500;color:var(--muted);font-size:13px"></span></div>
-      <div class="btns">${main}${run ? `<button class="pill" data-sh="reset">⏹ Сбросить</button>` : ""}</div>
-      <div class="mrow"><span>Длина смены, часов</span><input class="pin" id="shHours" type="number" inputmode="decimal" step="0.5" min="1" max="24" value="${shift.hours}"></div>
+      <div class="btns">${main}${run || o.total ? `<button class="pill" data-sh="end">${ic("flag")} Завершить смену</button>` : ""}</div>
+      <div class="mrow"><span>Длина смены, часов</span><select class="hsel" id="shHours">${Array.from({ length: 12 }, (_, i) => i + 1).map(h => `<option value="${h}"${Math.round(shift.hours) === h ? " selected" : ""}>${h} ч</option>`).join("")}</select></div>
       <div class="mrow"><span>Начало смены</span><input class="pin" style="width:96px" id="shStart" type="time" value="${startVal}"></div>
       <small class="m" id="shPace"></small>
     </div>
@@ -447,13 +632,14 @@ function shiftPanelHTML(o) {
       ${MAINS.map((n, i) => `<div class="prog"><div class="ph"><span>${n}</span><span>${o.salesBy[i]} / <input class="pin" id="pl${i}" type="number" inputmode="numeric" min="0" placeholder="0" value="${plan[i] || ""}"></span></div>
         <div class="bar"><i style="width:${plan[i] ? Math.min(100, o.salesBy[i] / plan[i] * 100) : 0}%"></i></div></div>`).join("")}
       ${planSum ? `<div class="ln"><span>Осталось до плана</span><b>${Math.max(0, planSum - o.sales)}</b></div>` : `<small class="m">Впиши план по нужным продуктам — появится прогресс.</small>`}
-      <small class="m">СБОЛ по продуктам: ${MAINS.map((n, i) => `${["НС", "П", "К", "В"][i]} ${o.selfBy[i]}`).join(" · ")}${o.salesNone || o.selfNone ? ` · без продукта: ${o.salesNone} прод., ${o.selfNone} СБОЛ` : ""}</small>
+      <small class="m">СБОЛ по продуктам: ${MAINS.map((n, i) => `${MSH[i]} ${o.selfBy[i]}`).join(" · ")}${o.salesNone || o.selfNone ? ` · без продукта: ${o.salesNone} прод., ${o.selfNone} СБОЛ` : ""}</small>
     </div>
     ${histHTML(o)}`;
 }
 function snap(o) {
   const el = elapsed(), h = el > 600000 ? el / H : 0;
-  return { d: Date.now(), h: +h.toFixed(2), t: o.total, p: o.pres, a: o.agree, s: o.sbol, l: o.sales, o: o.offers };
+  return { d: Date.now(), h: +h.toFixed(2), t: o.total, p: o.pres, a: o.agree, s: o.sbol, l: o.sales, o: o.offers,
+    st: shift.start || 0, c: o.cnt.slice(), mb: o.mb.map(b => b.slice()), x: o.prod.map(q => [q.off, q.agr]), pl: plan.slice() };
 }
 function histHTML(o) {
   const rows = hist.map((r, i) => ({ r, i })), cols = ["t", "a", "s", "l", "o"];
@@ -464,14 +650,21 @@ function histHTML(o) {
   const dt = ts => new Date(ts).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" });
   return `<div class="card glass">
     <div class="top"><span>Смены</span><span style="font-weight:500;color:var(--muted);font-size:13px">${hist.length}</span></div>
-    <div class="btns"><button class="pill" data-sh="save">💾 Сохранить</button><button class="pill" data-sh="close">✅ Закрыть смену</button></div>
-    <small class="m">«Сохранить» — снимок текущих цифр. «Закрыть смену» — снимок и чистый лист для новой (квадраты, кросс-счётчики и смена обнулятся).</small>
+    <div class="btns"><button class="pill" data-sh="now">${ic("chart")} Итоги сейчас</button><button class="pill" data-sh="save">${ic("save")} Сохранить</button></div>
+    <small class="m">«Завершить смену» — итоги с диаграммой и чистый лист для новой. Нажми на дату смены, чтобы посмотреть её итоги.</small>
     ${hist.length ? `<table><tr><th>Дата</th><th>Зв.</th><th>Согл.</th><th>СБОЛ</th><th>Прод.</th><th>Кросс</th><th>Зв/ч</th><th></th></tr>
-      ${rows.map(({ r, i }) => `<tr><td>${dt(r.d)}</td>${cols.map(k => cell(r, k)).join("")}<td${rate(r) && rate(r) === best.v && hist.length > 1 ? ' style="color:#6ee7b7"' : ""}><b>${r.h ? rate(r).toFixed(1) : "—"}</b></td><td><button class="pill" style="padding:4px 8px" data-del="${i}">✕</button></td></tr>`).join("")}
+      ${rows.map(({ r, i }) => `<tr><td data-res="${i}"><b class="lnk">${dt(r.d)}</b></td>${cols.map(k => cell(r, k)).join("")}<td${rate(r) && rate(r) === best.v && hist.length > 1 ? ' style="color:#6ee7b7"' : ""}><b>${r.h ? rate(r).toFixed(1) : "—"}</b></td><td><button class="pill" style="padding:4px 8px" data-del="${i}">${ic("x")}</button></td></tr>`).join("")}
       <tr><td><i>Среднее</i></td>${cols.map(k => `<td><i>${avg(k)}</i></td>`).join("")}<td></td><td></td></tr>
       <tr><td><i>Сейчас</i></td><td><i>${o.total}</i></td><td><i>${o.agree}</i></td><td><i>${o.sbol}</i></td><td><i>${o.sales}</i></td><td><i>${o.offers}</i></td><td><i>${elapsed() > 600000 ? (o.total / (elapsed() / H)).toFixed(1) : "—"}</i></td><td></td></tr>
     </table><small class="m">Зелёным — лучший результат по столбцу. Зв/ч считается, если смена шла больше 10 минут.</small>` : ""}
   </div>`;
+}
+// кросс-продажи внутри звонков по одному основному продукту
+function crossLine(x) {
+  const off = x.reduce((a, q) => a + q[0], 0), agr = x.reduce((a, q) => a + q[1], 0);
+  if (!off) return `<div class="pcx"><span class="pcl">${ic("cross")} кросс не предлагался</span></div>`;
+  return `<div class="pcx"><span class="pcl">${ic("cross")} кросс: согласий <b>${agr}</b> из <b>${off}</b></span>
+    <div class="xcs">${x.map((q, p) => q[0] ? `<span class="xc"><i class="dot" style="--c:${PC[p]}"></i>${PRODUCTS[p]} ${q[1]}/${q[0]}</span>` : "").join("")}</div></div>`;
 }
 function statsHTML(o) {
   return `<div class="card glass">
@@ -483,10 +676,11 @@ function statsHTML(o) {
       </div>
       <div class="wide"><small>Всего предложений по кросс-продуктам</small><b>${o.offers}</b><i>(${pct(o.offers, o.total)} от дозвонов)</i></div>
       <div class="ln"><span>СБОЛ:</span><span><b>${o.sbol}</b><i>(${pct(o.sbol, o.total)} от дозвона)</i></span></div>
-      <table><tr><th>Основные продукты</th><th>Продаж</th><th>СБОЛ</th></tr>
-        ${MAINS.map((n, i) => `<tr><td>${n}</td><td><b>${o.salesBy[i]}</b></td><td><b>${o.selfBy[i]}</b></td></tr>`).join("")}
-        ${o.salesNone || o.selfNone ? `<tr><td>Не указан</td><td><b>${o.salesNone}</b></td><td><b>${o.selfNone}</b></td></tr>` : ""}
-      </table>
+      <div class="top"><span>Основные продукты</span></div>
+      <div class="pgrid">${MAINS.map((n, i) => { const b = o.mb[i]; return `<div class="pc"><small>${n}</small><b>${b[0]}<em>дозвонов</em></b>
+        <div class="pcl">${ic("sale")} продаж <b>${b[1]}</b> · ${ic("sbol")} СБОЛ <b>${b[2]}</b><br>${ic("refuse")} отказов <b>${b[3]}</b> · ${ic("fail")} сбоев <b>${b[4]}</b></div>
+        <div class="bar"><i style="width:${b[0] ? (b[1] + b[2]) / b[0] * 100 : 0}%"></i></div><div class="pcl">конверсия ${pct(b[1] + b[2], b[0])}</div>${crossLine(o.mx[i])}</div>`; }).join("")}</div>
+      ${o.salesNone || o.selfNone ? `<small class="m">Без основного продукта: продаж ${o.salesNone}, СБОЛ ${o.selfNone}</small>` : ""}
       <table><tr><th>Кросс-продукты</th><th>Предложений</th><th>Согласий</th></tr>
         ${PRODUCTS.map((n, i) => `<tr><td><i class="dot" style="--c:${PC[i]}"></i>${n}</td><td><b>${o.prod[i].off}</b><i>(${pct(o.prod[i].off, o.offers)} от дозвона)</i></td><td><b>${o.prod[i].agr}</b><i>(${pct(o.prod[i].agr, o.prod[i].off)} от предложений${o.prod[i].self ? `, сам: ${o.prod[i].self}` : ""})</i></td></tr>`).join("")}
       </table>
@@ -500,7 +694,7 @@ function render() {
   builder.style.display = building ? "flex" : "none"; $("pad").style.display = building ? "none" : "flex";
   $("selTools").style.display = sel >= 0 && !building ? "block" : "none";
   $("hint").textContent = sel >= 0 ? `Правка квадрата №${sel + 1}: нажми вид звонка, чтобы поменять. Тап по нему ещё раз — отмена.` : "";
-  $("undo").textContent = sel >= 0 ? "🗑 Очистить квадрат" : "↩ Отменить последний";
+  $("undo").innerHTML = sel >= 0 ? ic("trash") + " Очистить квадрат" : ic("undo") + " Отменить последний";
   if (building) { builder.innerHTML = builderHTML(); builder.firstElementChild.style.setProperty("--c", KC[bd.k]); }
   const o = counts();
   topInfo = { sales: o.sales, planSum: plan.reduce((a, b) => a + b, 0), total: o.total };
@@ -534,11 +728,11 @@ document.querySelectorAll("[data-k]").forEach(b => b.onclick = () => {
   const k = +b.dataset.k;
   if (k === 2 || k === 5) { commit({ k, m: -1, x: [] }); return; }
   const ex = sel >= 0 ? calls[sel] : null;
-  bd = { k, m: k < 2 ? (ex && ex.k < 2 && ex.m >= 0 ? ex.m : 0) : -1, x: ex ? ex.x.map(a => a.slice()) : [] };
+  bd = { k, m: ex && ex.m >= 0 ? ex.m : k < 2 ? 0 : -1, x: ex ? ex.x.map(a => a.slice()) : [] };
   lens(.8); openPanel("build");
 });
 builder.onclick = e => {
-  const chip = e.target.closest(".chip"); if (chip) { bd.m = +chip.dataset.m; buzz(); return render(); }
+  const chip = e.target.closest(".chip"); if (chip) { const m = +chip.dataset.m; bd.m = bd.k >= 3 && bd.m === m ? -1 : m; buzz(); return render(); }
   const rb = e.target.closest(".rb");
   if (rb) {
     const p = +rb.dataset.p, r = +rb.dataset.r, i = bd.x.findIndex(a => a[0] === p);
@@ -559,16 +753,19 @@ sum.onclick = () => toggle("stats");
 // смена и план
 let closeArm = 0, delArm = -1;
 shiftpanel.onclick = e => {
+  const rs = e.target.closest("[data-res]"); if (rs && hist[+rs.dataset.res]) { showResults(hist[+rs.dataset.res], false); return; }
   const dl = e.target.closest("button[data-del]");
-  if (dl) { const i = +dl.dataset.del; if (delArm !== i) { delArm = i; dl.textContent = "?"; setTimeout(() => { delArm = -1; if (dl.isConnected) dl.textContent = "✕"; }, 2500); return; } hist.splice(i, 1); delArm = -1; saveMeta(); render(); return; }
+  if (dl) { const i = +dl.dataset.del; if (delArm !== i) { delArm = i; dl.textContent = "?"; setTimeout(() => { delArm = -1; if (dl.isConnected) dl.innerHTML = ic("x"); }, 2500); return; } hist.splice(i, 1); delArm = -1; saveMeta(); render(); return; }
   const b = e.target.closest("button[data-sh]"); if (!b) return;
   const a = b.dataset.sh, now = Date.now();
-  if (a === "save") { hist.push(snap(counts())); saveMeta(); render(); toast("💾 Смена сохранена"); return; }
-  if (a === "close") {
-    if (!closeArm) { closeArm = 1; b.textContent = "Точно? Нажми ещё раз"; setTimeout(() => { closeArm = 0; if (b.isConnected) b.textContent = "✅ Закрыть смену"; }, 3000); return; }
-    closeArm = 0; hist.push(snap(counts())); clearAll();
+  if (a === "save") { hist.push(snap(counts())); saveMeta(); render(); toast(ic("save") + " Смена сохранена"); return; }
+  if (a === "now") { showResults(snap(counts()), false); return; }
+  if (a === "setup") { openSetup(); return; }
+  if (a === "end") {
+    if (!closeArm) { closeArm = 1; b.textContent = "Точно? Нажми ещё раз"; setTimeout(() => { closeArm = 0; if (b.isConnected) b.innerHTML = ic("flag") + " Завершить смену"; }, 3000); return; }
+    closeArm = 0; const r = snap(counts()); hist.push(r); clearAll();
     shift.start = 0; shift.pauseAt = 0; shift.paused = 0; shift.w = 0;
-    save(); saveMeta(); syncTick(); render(); toast("✅ Смена закрыта и сохранена"); return;
+    save(); saveMeta(); syncTick(); openPanel("none"); showResults(r, true); return;
   }
   if (a === "start") { shift.start = now; shift.pauseAt = 0; shift.paused = 0; shift.w = 0; }
   else if (a === "pause") shift.pauseAt = now;
@@ -578,7 +775,7 @@ shiftpanel.onclick = e => {
 };
 shiftpanel.onchange = e => {
   const t = e.target;
-  if (t.id === "shHours") { shift.hours = Math.min(24, Math.max(1, +t.value || 8)); t.value = shift.hours; shift.w = 0; }
+  if (t.id === "shHours") { shift.hours = Math.min(12, Math.max(1, +t.value || 8)); t.value = shift.hours; shift.w = 0; }
   else if (t.id === "shStart") {
     const [h, m] = (t.value || "").split(":").map(Number);
     if (!isNaN(h) && !isNaN(m)) { const d = new Date(); d.setHours(h, m, 0, 0); if (d.getTime() > Date.now()) d.setDate(d.getDate() - 1); shift.start = d.getTime(); shift.paused = 0; shift.pauseAt = 0; shift.w = 0; syncTick(); }
@@ -611,14 +808,26 @@ function buildManual() {
 $("manBtn").onclick = () => { const el = $("manual"); if (!el.innerHTML) buildManual(); el.style.display = el.style.display === "flex" ? "none" : "flex"; };
 let armed = false;
 $("reset").onclick = e => {
-  if (!armed) { armed = true; e.target.textContent = "Точно?"; setTimeout(() => { armed = false; e.target.textContent = "Сбросить"; }, 2500); return; }
-  clearAll(); armed = false; e.target.textContent = "Сбросить"; save(); render();
+  const t0 = ic("trash") + " Сбросить квадраты";
+  const btn = $("reset");
+  if (!armed) { armed = true; btn.textContent = "Точно? Нажми ещё раз"; setTimeout(() => { armed = false; btn.innerHTML = t0; }, 2500); return; }
+  clearAll(); armed = false; btn.innerHTML = t0; save(); render(); toast("Квадраты сброшены");
 };
 $("ecoBtn").onclick = () => { eco = !eco; try { localStorage.setItem("eco", eco ? "1" : "0"); } catch (e) {} applyEco(); };
 
 // перенос прогресса: KV4 (новый); KV1–KV3 тоже принимаются
 const sync = $("sync"), code = $("code"), msg = $("msg");
-$("syncBtn").onclick = () => { sync.style.display = sync.style.display === "flex" ? "none" : "flex"; msg.textContent = ""; };
+const settings = $("settings");
+function sheet(el) { const show = el.style.display !== "flex"; sync.style.display = settings.style.display = "none"; if (show) el.style.display = "flex"; }
+$("syncBtn").onclick = () => { sheet(sync); msg.textContent = ""; };
+$("setBtn").onclick = () => sheet(settings);
+let theme = "dark"; try { theme = localStorage.getItem("theme") === "light" ? "light" : "dark"; } catch (e) {}
+function applyTheme() {
+  document.documentElement.classList.toggle("light", theme === "light");
+  document.querySelectorAll("[data-theme]").forEach(b => b.classList.toggle("on", b.dataset.theme === theme));
+  document.querySelector('meta[name="theme-color"]').content = theme === "light" ? "#eef5f0" : "#000000";
+}
+settings.onclick = e => { const b = e.target.closest("[data-theme]"); if (!b) return; theme = b.dataset.theme; try { localStorage.setItem("theme", theme); } catch (e) {} applyTheme(); buzz(); };
 $("exp").onclick = () => {
   const n = Math.max(lastIdx() + 1, 0);
   code.value = "KV4:" + JSON.stringify({ k: calls.slice(0, n), p: pr.flat(), q: plan, h: hist });
@@ -634,11 +843,11 @@ $("imp").onclick = () => {
     if (v === "KV4:") {
       if (!Array.isArray(o.k)) throw 0;
       calls = padC(o.k.map(c => c && typeof c.k === "number" ? { k: c.k, m: c.m, x: Array.isArray(c.x) ? c.x : [] } : null));
-      setPr(o.p); if (Array.isArray(o.q)) plan = [0, 1, 2, 3].map(i => Math.max(0, +o.q[i] || 0)); if (Array.isArray(o.h)) hist = o.h;
+      setPr(o.p); if (Array.isArray(o.q)) plan = MAINS.map((_, i) => Math.max(0, +o.q[i] || 0)); if (Array.isArray(o.h)) hist = o.h;
     } else {
       if (!Array.isArray(o.s) || !Array.isArray(o.c)) throw 0;
       calls = padC(legacy(v === "KV1:" ? fromOld(o.s, o.c) : o.s, o.c, Array.isArray(o.m) ? o.m : []));
-      if (v === "KV3:") { setPr(o.p); if (Array.isArray(o.q)) plan = [0, 1, 2, 3].map(i => Math.max(0, +o.q[i] || 0)); }
+      if (v === "KV3:") { setPr(o.p); if (Array.isArray(o.q)) plan = MAINS.map((_, i) => Math.max(0, +o.q[i] || 0)); }
     }
     sel = -1; save(); saveMeta(); render(); msg.textContent = "Прогресс загружен.";
   } catch (e) { msg.textContent = "Не получилось: код неверный или обрезан."; }
@@ -648,7 +857,7 @@ $("imp").onclick = () => {
 ["gesturestart", "gesturechange", "gestureend"].forEach(n => document.addEventListener(n, e => e.preventDefault(), { passive: false }));
 document.addEventListener("touchmove", e => {
   if (e.touches.length > 1) { e.preventDefault(); return; }                      // щипок
-  if (!e.target.closest("#grid, .sheet, textarea")) e.preventDefault(); // страница не двигается
+  if (!e.target.closest("#grid, .sheet, .ovs, textarea")) e.preventDefault(); // страница не двигается
 }, { passive: false });
 document.addEventListener("dblclick", e => e.preventDefault());
 
@@ -677,9 +886,95 @@ swipeClose(stats, () => openPanel("none"));
 swipeClose(shiftpanel, () => openPanel("none"));
 swipeClose(builder, () => { bd = null; openPanel("none"); });
 swipeClose(sync, () => { sync.style.display = "none"; });
+swipeClose(settings, () => { settings.style.display = "none"; });
 
 
-applyEco(); render(); syncTick();
+// ---------- слои: заставка → начало смены → «Хорошей смены» · итоги ----------
+function showOv(id) { const el = $(id); el.classList.remove("out"); el.classList.add("on"); el.scrollTop = 0; }
+function closeOv(id) { const el = $(id); if (!el.classList.contains("on") || el.classList.contains("out")) return; el.classList.add("out"); setTimeout(() => el.classList.remove("on", "out"), 380); }
+function boot() {
+  const order = [0, 1, 2, 5, 8, 7, 6, 3];   // контуры слетаются по кругу, центр «вспыхивает» последним
+  $("logo").innerHTML = Array.from({ length: 9 }, (_, i) => { if (i === 4) return `<i class="c"></i>`; const a = Math.random() * Math.PI * 2, d = 160 + Math.random() * 120;
+    return `<i style="--x:${Math.cos(a) * d | 0}px;--y:${Math.sin(a) * d | 0}px;--r:${(Math.random() * 360 - 180) | 0}deg;--d:${order.indexOf(i) * 70}ms"></i>`; }).join("");
+  showOv("splash");
+  let done = false;
+  const finish = () => { if (done) return; done = true; closeOv("splash"); setTimeout(() => { if (!shift.start) openSetup(); }, 300); };
+  $("splash").onclick = finish; setTimeout(finish, fancy() ? 2200 : 600);
+  if (fancy()) setTimeout(() => { if (!done) burst(innerWidth / 2, innerHeight * .42, 40, .9); }, 1150);
+}
+let su = null;
+function openSetup() { su = { h: Math.min(12, Math.max(1, Math.round(shift.hours) || 8)), pl: plan.slice() }; renderSetup(); showOv("setup"); }
+function renderSetup() {
+  const tot = su.pl.reduce((a, b) => a + b, 0);
+  $("setupBody").innerHTML = `<div class="card glass">
+    <div class="top"><span>${ic("timer")} Новая смена</span></div>
+    <div class="mrow"><span>Сколько часов смена</span><select class="hsel" id="suHours">${Array.from({ length: 12 }, (_, i) => i + 1).map(h => `<option value="${h}"${su.h === h ? " selected" : ""}>${h} ч</option>`).join("")}</select></div>
+  </div>
+  <div class="card glass">
+    <div class="top"><span>${ic("target")} План продаж</span><span style="font-weight:500;color:var(--muted);font-size:13px">всего ${tot}</span></div>
+    ${MAINS.map((n, i) => `<div class="mrow"><span>${n}</span><span class="step"><button class="pill" data-su="p${i}:-1">−</button><b>${su.pl[i]}</b><button class="pill" data-su="p${i}:1">+</button></span></div>`).join("")}
+  </div>
+  <button class="btn gob" style="--c:31,168,85" data-su="go">▶ Начать смену</button>`;
+}
+$("setup").onclick = e => {
+  const b = e.target.closest("[data-su]"); if (!b) return;
+  const [a, v] = b.dataset.su.split(":");
+  if (a === "go") return startShift();
+  if (a[0] === "p") { const i = +a.slice(1); su.pl[i] = Math.max(0, su.pl[i] + +v); }
+  buzz(); renderSetup();
+};
+function startShift() {
+  shift.hours = su.h; plan = su.pl.slice();
+  shift.start = Date.now(); shift.pauseAt = 0; shift.paused = 0; shift.w = 0;
+  saveMeta(); syncTick(); closeOv("setup"); openPanel("none"); buzz();
+  setTimeout(() => {
+    showOv("greet"); burst(innerWidth / 2, innerHeight * .4, 70, 1.4);
+    setTimeout(() => { burst(innerWidth * .2, innerHeight * .55, 35, 1.1); burst(innerWidth * .8, innerHeight * .55, 35, 1.1); }, 350);
+    clearTimeout(startShift.t); startShift.t = setTimeout(() => closeOv("greet"), 3600);
+  }, 250);
+}
+$("setup").onchange = e => { if (e.target.id === "suHours") { su.h = +e.target.value; buzz(); } };
+$("greet").onclick = () => closeOv("greet");
+
+function resultsHTML(r, fin) {
+  const day = new Date(r.d).toLocaleDateString("ru-RU", { day: "numeric", month: "long" });
+  const planSum = r.pl ? r.pl.reduce((a, b) => a + b, 0) : 0;
+  const kpi = (n, v, sub) => `<div class="kpi"><small>${n}</small><b>${v}</b>${sub ? `<i class="m">${sub}</i>` : ""}</div>`;
+  let h = `<div class="card glass">
+    <div class="rhead"><b>${fin ? ic("flag") + " Смена завершена" : ic("chart") + " Итоги смены"}</b><small class="m">${day} · ${r.st ? hhmm(r.st) + "–" : ""}${hhmm(r.d)}${r.h ? ` · ${r.h} ч` : ""}</small></div>
+    <div class="kpis">${kpi("Дозвоны", r.t)}${kpi("Продажи", r.l, planSum ? `план ${planSum}` : "")}${kpi("СБОЛ", r.s)}</div>
+    <div class="kpis">${kpi("Согласия", r.a)}${kpi("Конверсия", pct(r.a, r.t), "согласия / дозвоны")}${kpi("Кросс", r.o, "предложений")}</div>
+  </div>`;
+  if (r.c) {
+    const tot = r.c.reduce((a, b) => a + b, 0), nz = r.c.filter(Boolean).length, gap = nz > 1 ? 2 : 0;
+    let acc = 0; const segs = [];
+    r.c.forEach((n, i) => { if (!n) return; const a = acc / tot * 360, b = (acc += n) / tot * 360; segs.push(`rgb(${KC[i]}) ${a}deg ${b - gap}deg`, `transparent ${b - gap}deg ${b}deg`); });
+    h += `<div class="card glass"><div class="top"><span>Из чего сложились звонки</span></div>
+      <div class="drow"><div class="dwrap"><div class="donut" style="background:${tot ? `conic-gradient(${segs.join(",")})` : "rgba(128,128,128,.25)"}"></div><div class="dmid"><b>${tot}</b><small>звонков</small></div></div>
+      <div class="dleg">${KINDS.map((n, i) => `<div><i class="dot" style="--c:${KC[i]}"></i><span>${n}</span><b>${r.c[i]}</b><small>${pct(r.c[i], tot)}</small></div>`).join("")}</div></div></div>`;
+  }
+  if (r.mb) {
+    const mx = Math.max(1, ...r.mb.map(b => b[1]));   // в старых сменах продуктов могло быть меньше
+    h += `<div class="card glass"><div class="top"><span>Продажи по продуктам</span>${planSum ? `<span style="font-weight:500;color:var(--muted);font-size:13px">${r.l} из ${planSum}</span>` : ""}</div>
+      ${MAINS.map((n, i) => { const b = r.mb[i] || [0, 0, 0, 0, 0], pl = r.pl && r.pl[i] || 0, w = pl ? Math.min(100, b[1] / pl * 100) : b[1] / mx * 100;
+        return `<div class="prog"><div class="ph"><span>${n}</span><b>${b[1]}${pl ? ` / ${pl}` : ""}${pl && b[1] >= pl ? ` <span style="color:#34c446">${ic("check")}</span>` : ""}</b></div><div class="bar rbar"><i style="--w:${w}%"></i></div>
+        <small class="m">дозвонов ${b[0]} · СБОЛ ${b[2]} · отказов ${b[3]} · сбоев ${b[4]}</small></div>`; }).join("")}</div>`;
+  }
+  if (r.x) {
+    const used = PRODUCTS.map((n, i) => ({ n, i, off: r.x[i] ? r.x[i][0] : 0, agr: r.x[i] ? r.x[i][1] : 0 })).filter(q => q.off);
+    h += `<div class="card glass"><div class="top"><span>Кросс-продажи</span></div>
+      ${used.length ? used.map(q => `<div class="prog"><div class="ph"><span><i class="dot" style="--c:${PC[q.i]}"></i>${q.n}</span><b>${q.agr} / ${q.off}</b></div>
+        <div class="bar rbar"><i style="--w:${q.agr / q.off * 100}%;background:rgb(${PC[q.i]})"></i></div></div>`).join("") + `<small class="m">согласий / предложений</small>` : `<small class="m">Кросс не предлагался.</small>`}</div>`;
+  }
+  return h + `<button class="btn gob" style="--c:31,168,85" data-res="close">${fin ? "Готово" : "Закрыть"}</button>`;
+}
+function showResults(r, fin) {
+  $("resBody").innerHTML = resultsHTML(r, fin); showOv("res");
+  if (fin) { buzz(); setTimeout(() => { burst(innerWidth * .3, innerHeight * .3, 45, 1.2); burst(innerWidth * .7, innerHeight * .3, 45, 1.2); }, 300); }
+}
+$("res").onclick = e => { if (e.target.closest('[data-res="close"]')) { closeOv("res"); render(); } };
+
+applyTheme(); applyEco(); render(); syncTick(); boot();
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
 if ("serviceWorker" in navigator) { try { navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(r => document.addEventListener("visibilitychange", () => { if (!document.hidden) r.update(); })).catch(() => {}); } catch (e) {} }
 </script>

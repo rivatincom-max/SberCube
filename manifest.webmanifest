@@ -1,6 +1,6 @@
 {
- "name": "Квадратики звонков",
- "short_name": "Звонки",
+ "name": "SBERCUBE",
+ "short_name": "SBERCUBE",
  "description": "Отметка звонков квадратиками",
  "start_url": "./",
  "scope": "./",
