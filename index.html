@@ -191,7 +191,6 @@
   /* ===== круглая кнопка настроек и лист настроек ===== */
   .ic { width: 1.2em; height: 1.2em; vertical-align: -.24em; flex: none; }
   .rnd .ic { width: 21px; height: 21px; }
-  .gem .ic { width: 64px; height: 64px; color: #8ef0a6; filter: drop-shadow(0 0 16px rgba(52,196,70,.9)); }
   .floatxp .ic { width: 34px; height: 34px; color: #fff; filter: drop-shadow(0 2px 8px rgba(0,0,0,.5)); }
   .rnd { width: 40px; height: 40px; padding: 0; border-radius: 50%; display: grid; place-items: center; font-size: 19px; flex: none; }
   #settings { display: none; border-radius: 32px; padding: 14px; gap: 10px; flex-direction: column; z-index: 22; }
@@ -248,8 +247,23 @@
   .gob { min-height: 56px; font-size: 17px; }
 
   #greet { z-index: 45; color: #fff; background: rgba(0,0,0,.5); }
-  .gtxt { font-size: 36px; font-weight: 800; line-height: 1.15; text-align: center; letter-spacing: -.5px; text-shadow: 0 0 28px rgba(33,160,56,.95), 0 0 50px rgba(10,150,115,.6); animation: greetIn 1s var(--spring) both; }
-  .gem { font-size: 46px; animation: greetIn 1s var(--spring) .25s both; }
+  .gtxt { font-size: 36px; font-weight: 800; line-height: 1.15; text-align: center; letter-spacing: -.5px; text-shadow: 0 0 28px rgba(33,160,56,.95), 0 0 50px rgba(10,150,115,.6); animation: greetIn .9s var(--spring) .9s both; }
+  /* «Хорошей смены»: столбики растут, линия роста прорисовывается, стрелка выстреливает, искры мерцают, иконка дышит */
+  .gem { animation: gemIn .7s var(--spring) backwards, gemFloat 2.2s ease-in-out 1.6s infinite; }
+  .gup { width: 150px; height: 125px; overflow: visible; filter: drop-shadow(0 0 22px rgba(52,196,70,.75)); animation: gemGlow 1.6s ease-in-out 1.5s infinite; }
+  .gb { transform-box: fill-box; transform-origin: 50% 100%; animation: barUp .6s var(--spring) backwards; }
+  .gb:nth-child(1) { animation-delay: .15s; } .gb:nth-child(2) { animation-delay: .3s; } .gb:nth-child(3) { animation-delay: .45s; }
+  .gline { stroke-dasharray: 100; animation: lineDraw .7s cubic-bezier(.6,0,.3,1) .7s backwards; filter: drop-shadow(0 0 6px rgba(255,255,255,.8)); }
+  .ghead { transform-box: fill-box; transform-origin: 100% 0; animation: headPop .5s var(--spring) 1.3s backwards; }
+  .gspark path { transform-box: fill-box; transform-origin: center; animation: spark 1.4s ease-in-out infinite backwards; }
+  .gspark path:nth-child(1) { animation-delay: 1.4s; } .gspark path:nth-child(2) { animation-delay: 1.7s; } .gspark path:nth-child(3) { animation-delay: 2s; }
+  @keyframes gemIn { from { opacity: 0; transform: scale(.3) translateY(40px); } }
+  @keyframes gemFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  @keyframes gemGlow { 0%, 100% { filter: drop-shadow(0 0 18px rgba(52,196,70,.6)); } 50% { filter: drop-shadow(0 0 34px rgba(52,196,70,1)); } }
+  @keyframes barUp { from { transform: scaleY(0); } }
+  @keyframes lineDraw { from { stroke-dashoffset: 100; } }
+  @keyframes headPop { 0% { transform: scale(0) translate(-10px, 10px); opacity: 0; } }
+  @keyframes spark { 0%, 100% { transform: scale(.2) rotate(0); opacity: 0; } 50% { transform: scale(1.2) rotate(45deg); opacity: 1; } }
   @keyframes greetIn { 0% { opacity: 0; transform: scale(.4) translateY(30px); filter: blur(10px); } 100% { opacity: 1; transform: none; filter: none; } }
 
   .rhead { display: flex; flex-direction: column; gap: 2px; }
@@ -337,7 +351,13 @@
 </div>
 <div id="splash" class="ov"><div class="logo" id="logo"></div><h2>SBERCUBE</h2></div>
 <div id="setup" class="ov ovs"><div class="ovw" id="setupBody"></div></div>
-<div id="greet" class="ov"><div class="gtxt">Хорошей смены<br>и больших продаж!</div><div class="gem"><i data-ic="up"></i></div></div>
+<div id="greet" class="ov"><div class="gem"><svg class="gup" viewBox="0 0 120 100" aria-hidden="true">
+  <defs><linearGradient id="gupG" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#0a9673"/><stop offset="1" stop-color="#34c446"/></linearGradient></defs>
+  <g class="gbars" fill="url(#gupG)"><rect class="gb" x="14" y="62" width="18" height="30" rx="6"/><rect class="gb" x="42" y="46" width="18" height="46" rx="6"/><rect class="gb" x="70" y="30" width="18" height="62" rx="6"/></g>
+  <path class="gline" d="M8 58 L36 36 L54 46 L98 10" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" pathLength="100"/>
+  <path class="ghead" d="M80 8 H100 V28" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <g class="gspark" fill="#b9f7c6"><path d="M106 44l2.5 5.5 5.5 2.5-5.5 2.5-2.5 5.5-2.5-5.5-5.5-2.5 5.5-2.5z"/><path d="M24 20l2 4 4 2-4 2-2 4-2-4-4-2 4-2z"/><path d="M112 78l1.8 3.6 3.6 1.8-3.6 1.8-1.8 3.6-1.8-3.6-3.6-1.8 3.6-1.8z"/></g>
+</svg></div><div class="gtxt">Хорошей смены<br>и больших продаж!</div></div>
 <div id="res" class="ov ovs"><div class="ovw" id="resBody"></div></div>
 <canvas id="fx"></canvas><div id="party"></div><div id="toast" class="glass"></div>
 <script>
@@ -910,7 +930,7 @@ function startShift() {
   setTimeout(() => {
     showOv("greet"); burst(innerWidth / 2, innerHeight * .4, 70, 1.4);
     setTimeout(() => { burst(innerWidth * .2, innerHeight * .55, 35, 1.1); burst(innerWidth * .8, innerHeight * .55, 35, 1.1); }, 350);
-    clearTimeout(startShift.t); startShift.t = setTimeout(() => closeOv("greet"), 2800);
+    clearTimeout(startShift.t); startShift.t = setTimeout(() => closeOv("greet"), 3600);
   }, 250);
 }
 $("setup").onchange = e => { if (e.target.id === "suHours") { su.h = +e.target.value; buzz(); } };
