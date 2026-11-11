@@ -49,7 +49,10 @@
   h1 { font-size: 19px; font-weight: 700; letter-spacing: -.3px; margin: 0; flex: 1; }
 
   #shiftbar { position: relative; overflow: hidden; border-radius: 32px; padding: 10px 16px; }
-  #shFill { position: absolute; inset: 0 auto 0 0; width: 0; background: linear-gradient(90deg, rgba(52,196,70,.40), rgba(10,150,115,.40)); transition: width .6s ease; }
+  /* зелёная полоса = сколько смены осталось: в начале во всю ширину, к концу смены тает до нуля */
+  #shFill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: inherit; background: linear-gradient(90deg, rgba(52,196,70,.62), rgba(10,150,115,.55));
+    box-shadow: inset -2px 0 0 rgba(160,255,180,.75), 0 0 18px rgba(52,196,70,.35); transition: width 1s linear; }
+  .light #shFill { background: linear-gradient(90deg, rgba(52,196,70,.5), rgba(10,150,115,.42)); }
   .shrow { position: relative; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
   #shT { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.3px; }
   #shS { font-size: 13px; color: var(--muted); text-align: right; }
@@ -477,7 +480,7 @@ function updateShift() {
   if (!shift.start) { $("shT").textContent = "⏱ Начать смену"; $("shFill").style.width = "0%"; }
   else {
     $("shT").textContent = (shift.pauseAt ? "⏸ " : "⏱ ") + (rem >= 0 ? fmt(rem) : "+" + fmt(-rem));
-    $("shFill").style.width = Math.min(100, el / len * 100) + "%";
+    $("shFill").style.width = Math.max(0, Math.min(100, rem / len * 100)) + "%";
     if (!shift.pauseAt) {
       if (rem <= H && rem > 0 && shift.w < 1) { shift.w = 1; saveMeta(); toast("⏳ До конца смены остался час"); }
       if (rem <= 0 && shift.w < 2) { shift.w = 2; saveMeta(); toast("🎉 Смена закончилась"); burst(innerWidth / 2, innerHeight * .4, 60, 1.3); buzz(); }
@@ -827,14 +830,12 @@ function renderSetup() {
     <div class="top"><span>🎯 План продаж</span><span style="font-weight:500;color:var(--muted);font-size:13px">всего ${tot}</span></div>
     ${MAINS.map((n, i) => `<div class="mrow"><span>${n}</span><span class="step"><button class="pill" data-su="p${i}:-1">−</button><b>${su.pl[i]}</b><button class="pill" data-su="p${i}:1">+</button></span></div>`).join("")}
   </div>
-  <button class="btn gob" style="--c:31,168,85" data-su="go">▶ Начать смену</button>
-  <button class="pill" data-su="later">Позже</button>`;
+  <button class="btn gob" style="--c:31,168,85" data-su="go">▶ Начать смену</button>`;
 }
 $("setup").onclick = e => {
   const b = e.target.closest("[data-su]"); if (!b) return;
   const [a, v] = b.dataset.su.split(":");
   if (a === "go") return startShift();
-  if (a === "later") return closeOv("setup");
   if (a[0] === "p") { const i = +a.slice(1); su.pl[i] = Math.max(0, su.pl[i] + +v); }
   buzz(); renderSetup();
 };
