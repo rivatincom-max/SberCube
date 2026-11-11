@@ -178,8 +178,11 @@
   .rnd { width: 40px; height: 40px; padding: 0; border-radius: 50%; display: grid; place-items: center; font-size: 19px; flex: none; }
   #settings { display: none; border-radius: 32px; padding: 14px; gap: 10px; flex-direction: column; z-index: 22; }
   .seg { display: flex; gap: 3px; padding: 4px; border-radius: 999px; }
-  .hgrid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; padding: 5px; border-radius: 24px; }
-  .hgrid .chip { padding: 11px 0; font-size: 15px; }
+  /* выбор часов: на iPhone открывается системное колесо выбора снизу */
+  .hsel { -webkit-appearance: none; appearance: none; border: 1px solid var(--stroke); border-radius: 999px; padding: 10px 40px 10px 18px; font-family: inherit; font-size: 17px; font-weight: 700; color: var(--text);
+    background: rgba(255,255,255,.1) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%2334c446' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 16px center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.3); }
+  .light .hsel { background-color: rgba(255,255,255,.7); border-color: rgba(0,0,0,.1); }
   .seg .chip { padding: 10px 6px; font-size: 13px; white-space: nowrap; }
 
   /* ===== статистика по основным продуктам ===== */
@@ -541,7 +544,7 @@ function shiftPanelHTML(o) {
   return `<div class="card glass">
       <div class="top"><span>Смена</span><span id="shLive" style="font-weight:500;color:var(--muted);font-size:13px"></span></div>
       <div class="btns">${main}${run || o.total ? `<button class="pill" data-sh="end">🏁 Завершить смену</button>` : ""}</div>
-      <div class="mrow"><span>Длина смены, часов</span><input class="pin" id="shHours" type="number" inputmode="decimal" step="0.5" min="1" max="12" value="${shift.hours}"></div>
+      <div class="mrow"><span>Длина смены, часов</span><select class="hsel" id="shHours">${Array.from({ length: 12 }, (_, i) => i + 1).map(h => `<option value="${h}"${Math.round(shift.hours) === h ? " selected" : ""}>${h} ч</option>`).join("")}</select></div>
       <div class="mrow"><span>Начало смены</span><input class="pin" style="width:96px" id="shStart" type="time" value="${startVal}"></div>
       <small class="m" id="shPace"></small>
     </div>
@@ -813,14 +816,12 @@ function boot() {
   if (fancy()) setTimeout(() => { if (!done) burst(innerWidth / 2, innerHeight * .42, 40, .9); }, 1150);
 }
 let su = null;
-function openSetup() { su = { h: Math.min(12, shift.hours || 8), pl: plan.slice() }; renderSetup(); showOv("setup"); }
+function openSetup() { su = { h: Math.min(12, Math.max(1, Math.round(shift.hours) || 8)), pl: plan.slice() }; renderSetup(); showOv("setup"); }
 function renderSetup() {
   const tot = su.pl.reduce((a, b) => a + b, 0);
   $("setupBody").innerHTML = `<div class="card glass">
     <div class="top"><span>⏱ Новая смена</span></div>
-    <small class="m">Сколько часов смена</small>
-    <div class="hgrid glass">${Array.from({ length: 12 }, (_, i) => i + 1).map(h => `<button class="chip${su.h === h ? " on" : ""}" data-su="h:${h}">${h}</button>`).join("")}</div>
-    <div class="mrow"><span>Смена, часов</span><span class="step"><button class="pill" data-su="hs:-0.5">−</button><b>${su.h} ч</b><button class="pill" data-su="hs:0.5">+</button></span></div>
+    <div class="mrow"><span>Сколько часов смена</span><select class="hsel" id="suHours">${Array.from({ length: 12 }, (_, i) => i + 1).map(h => `<option value="${h}"${su.h === h ? " selected" : ""}>${h} ч</option>`).join("")}</select></div>
   </div>
   <div class="card glass">
     <div class="top"><span>🎯 План продаж</span><span style="font-weight:500;color:var(--muted);font-size:13px">всего ${tot}</span></div>
@@ -834,9 +835,7 @@ $("setup").onclick = e => {
   const [a, v] = b.dataset.su.split(":");
   if (a === "go") return startShift();
   if (a === "later") return closeOv("setup");
-  if (a === "h") su.h = +v;
-  else if (a === "hs") su.h = Math.min(12, Math.max(1, su.h + +v));
-  else if (a[0] === "p") { const i = +a.slice(1); su.pl[i] = Math.max(0, su.pl[i] + +v); }
+  if (a[0] === "p") { const i = +a.slice(1); su.pl[i] = Math.max(0, su.pl[i] + +v); }
   buzz(); renderSetup();
 };
 function startShift() {
@@ -849,6 +848,7 @@ function startShift() {
     clearTimeout(startShift.t); startShift.t = setTimeout(() => closeOv("greet"), 2800);
   }, 250);
 }
+$("setup").onchange = e => { if (e.target.id === "suHours") { su.h = +e.target.value; buzz(); } };
 $("greet").onclick = () => closeOv("greet");
 
 function resultsHTML(r, fin) {
