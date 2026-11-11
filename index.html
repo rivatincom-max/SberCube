@@ -189,6 +189,10 @@
   #msg { font-size: 13px; color: #6ee7b7; min-height: 16px; }
 
   /* ===== круглая кнопка настроек и лист настроек ===== */
+  .ic { width: 1.2em; height: 1.2em; vertical-align: -.24em; flex: none; }
+  .rnd .ic { width: 21px; height: 21px; }
+  .gem .ic { width: 64px; height: 64px; color: #8ef0a6; filter: drop-shadow(0 0 16px rgba(52,196,70,.9)); }
+  .floatxp .ic { width: 34px; height: 34px; color: #fff; filter: drop-shadow(0 2px 8px rgba(0,0,0,.5)); }
   .rnd { width: 40px; height: 40px; padding: 0; border-radius: 50%; display: grid; place-items: center; font-size: 19px; flex: none; }
   #settings { display: none; border-radius: 32px; padding: 14px; gap: 10px; flex-direction: column; z-index: 22; }
   .seg { display: flex; gap: 3px; padding: 4px; border-radius: 999px; }
@@ -295,8 +299,8 @@
 </style>
 </head>
 <body>
-<header class="glass"><h1>SBERCUBE</h1><button class="pill rnd" id="syncBtn" aria-label="Прогресс"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 0 1-14.3 4.9"/><path d="M4 12a8 8 0 0 1 14.3-4.9"/><path d="M18.6 3v4.3h-4.3"/><path d="M5.4 21v-4.3h4.3"/></svg></button><button class="pill rnd" id="setBtn" aria-label="Настройки">⚙︎</button></header>
-<div id="shiftbar" class="glass"><div id="shFill"></div><div class="shrow"><span id="shT">⏱ Начать смену</span><span id="shS"></span></div></div>
+<header class="glass"><h1>SBERCUBE</h1><button class="pill rnd" id="syncBtn" aria-label="Прогресс"><i data-ic="sync"></i></button><button class="pill rnd" id="setBtn" aria-label="Настройки"><i data-ic="gear"></i></button></header>
+<div id="shiftbar" class="glass"><div id="shFill"></div><div class="shrow"><span id="shT"><i data-ic="timer"></i> Начать смену</span><span id="shS"></span></div></div>
 <div id="sum" class="glass"></div>
 <div id="main">
 <div id="grid"></div>
@@ -306,15 +310,15 @@
   <div class="mrow"><b>Прогресс</b><small class="m">перенос данных</small></div>
   <textarea id="code" placeholder="Здесь будет код прогресса. Чтобы загрузить — вставь код сюда."></textarea>
   <div class="row2"><button class="pill" id="exp">Получить код</button><button class="pill" id="imp">Загрузить код</button></div>
-  <button class="pill" id="manBtn">✍️ Ввести цифрами</button>
+  <button class="pill" id="manBtn"><i data-ic="pencil"></i> Ввести цифрами</button>
   <div id="manual"></div>
   <div id="msg"></div>
 </div>
 <div id="settings" class="glass sheet">
   <div class="mrow"><b>Настройки</b></div>
-  <div class="mrow"><span>Тема</span><div class="seg glass"><button class="chip" data-theme="dark">🌙 Тёмная</button><button class="chip" data-theme="light">☀️ Светлая</button></div></div>
-  <button class="pill" id="ecoBtn">🔋 Экономия батареи: выкл</button>
-  <button class="pill" id="reset">🗑 Сбросить квадраты</button>
+  <div class="mrow"><span>Тема</span><div class="seg glass"><button class="chip" data-theme="dark"><i data-ic="moon"></i> Тёмная</button><button class="chip" data-theme="light"><i data-ic="sun"></i> Светлая</button></div></div>
+  <button class="pill" id="ecoBtn"><i data-ic="battery"></i> Экономия батареи: выкл</button>
+  <button class="pill" id="reset"><i data-ic="trash"></i> Сбросить квадраты</button>
   <small style="color:var(--muted);text-align:center">Версия 10.1</small>
 </div>
 </div>
@@ -322,24 +326,54 @@
 <div id="builder" class="panel glass"></div>
 <div id="pad">
   <div class="row r3">
-    <button class="btn" style="--c:31,168,85" data-k="0">💰 Продажа</button>
-    <button class="btn" style="--c:59,130,246" data-k="1">🤝 СБОЛ</button>
-    <button class="btn lt" style="--c:241,196,15" data-k="2">📞 Перезвон</button>
-    <button class="btn" style="--c:231,76,60" data-k="3">❌ Отказ</button>
-    <button class="btn" style="--c:93,107,130" data-k="4">📵 Сбой</button>
-    <button class="btn" style="--c:230,126,34" data-k="5">🙅 Не слушал</button>
+    <button class="btn" style="--c:31,168,85" data-k="0"><i data-ic="sale"></i> Продажа</button>
+    <button class="btn" style="--c:59,130,246" data-k="1"><i data-ic="sbol"></i> СБОЛ</button>
+    <button class="btn lt" style="--c:241,196,15" data-k="2"><i data-ic="call"></i> Перезвон</button>
+    <button class="btn" style="--c:231,76,60" data-k="3"><i data-ic="refuse"></i> Отказ</button>
+    <button class="btn" style="--c:93,107,130" data-k="4"><i data-ic="fail"></i> Сбой</button>
+    <button class="btn" style="--c:230,126,34" data-k="5"><i data-ic="nolisten"></i> Не слушал</button>
   </div>
-  <button class="btn" style="--c:120,128,150;min-height:40px" id="undo">↩ Отменить</button>
+  <button class="btn" style="--c:120,128,150;min-height:40px" id="undo"><i data-ic="undo"></i> Отменить</button>
 </div>
 <div id="splash" class="ov"><div class="logo" id="logo"></div><h2>SBERCUBE</h2></div>
 <div id="setup" class="ov ovs"><div class="ovw" id="setupBody"></div></div>
-<div id="greet" class="ov"><div class="gtxt">Хорошей смены<br>и больших продаж!</div><div class="gem">🚀💰</div></div>
+<div id="greet" class="ov"><div class="gtxt">Хорошей смены<br>и больших продаж!</div><div class="gem"><i data-ic="up"></i></div></div>
 <div id="res" class="ov ovs"><div class="ovw" id="resBody"></div></div>
 <canvas id="fx"></canvas><div id="party"></div><div id="toast" class="glass"></div>
 <script>
+const ICONS = {
+  sale: '<path d="M9 21V3h5.5a4.5 4.5 0 0 1 0 9H6"/><path d="M6 16.5h9"/>',
+  sbol: '<rect x="6" y="2" width="12" height="20" rx="3"/><path d="M9.5 11.5l2 2 3.5-4"/><path d="M11 18.5h2"/>',
+  call: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/><path d="M15 3h6v6"/><path d="M21 3l-6 6"/>',
+  refuse: '<circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/>',
+  fail: '<path d="M13 2L4 14h8l-1 8 9-12h-8z"/>',
+  nolisten: '<circle cx="9" cy="7" r="4"/><path d="M2 21v-1.5A4.5 4.5 0 0 1 6.5 15h5a4.5 4.5 0 0 1 4.5 4.5V21"/><path d="M17 8l5 5M22 8l-5 5"/>',
+  undo: '<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+  trash: '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/>',
+  timer: '<circle cx="12" cy="13.5" r="8"/><path d="M12 9.5v4l2.5 2.5"/><path d="M9.5 2h5"/>',
+  pause: '<path d="M9 5v14M15 5v14"/>',
+  play: '<path d="M7 4.5l12 7.5-12 7.5z"/>',
+  flag: '<path d="M5 22V3"/><path d="M5 4h12l-2.5 4.5L17 13H5"/>',
+  chart: '<path d="M3 21h18"/><path d="M6 21v-7M11 21V4M16 21v-10"/>',
+  save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-7H7v7M7 3v4h7"/>',
+  target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+  pencil: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+  moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M19.0 12.0L21.5 12.0"/><path d="M16.9 16.9L18.7 18.7"/><path d="M12.0 19.0L12.0 21.5"/><path d="M7.1 16.9L5.3 18.7"/><path d="M5.0 12.0L2.5 12.0"/><path d="M7.1 7.1L5.3 5.3"/><path d="M12.0 5.0L12.0 2.5"/><path d="M16.9 7.1L18.7 5.3"/>',
+  battery: '<rect x="2" y="7" width="17" height="10" rx="2.5"/><path d="M22 11v2"/><path d="M6 10.5v3M9.5 10.5v3"/>',
+  gear: '<polygon points="12.0,4.4 14.0,2.2 15.8,2.8 16.2,5.7 17.4,6.6 20.3,6.4 21.2,8.2 19.5,10.5 19.6,12.0 21.8,14.0 21.2,15.8 18.3,16.2 17.4,17.4 17.6,20.3 15.8,21.2 13.5,19.5 12.0,19.6 10.0,21.8 8.2,21.2 7.8,18.3 6.6,17.4 3.7,17.6 2.8,15.8 4.5,13.5 4.4,12.0 2.2,10.0 2.8,8.2 5.7,7.8 6.6,6.6 6.4,3.7 8.2,2.8 10.5,4.5"/><circle cx="12" cy="12" r="3"/>',
+  sync: '<path d="M20 12a8 8 0 0 1-14.3 4.9"/><path d="M4 12a8 8 0 0 1 14.3-4.9"/><path d="M18.6 3v4.3h-4.3"/><path d="M5.4 21v-4.3h4.3"/>',
+  cross: '<path d="M17 2l4 4-4 4"/><path d="M3 11V10a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>',
+  check: '<path d="M20 6L9 17l-5-5"/>',
+  x: '<path d="M18 6L6 18M6 6l12 12"/>',
+  up: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+  star: '<path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/>'
+};
+const ic = (n, cls = "") => `<svg class="ic ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
+document.querySelectorAll("i[data-ic]").forEach(e => { e.outerHTML = ic(e.dataset.ic, e.className); });
 const KINDS = ["Продажа", "СБОЛ", "Перезвон", "Отказ", "Сбой звонка", "Отказ от презентации"];
 const KC = ["31,168,85", "59,130,246", "241,196,15", "231,76,60", "93,107,130", "230,126,34"];
-const KEMO = ["💰", "🤝", "📞", "❌", "📵", "🙅"];
+const KICON = ["sale", "sbol", "call", "refuse", "fail", "nolisten"], KEMO = KICON.map(n => ic(n));
 const PRODUCTS = ["КК", "ПРАЙМ", "ЛУЧШИЙ%", "ВКЛАД", "НС", "ПК"];   // кросс-продукты
 const PC = ["168,85,247", "244,114,182", "34,211,238", "190,242,100", "129,140,248", "234,179,8"];                 // цвет каждого кросс-продукта
 const RES = ["Предл.", "Со мной", "Сам"];                                              // 0 предложил (отказ), 1 оформил со мной, 2 СБОЛ
@@ -395,7 +429,7 @@ function clearAll() { calls = blankCalls(); pr = PRODUCTS.map(() => [0, 0]); sel
 let eco = false; try { eco = localStorage.getItem("eco") === "1"; } catch (e) {}
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const fancy = () => !eco && !reduce;
-function applyEco() { document.body.classList.toggle("eco", eco); $("ecoBtn").textContent = "🔋 Экономия батареи: " + (eco ? "вкл" : "выкл"); }
+function applyEco() { document.body.classList.toggle("eco", eco); $("ecoBtn").innerHTML = ic("battery") + " Экономия батареи: " + (eco ? "вкл" : "выкл"); }
 
 // ---------- состояние ----------
 const grid = $("grid"), stats = $("stats"), sum = $("sum"), shiftpanel = $("shiftpanel"), builder = $("builder");
@@ -409,7 +443,7 @@ const pct = (n, base) => base ? `${+(n / base * 100).toFixed(2)}%` : "0%";
 
 // ---------- эффекты ----------
 const restart = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
-function toast(t) { const el = $("toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 1600); }
+function toast(t) { const el = $("toast"); el.innerHTML = t; el.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 1600); }
 const fx = $("fx"), fctx = fx.getContext("2d"); let parts = [], raf = 0;
 const sizeFx = () => { fx.width = innerWidth; fx.height = innerHeight; };
 addEventListener("resize", sizeFx); sizeFx();
@@ -436,7 +470,7 @@ function tick() {
 }
 function floatEmoji(t) {
   if (!fancy()) return;
-  const el = document.createElement("div"); el.className = "floatxp"; el.textContent = t;
+  const el = document.createElement("div"); el.className = "floatxp"; el.innerHTML = t;
   el.style.left = lastPt.x + "px"; el.style.top = (lastPt.y - 30) + "px";
   document.body.appendChild(el); setTimeout(() => el.remove(), 1000);
 }
@@ -455,9 +489,9 @@ function celebrate(rec, total) {
   const good = rec.k < 2, nx = rec.x.length;
   if (good) burst(lastPt.x, lastPt.y, rec.k === 0 ? 55 : 35, rec.k === 0 ? 1.2 : 1);
   toast(KINDS[rec.k] + " " + KEMO[rec.k] + (nx ? ` · кросс +${nx}` : ""));
-  if (total > 0 && total % 20 === 0) setTimeout(() => toast("💾 Сохрани код прогресса в заметки"), 2200);
+  if (total > 0 && total % 20 === 0) setTimeout(() => toast(ic("save") + " Сохрани код прогресса в заметки"), 2200);
   if (total > 0 && total % 10 === 0 && fancy()) {
-    $("party").textContent = `🎉 ${total} звонков!`; restart($("party"), "on");
+    $("party").innerHTML = `${ic("star")} ${total} звонков!`; restart($("party"), "on");
     burst(innerWidth * .25, innerHeight * .5, 35, 1.3); burst(innerWidth * .75, innerHeight * .5, 35, 1.3); burst(innerWidth * .5, innerHeight * .35, 50, 1.5);
     buzz();
   }
@@ -499,13 +533,13 @@ const hhmm = ts => new Date(ts).toLocaleTimeString("ru-RU", { hour: "2-digit", m
 let topInfo = { sales: 0, planSum: 0, total: 0 }, tickId = 0;
 function updateShift() {
   const len = shift.hours * H, el = elapsed(), rem = len - el;
-  if (!shift.start) { $("shT").textContent = "⏱ Начать смену"; $("shFill").style.width = "0%"; }
+  if (!shift.start) { $("shT").innerHTML = ic("timer") + " Начать смену"; $("shFill").style.width = "0%"; }
   else {
-    $("shT").innerHTML = (shift.pauseAt ? "⏸ " : "⏱ ") + (rem >= 0 ? fmt(rem) + "<small> осталось</small>" : "+" + fmt(-rem) + "<small> сверх смены</small>");
+    $("shT").innerHTML = ic(shift.pauseAt ? "pause" : "timer") + " " + (rem >= 0 ? fmt(rem) + "<small> осталось</small>" : "+" + fmt(-rem) + "<small> сверх смены</small>");
     $("shFill").style.width = Math.max(0, Math.min(100, rem / len * 100)) + "%";
     if (!shift.pauseAt) {
-      if (rem <= H && rem > 0 && shift.w < 1) { shift.w = 1; saveMeta(); toast("⏳ До конца смены остался час"); }
-      if (rem <= 0 && shift.w < 2) { shift.w = 2; saveMeta(); toast("🎉 Смена закончилась"); burst(innerWidth / 2, innerHeight * .4, 60, 1.3); buzz(); }
+      if (rem <= H && rem > 0 && shift.w < 1) { shift.w = 1; saveMeta(); toast(ic("timer") + " До конца смены остался час"); }
+      if (rem <= 0 && shift.w < 2) { shift.w = 2; saveMeta(); toast(ic("flag") + " Смена закончилась"); burst(innerWidth / 2, innerHeight * .4, 60, 1.3); buzz(); }
     }
   }
   $("shS").textContent = `Продаж ${topInfo.sales}` + (topInfo.planSum ? ` / ${topInfo.planSum}` : "");
@@ -560,15 +594,15 @@ function builderHTML() {
     ${WITH_MAIN.includes(kind) ? `<div id="mainRow" class="glass"><span>Основной:</span>${MAINS.map((n, i) => `<button class="chip${bd.m === i ? " on" : ""}" data-m="${i}">${MCHIP[i]}</button>`).join("")}</div>` : ""}
     <small>${hints[kind]}<br>Кросс: «Предл.» — предложил, отказали · «Со мной» — оформили со мной · «Сам» — СБОЛ</small>
     ${PRODUCTS.map((n, p) => { const e = bd.x.find(a => a[0] === p); return `<div class="xr" style="--c:${PC[p]}"><span><i class="dot"></i>${n}</span>${RES.map((r, j) => `<button class="rb${e && e[1] === j ? " on" : ""}" data-p="${p}" data-r="${j}">${r}</button>`).join("")}</div>`; }).join("")}
-    <div class="row r2"><button class="btn" style="--c:120,128,150" data-b="cancel">Отмена</button><button class="btn" style="--c:31,168,85" data-b="ok">✓ Записать${bd.x.length ? " (+" + bd.x.length + ")" : ""}</button></div>`;
+    <div class="row r2"><button class="btn" style="--c:120,128,150" data-b="cancel">Отмена</button><button class="btn" style="--c:31,168,85" data-b="ok">${ic("check")} Записать${bd.x.length ? " (+" + bd.x.length + ")" : ""}</button></div>`;
 }
 function shiftPanelHTML(o) {
   const run = !!shift.start, planSum = plan.reduce((a, b) => a + b, 0);
   const startVal = run ? `${pad2(new Date(shift.start).getHours())}:${pad2(new Date(shift.start).getMinutes())}` : "";
-  const main = !run ? `<button class="pill" data-sh="setup">▶ Начать смену</button>` : shift.pauseAt ? `<button class="pill" data-sh="resume">▶ Продолжить</button>` : `<button class="pill" data-sh="pause">⏸ Пауза</button>`;
+  const main = !run ? `<button class="pill" data-sh="setup">${ic("play")} Начать смену</button>` : shift.pauseAt ? `<button class="pill" data-sh="resume">${ic("play")} Продолжить</button>` : `<button class="pill" data-sh="pause">${ic("pause")} Пауза</button>`;
   return `<div class="card glass">
       <div class="top"><span>Смена</span><span id="shLive" style="font-weight:500;color:var(--muted);font-size:13px"></span></div>
-      <div class="btns">${main}${run || o.total ? `<button class="pill" data-sh="end">🏁 Завершить смену</button>` : ""}</div>
+      <div class="btns">${main}${run || o.total ? `<button class="pill" data-sh="end">${ic("flag")} Завершить смену</button>` : ""}</div>
       <div class="mrow"><span>Длина смены, часов</span><select class="hsel" id="shHours">${Array.from({ length: 12 }, (_, i) => i + 1).map(h => `<option value="${h}"${Math.round(shift.hours) === h ? " selected" : ""}>${h} ч</option>`).join("")}</select></div>
       <div class="mrow"><span>Начало смены</span><input class="pin" style="width:96px" id="shStart" type="time" value="${startVal}"></div>
       <small class="m" id="shPace"></small>
@@ -596,10 +630,10 @@ function histHTML(o) {
   const dt = ts => new Date(ts).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" });
   return `<div class="card glass">
     <div class="top"><span>Смены</span><span style="font-weight:500;color:var(--muted);font-size:13px">${hist.length}</span></div>
-    <div class="btns"><button class="pill" data-sh="now">📊 Итоги сейчас</button><button class="pill" data-sh="save">💾 Сохранить</button></div>
+    <div class="btns"><button class="pill" data-sh="now">${ic("chart")} Итоги сейчас</button><button class="pill" data-sh="save">${ic("save")} Сохранить</button></div>
     <small class="m">«Завершить смену» — итоги с диаграммой и чистый лист для новой. Нажми на дату смены, чтобы посмотреть её итоги.</small>
     ${hist.length ? `<table><tr><th>Дата</th><th>Зв.</th><th>Согл.</th><th>СБОЛ</th><th>Прод.</th><th>Кросс</th><th>Зв/ч</th><th></th></tr>
-      ${rows.map(({ r, i }) => `<tr><td data-res="${i}"><b class="lnk">${dt(r.d)}</b></td>${cols.map(k => cell(r, k)).join("")}<td${rate(r) && rate(r) === best.v && hist.length > 1 ? ' style="color:#6ee7b7"' : ""}><b>${r.h ? rate(r).toFixed(1) : "—"}</b></td><td><button class="pill" style="padding:4px 8px" data-del="${i}">✕</button></td></tr>`).join("")}
+      ${rows.map(({ r, i }) => `<tr><td data-res="${i}"><b class="lnk">${dt(r.d)}</b></td>${cols.map(k => cell(r, k)).join("")}<td${rate(r) && rate(r) === best.v && hist.length > 1 ? ' style="color:#6ee7b7"' : ""}><b>${r.h ? rate(r).toFixed(1) : "—"}</b></td><td><button class="pill" style="padding:4px 8px" data-del="${i}">${ic("x")}</button></td></tr>`).join("")}
       <tr><td><i>Среднее</i></td>${cols.map(k => `<td><i>${avg(k)}</i></td>`).join("")}<td></td><td></td></tr>
       <tr><td><i>Сейчас</i></td><td><i>${o.total}</i></td><td><i>${o.agree}</i></td><td><i>${o.sbol}</i></td><td><i>${o.sales}</i></td><td><i>${o.offers}</i></td><td><i>${elapsed() > 600000 ? (o.total / (elapsed() / H)).toFixed(1) : "—"}</i></td><td></td></tr>
     </table><small class="m">Зелёным — лучший результат по столбцу. Зв/ч считается, если смена шла больше 10 минут.</small>` : ""}
@@ -608,8 +642,8 @@ function histHTML(o) {
 // кросс-продажи внутри звонков по одному основному продукту
 function crossLine(x) {
   const off = x.reduce((a, q) => a + q[0], 0), agr = x.reduce((a, q) => a + q[1], 0);
-  if (!off) return `<div class="pcx"><span class="pcl">🔁 кросс не предлагался</span></div>`;
-  return `<div class="pcx"><span class="pcl">🔁 кросс: согласий <b>${agr}</b> из <b>${off}</b></span>
+  if (!off) return `<div class="pcx"><span class="pcl">${ic("cross")} кросс не предлагался</span></div>`;
+  return `<div class="pcx"><span class="pcl">${ic("cross")} кросс: согласий <b>${agr}</b> из <b>${off}</b></span>
     <div class="xcs">${x.map((q, p) => q[0] ? `<span class="xc"><i class="dot" style="--c:${PC[p]}"></i>${PRODUCTS[p]} ${q[1]}/${q[0]}</span>` : "").join("")}</div></div>`;
 }
 function statsHTML(o) {
@@ -624,7 +658,7 @@ function statsHTML(o) {
       <div class="ln"><span>СБОЛ:</span><span><b>${o.sbol}</b><i>(${pct(o.sbol, o.total)} от дозвона)</i></span></div>
       <div class="top"><span>Основные продукты</span></div>
       <div class="pgrid">${MAINS.map((n, i) => { const b = o.mb[i]; return `<div class="pc"><small>${n}</small><b>${b[0]}<em>дозвонов</em></b>
-        <div class="pcl">💰 продаж <b>${b[1]}</b> · 🤝 СБОЛ <b>${b[2]}</b><br>❌ отказов <b>${b[3]}</b> · 📵 сбоев <b>${b[4]}</b></div>
+        <div class="pcl">${ic("sale")} продаж <b>${b[1]}</b> · ${ic("sbol")} СБОЛ <b>${b[2]}</b><br>${ic("refuse")} отказов <b>${b[3]}</b> · ${ic("fail")} сбоев <b>${b[4]}</b></div>
         <div class="bar"><i style="width:${b[0] ? (b[1] + b[2]) / b[0] * 100 : 0}%"></i></div><div class="pcl">конверсия ${pct(b[1] + b[2], b[0])}</div>${crossLine(o.mx[i])}</div>`; }).join("")}</div>
       ${o.salesNone || o.selfNone ? `<small class="m">Без основного продукта: продаж ${o.salesNone}, СБОЛ ${o.selfNone}</small>` : ""}
       <table><tr><th>Кросс-продукты</th><th>Предложений</th><th>Согласий</th></tr>
@@ -640,7 +674,7 @@ function render() {
   builder.style.display = building ? "flex" : "none"; $("pad").style.display = building ? "none" : "flex";
   $("selTools").style.display = sel >= 0 && !building ? "block" : "none";
   $("hint").textContent = sel >= 0 ? `Правка квадрата №${sel + 1}: нажми вид звонка, чтобы поменять. Тап по нему ещё раз — отмена.` : "";
-  $("undo").textContent = sel >= 0 ? "🗑 Очистить квадрат" : "↩ Отменить последний";
+  $("undo").innerHTML = sel >= 0 ? ic("trash") + " Очистить квадрат" : ic("undo") + " Отменить последний";
   if (building) { builder.innerHTML = builderHTML(); builder.firstElementChild.style.setProperty("--c", KC[bd.k]); }
   const o = counts();
   topInfo = { sales: o.sales, planSum: plan.reduce((a, b) => a + b, 0), total: o.total };
@@ -701,14 +735,14 @@ let closeArm = 0, delArm = -1;
 shiftpanel.onclick = e => {
   const rs = e.target.closest("[data-res]"); if (rs && hist[+rs.dataset.res]) { showResults(hist[+rs.dataset.res], false); return; }
   const dl = e.target.closest("button[data-del]");
-  if (dl) { const i = +dl.dataset.del; if (delArm !== i) { delArm = i; dl.textContent = "?"; setTimeout(() => { delArm = -1; if (dl.isConnected) dl.textContent = "✕"; }, 2500); return; } hist.splice(i, 1); delArm = -1; saveMeta(); render(); return; }
+  if (dl) { const i = +dl.dataset.del; if (delArm !== i) { delArm = i; dl.textContent = "?"; setTimeout(() => { delArm = -1; if (dl.isConnected) dl.innerHTML = ic("x"); }, 2500); return; } hist.splice(i, 1); delArm = -1; saveMeta(); render(); return; }
   const b = e.target.closest("button[data-sh]"); if (!b) return;
   const a = b.dataset.sh, now = Date.now();
-  if (a === "save") { hist.push(snap(counts())); saveMeta(); render(); toast("💾 Смена сохранена"); return; }
+  if (a === "save") { hist.push(snap(counts())); saveMeta(); render(); toast(ic("save") + " Смена сохранена"); return; }
   if (a === "now") { showResults(snap(counts()), false); return; }
   if (a === "setup") { openSetup(); return; }
   if (a === "end") {
-    if (!closeArm) { closeArm = 1; b.textContent = "Точно? Нажми ещё раз"; setTimeout(() => { closeArm = 0; if (b.isConnected) b.textContent = "🏁 Завершить смену"; }, 3000); return; }
+    if (!closeArm) { closeArm = 1; b.textContent = "Точно? Нажми ещё раз"; setTimeout(() => { closeArm = 0; if (b.isConnected) b.innerHTML = ic("flag") + " Завершить смену"; }, 3000); return; }
     closeArm = 0; const r = snap(counts()); hist.push(r); clearAll();
     shift.start = 0; shift.pauseAt = 0; shift.paused = 0; shift.w = 0;
     save(); saveMeta(); syncTick(); openPanel("none"); showResults(r, true); return;
@@ -754,9 +788,10 @@ function buildManual() {
 $("manBtn").onclick = () => { const el = $("manual"); if (!el.innerHTML) buildManual(); el.style.display = el.style.display === "flex" ? "none" : "flex"; };
 let armed = false;
 $("reset").onclick = e => {
-  const t0 = "🗑 Сбросить квадраты";
-  if (!armed) { armed = true; e.target.textContent = "Точно? Нажми ещё раз"; setTimeout(() => { armed = false; e.target.textContent = t0; }, 2500); return; }
-  clearAll(); armed = false; e.target.textContent = t0; save(); render(); toast("Квадраты сброшены");
+  const t0 = ic("trash") + " Сбросить квадраты";
+  const btn = $("reset");
+  if (!armed) { armed = true; btn.textContent = "Точно? Нажми ещё раз"; setTimeout(() => { armed = false; btn.innerHTML = t0; }, 2500); return; }
+  clearAll(); armed = false; btn.innerHTML = t0; save(); render(); toast("Квадраты сброшены");
 };
 $("ecoBtn").onclick = () => { eco = !eco; try { localStorage.setItem("eco", eco ? "1" : "0"); } catch (e) {} applyEco(); };
 
@@ -852,11 +887,11 @@ function openSetup() { su = { h: Math.min(12, Math.max(1, Math.round(shift.hours
 function renderSetup() {
   const tot = su.pl.reduce((a, b) => a + b, 0);
   $("setupBody").innerHTML = `<div class="card glass">
-    <div class="top"><span>⏱ Новая смена</span></div>
+    <div class="top"><span>${ic("timer")} Новая смена</span></div>
     <div class="mrow"><span>Сколько часов смена</span><select class="hsel" id="suHours">${Array.from({ length: 12 }, (_, i) => i + 1).map(h => `<option value="${h}"${su.h === h ? " selected" : ""}>${h} ч</option>`).join("")}</select></div>
   </div>
   <div class="card glass">
-    <div class="top"><span>🎯 План продаж</span><span style="font-weight:500;color:var(--muted);font-size:13px">всего ${tot}</span></div>
+    <div class="top"><span>${ic("target")} План продаж</span><span style="font-weight:500;color:var(--muted);font-size:13px">всего ${tot}</span></div>
     ${MAINS.map((n, i) => `<div class="mrow"><span>${n}</span><span class="step"><button class="pill" data-su="p${i}:-1">−</button><b>${su.pl[i]}</b><button class="pill" data-su="p${i}:1">+</button></span></div>`).join("")}
   </div>
   <button class="btn gob" style="--c:31,168,85" data-su="go">▶ Начать смену</button>`;
@@ -886,7 +921,7 @@ function resultsHTML(r, fin) {
   const planSum = r.pl ? r.pl.reduce((a, b) => a + b, 0) : 0;
   const kpi = (n, v, sub) => `<div class="kpi"><small>${n}</small><b>${v}</b>${sub ? `<i class="m">${sub}</i>` : ""}</div>`;
   let h = `<div class="card glass">
-    <div class="rhead"><b>${fin ? "🏁 Смена завершена" : "📊 Итоги смены"}</b><small class="m">${day} · ${r.st ? hhmm(r.st) + "–" : ""}${hhmm(r.d)}${r.h ? ` · ${r.h} ч` : ""}</small></div>
+    <div class="rhead"><b>${fin ? ic("flag") + " Смена завершена" : ic("chart") + " Итоги смены"}</b><small class="m">${day} · ${r.st ? hhmm(r.st) + "–" : ""}${hhmm(r.d)}${r.h ? ` · ${r.h} ч` : ""}</small></div>
     <div class="kpis">${kpi("Дозвоны", r.t)}${kpi("Продажи", r.l, planSum ? `план ${planSum}` : "")}${kpi("СБОЛ", r.s)}</div>
     <div class="kpis">${kpi("Согласия", r.a)}${kpi("Конверсия", pct(r.a, r.t), "согласия / дозвоны")}${kpi("Кросс", r.o, "предложений")}</div>
   </div>`;
@@ -902,7 +937,7 @@ function resultsHTML(r, fin) {
     const mx = Math.max(1, ...r.mb.map(b => b[1]));   // в старых сменах продуктов могло быть меньше
     h += `<div class="card glass"><div class="top"><span>Продажи по продуктам</span>${planSum ? `<span style="font-weight:500;color:var(--muted);font-size:13px">${r.l} из ${planSum}</span>` : ""}</div>
       ${MAINS.map((n, i) => { const b = r.mb[i] || [0, 0, 0, 0, 0], pl = r.pl && r.pl[i] || 0, w = pl ? Math.min(100, b[1] / pl * 100) : b[1] / mx * 100;
-        return `<div class="prog"><div class="ph"><span>${n}</span><b>${b[1]}${pl ? ` / ${pl}` : ""}${pl && b[1] >= pl ? " ✅" : ""}</b></div><div class="bar rbar"><i style="--w:${w}%"></i></div>
+        return `<div class="prog"><div class="ph"><span>${n}</span><b>${b[1]}${pl ? ` / ${pl}` : ""}${pl && b[1] >= pl ? ` <span style="color:#34c446">${ic("check")}</span>` : ""}</b></div><div class="bar rbar"><i style="--w:${w}%"></i></div>
         <small class="m">дозвонов ${b[0]} · СБОЛ ${b[2]} · отказов ${b[3]} · сбоев ${b[4]}</small></div>`; }).join("")}</div>`;
   }
   if (r.x) {
