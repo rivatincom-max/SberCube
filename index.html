@@ -54,6 +54,7 @@
     box-shadow: inset -2px 0 0 rgba(160,255,180,.75), 0 0 18px rgba(52,196,70,.35); transition: width 1s linear; }
   .light #shFill { background: linear-gradient(90deg, rgba(52,196,70,.5), rgba(10,150,115,.42)); }
   .shrow { position: relative; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  #shT small { font-size: 13px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
   #shT { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.3px; }
   #shS { font-size: 13px; color: var(--muted); text-align: right; }
 
@@ -322,11 +323,11 @@
 const KINDS = ["Продажа", "СБОЛ", "Перезвон", "Отказ", "Сбой звонка", "Отказ от презентации"];
 const KC = ["31,168,85", "59,130,246", "241,196,15", "231,76,60", "93,107,130", "230,126,34"];
 const KEMO = ["💰", "🤝", "📞", "❌", "📵", "🙅"];
-const PRODUCTS = ["Кредитная карта", "СберПрайм", "Вклад Лучший процент", "СберВклад", "Накопительный счёт", "Потребительский кредит"];   // кросс-продукты
+const PRODUCTS = ["КК", "ПРАЙМ", "ЛУЧШИЙ%", "ВКЛАД", "НС", "ПК"];   // кросс-продукты
 const PC = ["168,85,247", "244,114,182", "34,211,238", "190,242,100", "129,140,248", "234,179,8"];                 // цвет каждого кросс-продукта
 const RES = ["Предл.", "Со мной", "Сам"];                                              // 0 предложил (отказ), 1 оформил со мной, 2 СБОЛ
-const MAINS = ["Накопительный счёт", "СберПрайм", "Кредитная карта", "СберВклад", "Потребительский кредит"];
-const MSH = ["Н", "П", "К", "В", "ПК"], MCHIP = ["Накопит.", "Прайм", "Кредитка", "Вклад", "Потреб."];
+const MAINS = ["НС", "ПРАЙМ", "КК", "ВКЛАД", "ПК"];
+const MSH = ["НС", "ПР", "КК", "ВК", "ПК"], MCHIP = MAINS;   // MSH — метка в углу квадрата
 const WITH_MAIN = [0, 1, 3, 4];   // у каких видов звонка выбирается основной продукт
 const TOTAL = 300, H = 3600000;
 const $ = id => document.getElementById(id);
@@ -481,7 +482,7 @@ function updateShift() {
   const len = shift.hours * H, el = elapsed(), rem = len - el;
   if (!shift.start) { $("shT").textContent = "⏱ Начать смену"; $("shFill").style.width = "0%"; }
   else {
-    $("shT").textContent = (shift.pauseAt ? "⏸ " : "⏱ ") + (rem >= 0 ? fmt(rem) : "+" + fmt(-rem));
+    $("shT").innerHTML = (shift.pauseAt ? "⏸ " : "⏱ ") + (rem >= 0 ? fmt(rem) + "<small> осталось</small>" : "+" + fmt(-rem) + "<small> сверх смены</small>");
     $("shFill").style.width = Math.max(0, Math.min(100, rem / len * 100)) + "%";
     if (!shift.pauseAt) {
       if (rem <= H && rem > 0 && shift.w < 1) { shift.w = 1; saveMeta(); toast("⏳ До конца смены остался час"); }
