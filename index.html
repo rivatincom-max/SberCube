@@ -14,6 +14,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
 <title>Звонки</title>
+<script>try { if (localStorage.getItem("theme") === "light") document.documentElement.classList.add("light"); } catch (e) {}</script>
 <style>
   :root { --text: #f5f7fb; --muted: rgba(235,240,255,.62); --stroke: rgba(255,255,255,.2); --spring: cubic-bezier(.34, 1.56, .64, 1); }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -42,8 +43,8 @@
   #main { position: relative; min-height: 110px; display: flex; flex-direction: column; }
   .sheet { position: absolute; left: 0; right: 0; top: 0; z-index: 20; max-height: 100%; overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
   #stats.sheet, #shiftpanel.sheet { padding: 6px; border-radius: 34px; background: rgba(4,14,8,.55); -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%); box-shadow: 0 12px 32px rgba(0,0,0,.5); }
-  #sync.sheet { z-index: 21; background: rgba(4,14,8,.6); }
-  body.eco #stats.sheet, body.eco #shiftpanel.sheet, body.eco #sync.sheet { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(8,12,10,.97); }
+  #sync.sheet, #settings.sheet { z-index: 21; background: rgba(4,14,8,.6); }
+  body.eco #stats.sheet, body.eco #shiftpanel.sheet, body.eco #sync.sheet, body.eco #settings.sheet { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(8,12,10,.97); }
   header { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 16px; border-radius: 34px; }
   h1 { font-size: 19px; font-weight: 700; letter-spacing: -.3px; margin: 0; flex: 1; }
 
@@ -132,10 +133,10 @@
   @keyframes rise { 0% { opacity: 1; transform: translate(-50%, 0) scale(.7); } 100% { opacity: 0; transform: translate(-50%, -120px) scale(1.5); } }
   @keyframes party { 0% { opacity: 0; transform: translateX(-50%) scale(.3); } 25% { opacity: 1; transform: translateX(-50%) scale(1.15); } 75% { opacity: 1; transform: translateX(-50%) scale(1); } 100% { opacity: 0; transform: translateX(-50%) scale(1.3); } }
   .floatxp { position: fixed; z-index: 52; font-size: 30px; pointer-events: none; animation: rise 1s ease-out forwards; }
-  #fx { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
+  #fx { position: fixed; inset: 0; pointer-events: none; z-index: 65; }
   #party { position: fixed; left: 50%; top: 30%; font-size: 38px; font-weight: 800; color: #fff; text-shadow: 0 0 24px rgba(33,160,56,.95), 0 0 40px rgba(10,150,115,.7); opacity: 0; pointer-events: none; z-index: 51; white-space: nowrap; }
   #party.on { animation: party 1.8s; }
-  #toast { position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 70px); transform: translateX(-50%) translateY(-12px) scale(.96); padding: 10px 18px; border-radius: 999px; font-weight: 600; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s, transform .3s var(--spring); white-space: nowrap; z-index: 51; }
+  #toast { position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 70px); transform: translateX(-50%) translateY(-12px) scale(.96); padding: 10px 18px; border-radius: 999px; font-weight: 600; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .25s, transform .3s var(--spring); white-space: nowrap; z-index: 66; }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
 
   /* ===== анимации жидкого стекла (короткие, один раз) ===== */
@@ -175,10 +176,99 @@
   #manual { display: none; flex-direction: column; gap: 6px; }
   #manApply { background: rgba(52,199,150,.55) !important; font-weight: 700; }
   #msg { font-size: 13px; color: #6ee7b7; min-height: 16px; }
+
+  /* ===== круглая кнопка настроек и лист настроек ===== */
+  .rnd { width: 40px; height: 40px; padding: 0; border-radius: 50%; display: grid; place-items: center; font-size: 19px; flex: none; }
+  #settings { display: none; border-radius: 32px; padding: 14px; gap: 10px; flex-direction: column; z-index: 22; }
+  .seg { display: flex; gap: 3px; padding: 4px; border-radius: 999px; }
+  .seg .chip { padding: 10px 6px; font-size: 13px; white-space: nowrap; }
+
+  /* ===== статистика по основным продуктам ===== */
+  .pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pc { padding: 10px 12px; border-radius: 20px; background: rgba(255,255,255,.06); display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .pc small { color: var(--muted); font-size: 12px; }
+  .pc b { font-size: 22px; font-variant-numeric: tabular-nums; }
+  .pc b em { font-style: normal; font-size: 12px; font-weight: 500; color: var(--muted); margin-left: 4px; }
+  .pc .pcl { font-size: 12px; line-height: 1.35; color: var(--muted); }
+  .pc .pcl b { font-size: 12px; color: var(--text); }
+
+  /* ===== полноэкранные слои: заставка, начало смены, приветствие, итоги ===== */
+  .ov { position: absolute; inset: 0; z-index: 60; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+    padding: max(20px, env(safe-area-inset-top)) 14px max(20px, env(safe-area-inset-bottom)); background: rgba(0,0,0,.55); -webkit-backdrop-filter: blur(22px) saturate(160%); backdrop-filter: blur(22px) saturate(160%); }
+  .ov.on { display: flex; animation: ovIn .35s ease both; }
+  .ov.out { animation: ovOut .4s ease forwards; }
+  @keyframes ovIn { from { opacity: 0; } }
+  @keyframes ovOut { to { opacity: 0; transform: scale(1.04); } }
+  .ovs { overflow-y: auto; justify-content: flex-start; touch-action: pan-y; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  .ovw { width: min(100%, 420px); display: flex; flex-direction: column; gap: 10px; margin: auto 0; }
+
+  #splash { z-index: 70; color: #fff; background: radial-gradient(55% 35% at 50% 44%, rgba(33,160,56,.42), transparent 70%), radial-gradient(40% 25% at 70% 60%, rgba(10,150,115,.3), transparent 70%), #000; }
+  .logo { display: grid; grid-template-columns: repeat(3, 40px); gap: 7px; animation: logoPulse .6s var(--spring) 1.15s; }
+  .logo i { width: 40px; height: 40px; border-radius: 13px; border: 1px solid rgba(255,255,255,.4); background: linear-gradient(155deg, rgba(var(--c), 1), rgba(var(--c), .55));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.65), 0 0 22px rgba(var(--c), .5); opacity: 0; animation: sqIn .75s var(--spring) var(--d) forwards; }
+  @keyframes sqIn { 0% { opacity: 0; transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(.2); filter: blur(6px); } 100% { opacity: 1; transform: none; filter: none; } }
+  @keyframes logoPulse { 40% { transform: scale(1.12); filter: brightness(1.35) drop-shadow(0 0 22px rgba(33,160,56,.9)); } }
+  #splash h2 { margin: 6px 0 0; font-size: 36px; font-weight: 800; letter-spacing: -.6px; text-shadow: 0 0 26px rgba(33,160,56,.85); opacity: 0; animation: titleIn .6s ease 1s forwards; }
+  #splash p { margin: 0; color: rgba(235,240,255,.62); font-size: 14px; opacity: 0; animation: titleIn .6s ease 1.2s forwards; }
+  @keyframes titleIn { from { opacity: 0; transform: translateY(12px); filter: blur(8px); } to { opacity: 1; transform: none; filter: none; } }
+
+  .step { display: flex; align-items: center; gap: 8px; }
+  .step .pill { width: 38px; height: 38px; padding: 0; border-radius: 50%; font-size: 20px; line-height: 1; }
+  .step b { min-width: 46px; text-align: center; font-size: 18px; font-variant-numeric: tabular-nums; }
+  .gob { min-height: 56px; font-size: 17px; }
+
+  #greet { z-index: 45; color: #fff; background: rgba(0,0,0,.5); }
+  .gtxt { font-size: 36px; font-weight: 800; line-height: 1.15; text-align: center; letter-spacing: -.5px; text-shadow: 0 0 28px rgba(33,160,56,.95), 0 0 50px rgba(10,150,115,.6); animation: greetIn 1s var(--spring) both; }
+  .gem { font-size: 46px; animation: greetIn 1s var(--spring) .25s both; }
+  @keyframes greetIn { 0% { opacity: 0; transform: scale(.4) translateY(30px); filter: blur(10px); } 100% { opacity: 1; transform: none; filter: none; } }
+
+  .rhead { display: flex; flex-direction: column; gap: 2px; }
+  .rhead b { font-size: 22px; }
+  .kpi i.m { display: block; font-style: normal; font-size: 12px; color: var(--muted); }
+  .drow { display: flex; align-items: center; gap: 14px; }
+  .dwrap { position: relative; width: 132px; height: 132px; flex: none; }
+  .donut { position: absolute; inset: 0; border-radius: 50%; -webkit-mask: radial-gradient(circle, transparent 57%, #000 58%); mask: radial-gradient(circle, transparent 57%, #000 58%); animation: donutIn 1s var(--spring) both .15s; }
+  @keyframes donutIn { from { transform: rotate(-120deg) scale(.6); opacity: 0; } }
+  .dmid { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .dmid b { font-size: 26px; } .dmid small { font-size: 11px; color: var(--muted); }
+  .dleg { flex: 1; display: flex; flex-direction: column; gap: 5px; font-size: 13px; min-width: 0; }
+  .dleg div { display: flex; align-items: center; gap: 2px; }
+  .dleg span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dleg small { color: var(--muted); width: 48px; text-align: right; font-size: 11px; }
+  .rbar i { width: var(--w); animation: grow 1s cubic-bezier(.2,.9,.3,1) both .3s; }
+  @keyframes grow { from { width: 0; } }
+  .lnk { text-decoration: underline; text-decoration-color: rgba(52,196,70,.7); text-underline-offset: 3px; }
+  body.eco .logo i, body.eco #splash h2, body.eco #splash p { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .logo i, #splash h2, #splash p { opacity: 1; } }
+
+  /* ===== светлая тема ===== */
+  html.light { background: #eef5f0; color-scheme: light; }
+  .light body { --text: #0f1a14; --muted: rgba(20,45,30,.6); --stroke: rgba(255,255,255,.9); }
+  .light body::before { background: radial-gradient(60% 38% at 12% 8%, rgba(33,160,56,.28), transparent 70%), radial-gradient(55% 38% at 92% 32%, rgba(10,150,115,.2), transparent 70%), radial-gradient(60% 42% at 28% 96%, rgba(33,160,56,.22), transparent 70%), #f1f7f3; }
+  .light body::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: env(safe-area-inset-top, 0px); z-index: 80; pointer-events: none; background: linear-gradient(90deg, #21a038, #0a9673); } /* под белыми часами статус-бара */
+  .light .glass { background: linear-gradient(135deg, rgba(255,255,255,.78), rgba(255,255,255,.45)); box-shadow: inset 1px 1px 0 rgba(255,170,210,.3), inset -1px -1px 0 rgba(130,225,255,.3), inset 0 1px 0 #fff, 0 8px 24px rgba(20,70,40,.12); }
+  .light .pill, .light .rb { background: rgba(255,255,255,.65); color: var(--text); border-color: rgba(0,0,0,.08); }
+  .light .rb.on { color: #10131a; }
+  .light .btn { background: linear-gradient(180deg, rgba(var(--c), .97), rgba(var(--c), .78)); }
+  .light .chip.on { background: rgba(33,160,56,.2); color: var(--text); box-shadow: inset 0 1px 0 #fff; }
+  .light .kpi b, .light .wide b, .light td b, .light #sum b { color: var(--text); }
+  .light td, .light .wide, .light .ln { border-color: rgba(0,0,0,.08); }
+  .light .legend div, .light .pc { background: rgba(255,255,255,.55); }
+  .light .bar { background: rgba(0,0,0,.08); }
+  .light .sq:not(.f) { background: rgba(255,255,255,.45); border-color: rgba(0,0,0,.16); }
+  .light .sq.next:not(.f) { border-color: rgba(0,0,0,.5); }
+  .light .sq.sel { outline-color: #0f1a14; }
+  .light .pin, .light .mrow input, .light #sync textarea { background: rgba(255,255,255,.75); color: var(--text); border-color: rgba(0,0,0,.12); }
+  .light #msg { color: #15803d; }
+  .light #stats.sheet, .light #shiftpanel.sheet { background: rgba(255,255,255,.5); box-shadow: 0 12px 32px rgba(20,70,40,.18); }
+  .light #sync.sheet, .light #settings.sheet { background: rgba(255,255,255,.72); }
+  .light .ov:not(#splash):not(#greet) { background: rgba(238,246,241,.6); }
+  .light body.eco .glass { background: rgba(255,255,255,.96); }
+  .light body.eco #stats.sheet, .light body.eco #shiftpanel.sheet, .light body.eco #sync.sheet, .light body.eco #settings.sheet { background: rgba(244,249,246,.98); }
 </style>
 </head>
 <body>
-<header class="glass"><h1>Звонки</h1><button class="pill" id="syncBtn">💾 Прогресс</button><button class="pill" id="reset">Сбросить</button></header>
+<header class="glass"><h1>Звонки</h1><button class="pill" id="syncBtn">💾 Прогресс</button><button class="pill rnd" id="setBtn" aria-label="Настройки">⚙︎</button></header>
 <div id="shiftbar" class="glass"><div id="shFill"></div><div class="shrow"><span id="shT">⏱ Начать смену</span><span id="shS"></span></div></div>
 <div id="sum" class="glass"></div>
 <div id="main">
@@ -190,8 +280,14 @@
   <div class="row2"><button class="pill" id="exp">Получить код</button><button class="pill" id="imp">Загрузить код</button></div>
   <button class="pill" id="manBtn">✍️ Ввести цифрами</button>
   <div id="manual"></div>
+  <div id="msg"></div>
+</div>
+<div id="settings" class="glass sheet">
+  <div class="mrow"><b>Настройки</b></div>
+  <div class="mrow"><span>Тема</span><div class="seg glass"><button class="chip" data-theme="dark">🌙 Тёмная</button><button class="chip" data-theme="light">☀️ Светлая</button></div></div>
   <button class="pill" id="ecoBtn">🔋 Экономия батареи: выкл</button>
-  <div id="msg"></div><small style="color:var(--muted);text-align:center">Версия 9</small>
+  <button class="pill" id="reset">🗑 Сбросить квадраты</button>
+  <small style="color:var(--muted);text-align:center">Версия 10</small>
 </div>
 </div>
 <div id="selTools"><div id="hint"></div></div>
@@ -207,16 +303,21 @@
   </div>
   <button class="btn" style="--c:120,128,150;min-height:40px" id="undo">↩ Отменить</button>
 </div>
+<div id="splash" class="ov"><div class="logo" id="logo"></div><h2>Звонки</h2><p>Квадратики продаж</p></div>
+<div id="setup" class="ov ovs"><div class="ovw" id="setupBody"></div></div>
+<div id="greet" class="ov"><div class="gtxt">Хорошей смены<br>и больших продаж!</div><div class="gem">🚀💰</div></div>
+<div id="res" class="ov ovs"><div class="ovw" id="resBody"></div></div>
 <canvas id="fx"></canvas><div id="party"></div><div id="toast" class="glass"></div>
 <script>
 const KINDS = ["Продажа", "СБОЛ", "Перезвон", "Отказ", "Сбой звонка", "Отказ от презентации"];
 const KC = ["31,168,85", "59,130,246", "241,196,15", "231,76,60", "93,107,130", "230,126,34"];
 const KEMO = ["💰", "🤝", "📞", "❌", "📵", "🙅"];
-const PRODUCTS = ["Кредитная карта", "СберПрайм", "Вклад Лучший процент", "СберВклад"];   // кросс-продукты
-const PC = ["168,85,247", "244,114,182", "34,211,238", "190,242,100"];                 // цвет каждого кросс-продукта
+const PRODUCTS = ["Кредитная карта", "СберПрайм", "Вклад Лучший процент", "СберВклад", "Накопительный счёт"];   // кросс-продукты
+const PC = ["168,85,247", "244,114,182", "34,211,238", "190,242,100", "129,140,248"];                 // цвет каждого кросс-продукта
 const RES = ["Предл.", "Со мной", "Сам"];                                              // 0 предложил (отказ), 1 оформил со мной, 2 СБОЛ
 const MAINS = ["Накопительный счёт", "СберПрайм", "Кредитная карта", "СберВклад"];
-const MSHORT = ["", "П", "К", "В"];
+const MSH = ["Н", "П", "К", "В"], MCHIP = ["Накопит.", "СберПрайм", "Кредитка", "СберВклад"];
+const WITH_MAIN = [0, 1, 3, 4];   // у каких видов звонка выбирается основной продукт
 const TOTAL = 300, H = 3600000;
 const $ = id => document.getElementById(id);
 const pad2 = n => String(n).padStart(2, "0");
@@ -340,15 +441,17 @@ function celebrate(rec, total) {
 function counts() {
   const cnt = new Array(6).fill(0), salesBy = [0, 0, 0, 0], selfBy = [0, 0, 0, 0]; let salesNone = 0, selfNone = 0;
   const co = PRODUCTS.map(() => [0, 0, 0]);   // из звонков: предложено, со мной, сам
+  const mb = MAINS.map(() => [0, 0, 0, 0, 0]); // по основному продукту: дозвоны, продажи, СБОЛ, отказы, сбои
   calls.forEach(c => {
     if (!c) return; cnt[c.k]++;
+    if (c.m >= 0 && mb[c.m]) { const b = mb[c.m]; b[0]++; if (c.k === 0) b[1]++; else if (c.k === 1) b[2]++; else if (c.k === 3) b[3]++; else if (c.k === 4) b[4]++; }
     if (c.k === 0) { if (c.m >= 0) salesBy[c.m]++; else salesNone++; }
     else if (c.k === 1) { if (c.m >= 0) selfBy[c.m]++; else selfNone++; }
     c.x.forEach(([p, r]) => { if (p >= 0) { co[p][0]++; if (r === 1) co[p][1]++; if (r === 2) co[p][2]++; } });
   });
   const total = cnt.reduce((a, b) => a + b, 0);
   const prod = PRODUCTS.map((_, i) => ({ off: pr[i][0] + co[i][0], agr: pr[i][1] + co[i][1] + co[i][2], self: co[i][2] }));
-  return { cnt, total, sales: cnt[0], sbol: cnt[1], salesBy, selfBy, salesNone, selfNone, prod,
+  return { cnt, total, sales: cnt[0], sbol: cnt[1], salesBy, selfBy, salesNone, selfNone, prod, mb,
     pres: total - cnt[4] - cnt[5],              // презентации: все, кроме сбоя и «не слушал»
     agree: cnt[0] + cnt[1],                     // согласия = продажи + СБОЛ
     offers: prod.reduce((a, x) => a + x.off, 0) };
@@ -356,8 +459,8 @@ function counts() {
 function statsText(o) {
   return [`Дозвоны: ${o.total}`, `Презентации: ${o.pres}`, `Согласия: ${o.agree}`,
     `Всего предложений по кросс-продуктам: ${o.offers} (${pct(o.offers, o.total)} от дозвонов)`,
-    `СБОЛ: ${o.sbol} (${pct(o.sbol, o.total)} от дозвона)`, `Основные продукты (продаж / СБОЛ):`]
-    .concat(MAINS.map((n, i) => `${n}: ${o.salesBy[i]} / ${o.selfBy[i]}`)).concat([`Кросс-продукты:`])
+    `СБОЛ: ${o.sbol} (${pct(o.sbol, o.total)} от дозвона)`, `Основные продукты:`]
+    .concat(MAINS.map((n, i) => { const b = o.mb[i]; return `${n}: дозвонов ${b[0]}, продаж ${b[1]}, СБОЛ ${b[2]}, отказов ${b[3]}, сбоев ${b[4]}`; })).concat([`Кросс-продукты:`])
     .concat(PRODUCTS.map((n, i) => `${n}: предложений ${o.prod[i].off} (${pct(o.prod[i].off, o.offers)} от дозвона), согласий ${o.prod[i].agr} (${pct(o.prod[i].agr, o.prod[i].off)} от предложений), из них сам ${o.prod[i].self}`)).join("\n");
 }
 
@@ -407,7 +510,7 @@ function renderGrid() {
   while (cells.length < n) { const d = document.createElement("div"); d.dataset.i = cells.length; grid.appendChild(d); cells.push(d); }
   for (let i = 0; i < n; i++) {
     const c = calls[i], d = cells[i];
-    const m = c && c.k < 2 && c.m > 0 ? MSHORT[c.m] : "";
+    const m = c && c.m >= 0 && WITH_MAIN.includes(c.k) && !(c.k < 2 && c.m === 0) ? MSH[c.m] : "";
     const key = (c ? JSON.stringify(c) : "") + "|" + (i === next && sel < 0) + "|" + (i === sel);
     if (d._k !== key || i === popIdx) {
       d._k = key;
@@ -423,10 +526,10 @@ function renderGrid() {
 grid.onclick = e => { const c = e.target.closest(".sq"); if (!c) return; const i = +c.dataset.i; sel = sel === i ? -1 : i; if (panel === "build") { panel = "none"; bd = null; } lens(.7); render(); };
 
 function builderHTML() {
-  const hints = ["Продажа: выбери основной продукт и кросс-продукты, которые предлагал.", "СБОЛ (клиент оформил сам): основной продукт и кросс, если был.", "", "Отказ: если кросс не предлагал — просто «Записать» (отказ от всего).", "Сбой звонка: если сбросили в самом начале — «Записать», если на кроссе — отметь, что предлагал."];
+  const hints = ["Продажа: выбери основной продукт и кросс-продукты, которые предлагал.", "СБОЛ (клиент оформил сам): основной продукт и кросс, если был.", "", "Отказ: выбери продукт, от которого отказались (можно не выбирать). Кросс — если предлагал.", "Сбой звонка: выбери продукт, если успел его предложить. Если сбросили на кроссе — отметь, что предлагал."];
   const kind = bd.k;
   return `<div class="top"><span>${KEMO[kind]} ${KINDS[kind]}${sel >= 0 ? " · №" + (sel + 1) : ""}</span></div>
-    ${kind < 2 ? `<div id="mainRow" class="glass"><span>Основной:</span>${MAINS.map((n, i) => `<button class="chip${bd.m === i ? " on" : ""}" data-m="${i}">${["Накопит.", "СберПрайм", "Кредитка", "СберВклад"][i]}</button>`).join("")}</div>` : ""}
+    ${WITH_MAIN.includes(kind) ? `<div id="mainRow" class="glass"><span>Основной:</span>${MAINS.map((n, i) => `<button class="chip${bd.m === i ? " on" : ""}" data-m="${i}">${MCHIP[i]}</button>`).join("")}</div>` : ""}
     <small>${hints[kind]}<br>Кросс: «Предл.» — предложил, отказали · «Со мной» — оформили со мной · «Сам» — СБОЛ</small>
     ${PRODUCTS.map((n, p) => { const e = bd.x.find(a => a[0] === p); return `<div class="xr" style="--c:${PC[p]}"><span><i class="dot"></i>${n}</span>${RES.map((r, j) => `<button class="rb${e && e[1] === j ? " on" : ""}" data-p="${p}" data-r="${j}">${r}</button>`).join("")}</div>`; }).join("")}
     <div class="row r2"><button class="btn" style="--c:120,128,150" data-b="cancel">Отмена</button><button class="btn" style="--c:31,168,85" data-b="ok">✓ Записать${bd.x.length ? " (+" + bd.x.length + ")" : ""}</button></div>`;
@@ -434,10 +537,10 @@ function builderHTML() {
 function shiftPanelHTML(o) {
   const run = !!shift.start, planSum = plan.reduce((a, b) => a + b, 0);
   const startVal = run ? `${pad2(new Date(shift.start).getHours())}:${pad2(new Date(shift.start).getMinutes())}` : "";
-  const main = !run ? `<button class="pill" data-sh="start">▶ Начать смену</button>` : shift.pauseAt ? `<button class="pill" data-sh="resume">▶ Продолжить</button>` : `<button class="pill" data-sh="pause">⏸ Пауза</button>`;
+  const main = !run ? `<button class="pill" data-sh="setup">▶ Начать смену</button>` : shift.pauseAt ? `<button class="pill" data-sh="resume">▶ Продолжить</button>` : `<button class="pill" data-sh="pause">⏸ Пауза</button>`;
   return `<div class="card glass">
       <div class="top"><span>Смена</span><span id="shLive" style="font-weight:500;color:var(--muted);font-size:13px"></span></div>
-      <div class="btns">${main}${run ? `<button class="pill" data-sh="reset">⏹ Сбросить</button>` : ""}</div>
+      <div class="btns">${main}${run || o.total ? `<button class="pill" data-sh="end">🏁 Завершить смену</button>` : ""}</div>
       <div class="mrow"><span>Длина смены, часов</span><input class="pin" id="shHours" type="number" inputmode="decimal" step="0.5" min="1" max="24" value="${shift.hours}"></div>
       <div class="mrow"><span>Начало смены</span><input class="pin" style="width:96px" id="shStart" type="time" value="${startVal}"></div>
       <small class="m" id="shPace"></small>
@@ -453,7 +556,8 @@ function shiftPanelHTML(o) {
 }
 function snap(o) {
   const el = elapsed(), h = el > 600000 ? el / H : 0;
-  return { d: Date.now(), h: +h.toFixed(2), t: o.total, p: o.pres, a: o.agree, s: o.sbol, l: o.sales, o: o.offers };
+  return { d: Date.now(), h: +h.toFixed(2), t: o.total, p: o.pres, a: o.agree, s: o.sbol, l: o.sales, o: o.offers,
+    st: shift.start || 0, c: o.cnt.slice(), mb: o.mb.map(b => b.slice()), x: o.prod.map(q => [q.off, q.agr]), pl: plan.slice() };
 }
 function histHTML(o) {
   const rows = hist.map((r, i) => ({ r, i })), cols = ["t", "a", "s", "l", "o"];
@@ -464,10 +568,10 @@ function histHTML(o) {
   const dt = ts => new Date(ts).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" });
   return `<div class="card glass">
     <div class="top"><span>Смены</span><span style="font-weight:500;color:var(--muted);font-size:13px">${hist.length}</span></div>
-    <div class="btns"><button class="pill" data-sh="save">💾 Сохранить</button><button class="pill" data-sh="close">✅ Закрыть смену</button></div>
-    <small class="m">«Сохранить» — снимок текущих цифр. «Закрыть смену» — снимок и чистый лист для новой (квадраты, кросс-счётчики и смена обнулятся).</small>
+    <div class="btns"><button class="pill" data-sh="now">📊 Итоги сейчас</button><button class="pill" data-sh="save">💾 Сохранить</button></div>
+    <small class="m">«Завершить смену» — итоги с диаграммой и чистый лист для новой. Нажми на дату смены, чтобы посмотреть её итоги.</small>
     ${hist.length ? `<table><tr><th>Дата</th><th>Зв.</th><th>Согл.</th><th>СБОЛ</th><th>Прод.</th><th>Кросс</th><th>Зв/ч</th><th></th></tr>
-      ${rows.map(({ r, i }) => `<tr><td>${dt(r.d)}</td>${cols.map(k => cell(r, k)).join("")}<td${rate(r) && rate(r) === best.v && hist.length > 1 ? ' style="color:#6ee7b7"' : ""}><b>${r.h ? rate(r).toFixed(1) : "—"}</b></td><td><button class="pill" style="padding:4px 8px" data-del="${i}">✕</button></td></tr>`).join("")}
+      ${rows.map(({ r, i }) => `<tr><td data-res="${i}"><b class="lnk">${dt(r.d)}</b></td>${cols.map(k => cell(r, k)).join("")}<td${rate(r) && rate(r) === best.v && hist.length > 1 ? ' style="color:#6ee7b7"' : ""}><b>${r.h ? rate(r).toFixed(1) : "—"}</b></td><td><button class="pill" style="padding:4px 8px" data-del="${i}">✕</button></td></tr>`).join("")}
       <tr><td><i>Среднее</i></td>${cols.map(k => `<td><i>${avg(k)}</i></td>`).join("")}<td></td><td></td></tr>
       <tr><td><i>Сейчас</i></td><td><i>${o.total}</i></td><td><i>${o.agree}</i></td><td><i>${o.sbol}</i></td><td><i>${o.sales}</i></td><td><i>${o.offers}</i></td><td><i>${elapsed() > 600000 ? (o.total / (elapsed() / H)).toFixed(1) : "—"}</i></td><td></td></tr>
     </table><small class="m">Зелёным — лучший результат по столбцу. Зв/ч считается, если смена шла больше 10 минут.</small>` : ""}
@@ -483,10 +587,11 @@ function statsHTML(o) {
       </div>
       <div class="wide"><small>Всего предложений по кросс-продуктам</small><b>${o.offers}</b><i>(${pct(o.offers, o.total)} от дозвонов)</i></div>
       <div class="ln"><span>СБОЛ:</span><span><b>${o.sbol}</b><i>(${pct(o.sbol, o.total)} от дозвона)</i></span></div>
-      <table><tr><th>Основные продукты</th><th>Продаж</th><th>СБОЛ</th></tr>
-        ${MAINS.map((n, i) => `<tr><td>${n}</td><td><b>${o.salesBy[i]}</b></td><td><b>${o.selfBy[i]}</b></td></tr>`).join("")}
-        ${o.salesNone || o.selfNone ? `<tr><td>Не указан</td><td><b>${o.salesNone}</b></td><td><b>${o.selfNone}</b></td></tr>` : ""}
-      </table>
+      <div class="top"><span>Основные продукты</span></div>
+      <div class="pgrid">${MAINS.map((n, i) => { const b = o.mb[i]; return `<div class="pc"><small>${n}</small><b>${b[0]}<em>дозвонов</em></b>
+        <div class="pcl">💰 продаж <b>${b[1]}</b> · 🤝 СБОЛ <b>${b[2]}</b><br>❌ отказов <b>${b[3]}</b> · 📵 сбоев <b>${b[4]}</b></div>
+        <div class="bar"><i style="width:${b[0] ? (b[1] + b[2]) / b[0] * 100 : 0}%"></i></div><div class="pcl">конверсия ${pct(b[1] + b[2], b[0])}</div></div>`; }).join("")}</div>
+      ${o.salesNone || o.selfNone ? `<small class="m">Без основного продукта: продаж ${o.salesNone}, СБОЛ ${o.selfNone}</small>` : ""}
       <table><tr><th>Кросс-продукты</th><th>Предложений</th><th>Согласий</th></tr>
         ${PRODUCTS.map((n, i) => `<tr><td><i class="dot" style="--c:${PC[i]}"></i>${n}</td><td><b>${o.prod[i].off}</b><i>(${pct(o.prod[i].off, o.offers)} от дозвона)</i></td><td><b>${o.prod[i].agr}</b><i>(${pct(o.prod[i].agr, o.prod[i].off)} от предложений${o.prod[i].self ? `, сам: ${o.prod[i].self}` : ""})</i></td></tr>`).join("")}
       </table>
@@ -534,11 +639,11 @@ document.querySelectorAll("[data-k]").forEach(b => b.onclick = () => {
   const k = +b.dataset.k;
   if (k === 2 || k === 5) { commit({ k, m: -1, x: [] }); return; }
   const ex = sel >= 0 ? calls[sel] : null;
-  bd = { k, m: k < 2 ? (ex && ex.k < 2 && ex.m >= 0 ? ex.m : 0) : -1, x: ex ? ex.x.map(a => a.slice()) : [] };
+  bd = { k, m: ex && ex.m >= 0 ? ex.m : k < 2 ? 0 : -1, x: ex ? ex.x.map(a => a.slice()) : [] };
   lens(.8); openPanel("build");
 });
 builder.onclick = e => {
-  const chip = e.target.closest(".chip"); if (chip) { bd.m = +chip.dataset.m; buzz(); return render(); }
+  const chip = e.target.closest(".chip"); if (chip) { const m = +chip.dataset.m; bd.m = bd.k >= 3 && bd.m === m ? -1 : m; buzz(); return render(); }
   const rb = e.target.closest(".rb");
   if (rb) {
     const p = +rb.dataset.p, r = +rb.dataset.r, i = bd.x.findIndex(a => a[0] === p);
@@ -559,16 +664,19 @@ sum.onclick = () => toggle("stats");
 // смена и план
 let closeArm = 0, delArm = -1;
 shiftpanel.onclick = e => {
+  const rs = e.target.closest("[data-res]"); if (rs && hist[+rs.dataset.res]) { showResults(hist[+rs.dataset.res], false); return; }
   const dl = e.target.closest("button[data-del]");
   if (dl) { const i = +dl.dataset.del; if (delArm !== i) { delArm = i; dl.textContent = "?"; setTimeout(() => { delArm = -1; if (dl.isConnected) dl.textContent = "✕"; }, 2500); return; } hist.splice(i, 1); delArm = -1; saveMeta(); render(); return; }
   const b = e.target.closest("button[data-sh]"); if (!b) return;
   const a = b.dataset.sh, now = Date.now();
   if (a === "save") { hist.push(snap(counts())); saveMeta(); render(); toast("💾 Смена сохранена"); return; }
-  if (a === "close") {
-    if (!closeArm) { closeArm = 1; b.textContent = "Точно? Нажми ещё раз"; setTimeout(() => { closeArm = 0; if (b.isConnected) b.textContent = "✅ Закрыть смену"; }, 3000); return; }
-    closeArm = 0; hist.push(snap(counts())); clearAll();
+  if (a === "now") { showResults(snap(counts()), false); return; }
+  if (a === "setup") { openSetup(); return; }
+  if (a === "end") {
+    if (!closeArm) { closeArm = 1; b.textContent = "Точно? Нажми ещё раз"; setTimeout(() => { closeArm = 0; if (b.isConnected) b.textContent = "🏁 Завершить смену"; }, 3000); return; }
+    closeArm = 0; const r = snap(counts()); hist.push(r); clearAll();
     shift.start = 0; shift.pauseAt = 0; shift.paused = 0; shift.w = 0;
-    save(); saveMeta(); syncTick(); render(); toast("✅ Смена закрыта и сохранена"); return;
+    save(); saveMeta(); syncTick(); openPanel("none"); showResults(r, true); return;
   }
   if (a === "start") { shift.start = now; shift.pauseAt = 0; shift.paused = 0; shift.w = 0; }
   else if (a === "pause") shift.pauseAt = now;
@@ -611,14 +719,25 @@ function buildManual() {
 $("manBtn").onclick = () => { const el = $("manual"); if (!el.innerHTML) buildManual(); el.style.display = el.style.display === "flex" ? "none" : "flex"; };
 let armed = false;
 $("reset").onclick = e => {
-  if (!armed) { armed = true; e.target.textContent = "Точно?"; setTimeout(() => { armed = false; e.target.textContent = "Сбросить"; }, 2500); return; }
-  clearAll(); armed = false; e.target.textContent = "Сбросить"; save(); render();
+  const t0 = "🗑 Сбросить квадраты";
+  if (!armed) { armed = true; e.target.textContent = "Точно? Нажми ещё раз"; setTimeout(() => { armed = false; e.target.textContent = t0; }, 2500); return; }
+  clearAll(); armed = false; e.target.textContent = t0; save(); render(); toast("Квадраты сброшены");
 };
 $("ecoBtn").onclick = () => { eco = !eco; try { localStorage.setItem("eco", eco ? "1" : "0"); } catch (e) {} applyEco(); };
 
 // перенос прогресса: KV4 (новый); KV1–KV3 тоже принимаются
 const sync = $("sync"), code = $("code"), msg = $("msg");
-$("syncBtn").onclick = () => { sync.style.display = sync.style.display === "flex" ? "none" : "flex"; msg.textContent = ""; };
+const settings = $("settings");
+function sheet(el) { const show = el.style.display !== "flex"; sync.style.display = settings.style.display = "none"; if (show) el.style.display = "flex"; }
+$("syncBtn").onclick = () => { sheet(sync); msg.textContent = ""; };
+$("setBtn").onclick = () => sheet(settings);
+let theme = "dark"; try { theme = localStorage.getItem("theme") === "light" ? "light" : "dark"; } catch (e) {}
+function applyTheme() {
+  document.documentElement.classList.toggle("light", theme === "light");
+  document.querySelectorAll("[data-theme]").forEach(b => b.classList.toggle("on", b.dataset.theme === theme));
+  document.querySelector('meta[name="theme-color"]').content = theme === "light" ? "#eef5f0" : "#000000";
+}
+settings.onclick = e => { const b = e.target.closest("[data-theme]"); if (!b) return; theme = b.dataset.theme; try { localStorage.setItem("theme", theme); } catch (e) {} applyTheme(); buzz(); };
 $("exp").onclick = () => {
   const n = Math.max(lastIdx() + 1, 0);
   code.value = "KV4:" + JSON.stringify({ k: calls.slice(0, n), p: pr.flat(), q: plan, h: hist });
@@ -648,7 +767,7 @@ $("imp").onclick = () => {
 ["gesturestart", "gesturechange", "gestureend"].forEach(n => document.addEventListener(n, e => e.preventDefault(), { passive: false }));
 document.addEventListener("touchmove", e => {
   if (e.touches.length > 1) { e.preventDefault(); return; }                      // щипок
-  if (!e.target.closest("#grid, .sheet, textarea")) e.preventDefault(); // страница не двигается
+  if (!e.target.closest("#grid, .sheet, .ovs, textarea")) e.preventDefault(); // страница не двигается
 }, { passive: false });
 document.addEventListener("dblclick", e => e.preventDefault());
 
@@ -677,9 +796,101 @@ swipeClose(stats, () => openPanel("none"));
 swipeClose(shiftpanel, () => openPanel("none"));
 swipeClose(builder, () => { bd = null; openPanel("none"); });
 swipeClose(sync, () => { sync.style.display = "none"; });
+swipeClose(settings, () => { settings.style.display = "none"; });
 
 
-applyEco(); render(); syncTick();
+// ---------- слои: заставка → начало смены → «Хорошей смены» · итоги ----------
+function showOv(id) { const el = $(id); el.classList.remove("out"); el.classList.add("on"); el.scrollTop = 0; }
+function closeOv(id) { const el = $(id); if (!el.classList.contains("on") || el.classList.contains("out")) return; el.classList.add("out"); setTimeout(() => el.classList.remove("on", "out"), 380); }
+function boot() {
+  const cols = ["31,168,85", "10,150,115", "59,130,246", "241,196,15", "31,168,85", "231,76,60", "230,126,34", "10,150,115", "31,168,85"];
+  const order = [4, 1, 5, 7, 3, 0, 2, 8, 6];   // от центра по кругу
+  $("logo").innerHTML = cols.map((c, i) => { const a = Math.random() * Math.PI * 2, d = 160 + Math.random() * 120;
+    return `<i style="--c:${c};--x:${Math.cos(a) * d | 0}px;--y:${Math.sin(a) * d | 0}px;--r:${(Math.random() * 360 - 180) | 0}deg;--d:${order.indexOf(i) * 70}ms"></i>`; }).join("");
+  showOv("splash");
+  let done = false;
+  const finish = () => { if (done) return; done = true; closeOv("splash"); setTimeout(() => { if (!shift.start) openSetup(); }, 300); };
+  $("splash").onclick = finish; setTimeout(finish, fancy() ? 2200 : 600);
+  if (fancy()) setTimeout(() => { if (!done) burst(innerWidth / 2, innerHeight * .42, 40, .9); }, 1150);
+}
+let su = null;
+function openSetup() { su = { h: shift.hours || 8, pl: plan.slice() }; renderSetup(); showOv("setup"); }
+function renderSetup() {
+  const tot = su.pl.reduce((a, b) => a + b, 0);
+  $("setupBody").innerHTML = `<div class="card glass">
+    <div class="top"><span>⏱ Новая смена</span></div>
+    <small class="m">Сколько часов смена</small>
+    <div class="seg glass">${[4, 6, 8, 10, 12].map(h => `<button class="chip${su.h === h ? " on" : ""}" data-su="h:${h}">${h} ч</button>`).join("")}</div>
+    <div class="mrow"><span>Точнее</span><span class="step"><button class="pill" data-su="hs:-0.5">−</button><b>${su.h} ч</b><button class="pill" data-su="hs:0.5">+</button></span></div>
+  </div>
+  <div class="card glass">
+    <div class="top"><span>🎯 План продаж</span><span style="font-weight:500;color:var(--muted);font-size:13px">всего ${tot}</span></div>
+    ${MAINS.map((n, i) => `<div class="mrow"><span>${n}</span><span class="step"><button class="pill" data-su="p${i}:-1">−</button><b>${su.pl[i]}</b><button class="pill" data-su="p${i}:1">+</button></span></div>`).join("")}
+  </div>
+  <button class="btn gob" style="--c:31,168,85" data-su="go">▶ Начать смену</button>
+  <button class="pill" data-su="later">Позже</button>`;
+}
+$("setup").onclick = e => {
+  const b = e.target.closest("[data-su]"); if (!b) return;
+  const [a, v] = b.dataset.su.split(":");
+  if (a === "go") return startShift();
+  if (a === "later") return closeOv("setup");
+  if (a === "h") su.h = +v;
+  else if (a === "hs") su.h = Math.min(24, Math.max(1, su.h + +v));
+  else if (a[0] === "p") { const i = +a.slice(1); su.pl[i] = Math.max(0, su.pl[i] + +v); }
+  buzz(); renderSetup();
+};
+function startShift() {
+  shift.hours = su.h; plan = su.pl.slice();
+  shift.start = Date.now(); shift.pauseAt = 0; shift.paused = 0; shift.w = 0;
+  saveMeta(); syncTick(); closeOv("setup"); openPanel("none"); buzz();
+  setTimeout(() => {
+    showOv("greet"); burst(innerWidth / 2, innerHeight * .4, 70, 1.4);
+    setTimeout(() => { burst(innerWidth * .2, innerHeight * .55, 35, 1.1); burst(innerWidth * .8, innerHeight * .55, 35, 1.1); }, 350);
+    clearTimeout(startShift.t); startShift.t = setTimeout(() => closeOv("greet"), 2800);
+  }, 250);
+}
+$("greet").onclick = () => closeOv("greet");
+
+function resultsHTML(r, fin) {
+  const day = new Date(r.d).toLocaleDateString("ru-RU", { day: "numeric", month: "long" });
+  const planSum = r.pl ? r.pl.reduce((a, b) => a + b, 0) : 0;
+  const kpi = (n, v, sub) => `<div class="kpi"><small>${n}</small><b>${v}</b>${sub ? `<i class="m">${sub}</i>` : ""}</div>`;
+  let h = `<div class="card glass">
+    <div class="rhead"><b>${fin ? "🏁 Смена завершена" : "📊 Итоги смены"}</b><small class="m">${day} · ${r.st ? hhmm(r.st) + "–" : ""}${hhmm(r.d)}${r.h ? ` · ${r.h} ч` : ""}</small></div>
+    <div class="kpis">${kpi("Дозвоны", r.t)}${kpi("Продажи", r.l, planSum ? `план ${planSum}` : "")}${kpi("СБОЛ", r.s)}</div>
+    <div class="kpis">${kpi("Согласия", r.a)}${kpi("Конверсия", pct(r.a, r.t), "согласия / дозвоны")}${kpi("Кросс", r.o, "предложений")}</div>
+  </div>`;
+  if (r.c) {
+    const tot = r.c.reduce((a, b) => a + b, 0), nz = r.c.filter(Boolean).length, gap = nz > 1 ? 2 : 0;
+    let acc = 0; const segs = [];
+    r.c.forEach((n, i) => { if (!n) return; const a = acc / tot * 360, b = (acc += n) / tot * 360; segs.push(`rgb(${KC[i]}) ${a}deg ${b - gap}deg`, `transparent ${b - gap}deg ${b}deg`); });
+    h += `<div class="card glass"><div class="top"><span>Из чего сложились звонки</span></div>
+      <div class="drow"><div class="dwrap"><div class="donut" style="background:${tot ? `conic-gradient(${segs.join(",")})` : "rgba(128,128,128,.25)"}"></div><div class="dmid"><b>${tot}</b><small>звонков</small></div></div>
+      <div class="dleg">${KINDS.map((n, i) => `<div><i class="dot" style="--c:${KC[i]}"></i><span>${n}</span><b>${r.c[i]}</b><small>${pct(r.c[i], tot)}</small></div>`).join("")}</div></div></div>`;
+  }
+  if (r.mb) {
+    const mx = Math.max(1, ...r.mb.map(b => b[1]));
+    h += `<div class="card glass"><div class="top"><span>Продажи по продуктам</span>${planSum ? `<span style="font-weight:500;color:var(--muted);font-size:13px">${r.l} из ${planSum}</span>` : ""}</div>
+      ${MAINS.map((n, i) => { const b = r.mb[i], pl = r.pl ? r.pl[i] : 0, w = pl ? Math.min(100, b[1] / pl * 100) : b[1] / mx * 100;
+        return `<div class="prog"><div class="ph"><span>${n}</span><b>${b[1]}${pl ? ` / ${pl}` : ""}${pl && b[1] >= pl ? " ✅" : ""}</b></div><div class="bar rbar"><i style="--w:${w}%"></i></div>
+        <small class="m">дозвонов ${b[0]} · СБОЛ ${b[2]} · отказов ${b[3]} · сбоев ${b[4]}</small></div>`; }).join("")}</div>`;
+  }
+  if (r.x) {
+    const used = PRODUCTS.map((n, i) => ({ n, i, off: r.x[i] ? r.x[i][0] : 0, agr: r.x[i] ? r.x[i][1] : 0 })).filter(q => q.off);
+    h += `<div class="card glass"><div class="top"><span>Кросс-продажи</span></div>
+      ${used.length ? used.map(q => `<div class="prog"><div class="ph"><span><i class="dot" style="--c:${PC[q.i]}"></i>${q.n}</span><b>${q.agr} / ${q.off}</b></div>
+        <div class="bar rbar"><i style="--w:${q.agr / q.off * 100}%;background:rgb(${PC[q.i]})"></i></div></div>`).join("") + `<small class="m">согласий / предложений</small>` : `<small class="m">Кросс не предлагался.</small>`}</div>`;
+  }
+  return h + `<button class="btn gob" style="--c:31,168,85" data-res="close">${fin ? "Готово" : "Закрыть"}</button>`;
+}
+function showResults(r, fin) {
+  $("resBody").innerHTML = resultsHTML(r, fin); showOv("res");
+  if (fin) { buzz(); setTimeout(() => { burst(innerWidth * .3, innerHeight * .3, 45, 1.2); burst(innerWidth * .7, innerHeight * .3, 45, 1.2); }, 300); }
+}
+$("res").onclick = e => { if (e.target.closest('[data-res="close"]')) { closeOv("res"); render(); } };
+
+applyTheme(); applyEco(); render(); syncTick(); boot();
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
 if ("serviceWorker" in navigator) { try { navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(r => document.addEventListener("visibilitychange", () => { if (!document.hidden) r.update(); })).catch(() => {}); } catch (e) {} }
 </script>
