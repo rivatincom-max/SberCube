@@ -8,7 +8,7 @@
 <meta name="format-detection" content="telephone=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" id="sbStyle">
 <meta name="apple-mobile-web-app-title" content="SBERCUBE">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png?v=8" id="touchIcon">
@@ -16,7 +16,7 @@
 <link rel="icon" href="icon-light-192.png?v=8" media="(prefers-color-scheme: light)">
 <title>SBERCUBE</title>
 <script>try { const th = localStorage.getItem("theme"); const lt = th === "light" || (th !== "dark" && matchMedia("(prefers-color-scheme: light)").matches);
-  if (lt) { document.documentElement.classList.add("light"); document.getElementById("touchIcon").href = "icon-light-180.png?v=8"; } } catch (e) {}</script>
+  if (lt) { document.documentElement.classList.add("light"); document.getElementById("touchIcon").href = "icon-light-180.png?v=8"; document.getElementById("sbStyle").content = "default"; } } catch (e) {}</script>
 <style>
   :root { --text: #f5f7fb; --muted: rgba(235,240,255,.62); --stroke: rgba(255,255,255,.2); --spring: cubic-bezier(.34, 1.56, .64, 1); }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -305,7 +305,7 @@
   .light td, .light .wide, .light .ln { border-color: rgba(0,0,0,.08); }
   .light .legend div, .light .pc { background: rgba(255,255,255,.55); }
   .light .bar { background: rgba(0,0,0,.08); }
-  .light .sq:not(.f) { background: rgba(255,255,255,.45); border-color: rgba(0,0,0,.16); }
+  .light .sq:not(.f) { background: rgba(255,255,255,.55); border-color: rgba(0,0,0,.22); }
   .light .sq.next:not(.f) { border-color: rgba(0,0,0,.5); }
   .light .sq.sel { outline-color: #0f1a14; }
   .light .pin, .light .mrow input, .light #sync textarea { background: rgba(255,255,255,.75); color: var(--text); border-color: rgba(0,0,0,.12); }
@@ -322,7 +322,7 @@
   #shiftpanel #dtime { display: flex; flex-direction: column; gap: 10px; border-radius: 28px; padding: 14px 16px 12px; flex-shrink: 0; }
   #shiftpanel .dt3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   #shiftpanel .dt3 small { display: block; font-size: 11.5px; color: var(--muted); } #shiftpanel .dt3 b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; letter-spacing: -.3px; line-height: 1.25; }
-  #shiftpanel .dt3 em { display: block; font-style: normal; font-size: 11px; color: var(--muted); } #shiftpanel #dLast.warn { color: #ffb86b; }
+  #shiftpanel .dt3 em { display: block; font-style: normal; font-size: 11px; color: var(--muted); } #shiftpanel #dLast.warn { color: #ffb86b; } .light #shM .warn, .light #dLast.warn, .light #shiftpanel #dLast.warn { color: #b45309; }
   #shiftpanel #dSpark { display: flex; align-items: flex-end; gap: 3px; height: 44px; } #shiftpanel #dSpark i { flex: 1; min-height: 3px; border-radius: 3px; background: rgba(255,255,255,.12); }
   #shiftpanel #dSpark i.on { background: linear-gradient(180deg, #3ad25a, #0a9673); } #shiftpanel #dSpark i.now { box-shadow: 0 0 0 2px rgba(255,255,255,.7); }
   #shiftpanel #dSparkL { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--muted); }
@@ -406,7 +406,7 @@
   <div class="mrow"><span>Тема</span><div class="seg glass"><button class="chip" data-theme="auto">Авто</button><button class="chip" data-theme="dark"><i data-ic="moon"></i> Тёмная</button><button class="chip" data-theme="light"><i data-ic="sun"></i> Светлая</button></div></div>
   <button class="pill" id="ecoBtn"><i data-ic="battery"></i> Экономия батареи: выкл</button>
   <button class="pill" id="reset"><i data-ic="trash"></i> Сбросить квадраты</button>
-  <small style="color:var(--muted);text-align:center">Версия 27</small>
+  <small style="color:var(--muted);text-align:center">Версия 28</small>
 </div>
 </div>
 <div id="selTools"><div id="hint"></div></div>
