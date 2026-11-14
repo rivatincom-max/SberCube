@@ -314,6 +314,14 @@
   /* ===== десктоп: слева сетка звонков, справа панель управления ===== */
   kbd { display: none; } #keys { display: none; }
   #dtime, #dplan { display: none; }
+  #shiftpanel #dtime { display: flex; flex-direction: column; gap: 10px; border-radius: 28px; padding: 14px 16px 12px; flex-shrink: 0; }
+  #shiftpanel .dt3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  #shiftpanel .dt3 small { display: block; font-size: 11.5px; color: var(--muted); } #shiftpanel .dt3 b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; letter-spacing: -.3px; line-height: 1.25; }
+  #shiftpanel .dt3 em { display: block; font-style: normal; font-size: 11px; color: var(--muted); } #shiftpanel #dLast.warn { color: #ffb86b; }
+  #shiftpanel #dSpark { display: flex; align-items: flex-end; gap: 3px; height: 44px; } #shiftpanel #dSpark i { flex: 1; min-height: 3px; border-radius: 3px; background: rgba(255,255,255,.12); }
+  #shiftpanel #dSpark i.on { background: linear-gradient(180deg, #3ad25a, #0a9673); } #shiftpanel #dSpark i.now { box-shadow: 0 0 0 2px rgba(255,255,255,.7); }
+  #shiftpanel #dSparkL { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--muted); }
+  .light #shiftpanel #dSpark i { background: rgba(0,0,0,.1); } .light #shiftpanel #dSpark i.on { background: linear-gradient(180deg, #3ad25a, #0a9673); }
   @media (min-width: 900px) and (max-height: 900px) { #dSpark, #dSparkL { display: none !important; } .btn { min-height: 56px !important; } #shiftbar { min-height: 62px !important; padding: 10px 18px !important; } #shT { font-size: 22px !important; } .dt3 b { font-size: 20px !important; } #dtime { gap: 6px !important; padding: 10px 16px !important; } }
   @media (min-width: 900px) and (max-height: 780px) { #dplan { display: none !important; } .dt3 em { display: none !important; } }
   @media (min-width: 900px) {
@@ -393,7 +401,7 @@
   <div class="mrow"><span>Тема</span><div class="seg glass"><button class="chip" data-theme="dark"><i data-ic="moon"></i> Тёмная</button><button class="chip" data-theme="light"><i data-ic="sun"></i> Светлая</button></div></div>
   <button class="pill" id="ecoBtn"><i data-ic="battery"></i> Экономия батареи: выкл</button>
   <button class="pill" id="reset"><i data-ic="trash"></i> Сбросить квадраты</button>
-  <small style="color:var(--muted);text-align:center">Версия 14</small>
+  <small style="color:var(--muted);text-align:center">Версия 15</small>
 </div>
 </div>
 <div id="selTools"><div id="hint"></div></div>
@@ -774,11 +782,13 @@ function render() {
       catch (e) { $("msg").textContent = "Скопируй текст вручную."; }
     };
   }
-  if (showShift) shiftpanel.innerHTML = shiftPanelHTML(o);
+  const DT = $("dtime"); if (DT.parentNode === shiftpanel) $("sum").after(DT);
+  if (showShift) { shiftpanel.innerHTML = shiftPanelHTML(o); if (!DESK.matches) shiftpanel.prepend(DT); }
   document.body.classList.toggle("building", !!building); if (typeof renderPlan === "function") { renderPlan(o); updateDesk(); }
   updateShift();
 }
 
+const DESK = matchMedia("(min-width: 900px)");
 // ---------- ввод звонка ----------
 let lastM = 0; try { lastM = Math.max(0, +localStorage.getItem("lastM") || 0); } catch (e) {}
 function commit(rec) {
@@ -1046,7 +1056,6 @@ function showResults(r, fin) {
 $("res").onclick = e => { if (e.target.closest('[data-res="close"]')) { closeOv("res"); render(); } };
 
 // ---------- ПК: время и план ----------
-const DESK = matchMedia("(min-width: 900px)");
 const hm = ms => { ms = Math.max(0, Math.floor(ms / 60000)); return `${Math.floor(ms / 60)}:${pad2(ms % 60)}`; };
 function lastCallT() { let lt = 0; calls.forEach(c => { if (c && c.t > lt) lt = c.t; }); return lt; }
 function updateMobileTime() {
@@ -1056,7 +1065,7 @@ function updateMobileTime() {
 }
 function updateDesk() {
   updateMobileTime();
-  if (!DESK.matches) return;
+  if (!DESK.matches && $("dtime").parentNode !== shiftpanel) return;
   const now = Date.now(); $("dClock").textContent = hhmm(now);
   const run = !!shift.start, len = shift.hours * H, el = elapsed(), hrs = el / H;
   const endMs = shift.start + len + shift.paused + (shift.pauseAt ? now - shift.pauseAt : 0);
@@ -1080,7 +1089,7 @@ function renderPlan(o) {
   $("dplan").innerHTML = `<div class="top"><span>${ps ? "План продаж" : "Продажи по продуктам"}</span><span>${o.sales}${ps ? " из " + ps : ""}</span></div>` +
     MAINS.map((n, i) => { const v = o.salesBy[i], g = plan[i]; return `<div class="pr${g && v >= g ? " done" : ""}"><span>${n}</span><div class="pb"><u style="width:${g ? Math.min(100, v / g * 100) : (o.sales ? v / o.sales * 100 : 0)}%"></u></div><b>${v}${g ? " / " + g : ""}</b></div>`; }).join("");
 }
-$("dtime").onclick = () => shift.start ? toggle("shift") : openSetup();
+$("dtime").onclick = () => { if (!DESK.matches) return; shift.start ? toggle("shift") : openSetup(); };
 $("dplan").onclick = () => toggle("shift");
 setInterval(updateDesk, 1000); DESK.addEventListener("change", () => { render(); updateDesk(); });
 
