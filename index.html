@@ -11,12 +11,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" id="sbStyle">
 <meta name="apple-mobile-web-app-title" content="SBERCUBE">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png?v=8" id="touchIcon">
-<link rel="icon" href="icon-192.png?v=8" media="(prefers-color-scheme: dark)">
-<link rel="icon" href="icon-light-192.png?v=8" media="(prefers-color-scheme: light)">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png?v=9" id="touchIcon">
+<link rel="icon" href="icon-192.png?v=9">
 <title>SBERCUBE</title>
 <script>try { const th = localStorage.getItem("theme"); const lt = th === "light" || (th !== "dark" && matchMedia("(prefers-color-scheme: light)").matches);
-  if (lt) { document.documentElement.classList.add("light"); document.getElementById("touchIcon").href = "icon-light-180.png?v=8"; } } catch (e) {}</script>
+  if (lt) { document.documentElement.classList.add("light"); } } catch (e) {}</script>
 <style>
   :root { --text: #f5f7fb; --muted: rgba(235,240,255,.62); --stroke: rgba(255,255,255,.2); --spring: cubic-bezier(.34, 1.56, .64, 1); }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -448,7 +447,7 @@
   <div class="mrow"><span>Тема</span><div class="seg glass"><button class="chip" data-theme="auto">Авто</button><button class="chip" data-theme="dark"><i data-ic="moon"></i> Тёмная</button><button class="chip" data-theme="light"><i data-ic="sun"></i> Светлая</button></div></div>
   <button class="pill" id="ecoBtn"><i data-ic="battery"></i> Экономия батареи: выкл</button>
   <button class="pill" id="reset"><i data-ic="trash"></i> Сбросить квадраты</button>
-  <small style="color:var(--muted);text-align:center">Версия 36</small>
+  <small style="color:var(--muted);text-align:center">Версия 37</small>
 </div>
 </div>
 <div id="selTools"><div id="hint"></div></div>
@@ -993,7 +992,6 @@ const SYS_LIGHT = matchMedia("(prefers-color-scheme: light)");
 function applyTheme() {
   const lt = theme === "light" || (theme === "auto" && SYS_LIGHT.matches);
   document.documentElement.classList.toggle("light", lt);
-  $("touchIcon").href = lt ? "icon-light-180.png?v=8" : "icon-180.png?v=8";
   document.querySelectorAll("[data-theme]").forEach(b => b.classList.toggle("on", b.dataset.theme === theme));
   document.querySelector('meta[name="theme-color"]').content = lt ? "#eef5f0" : "#000000";
 }
