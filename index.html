@@ -66,6 +66,7 @@
   #shT small { font-size: 13px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
   #shT { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.3px; }
   #shS { font-size: 13px; color: var(--muted); text-align: right; }
+  #shM { position: relative; margin-top: 3px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; } #shM:empty { display: none; } #shM b { color: var(--text); font-weight: 600; } #shM .warn { color: #ffb86b; }
 
   #sum { border-radius: 28px; padding: 9px 16px; font-size: 13px; display: flex; justify-content: space-between; gap: 6px; color: var(--muted); }
   #sum b { color: #fff; font-size: 15px; }
@@ -313,6 +314,8 @@
   /* ===== десктоп: слева сетка звонков, справа панель управления ===== */
   kbd { display: none; } #keys { display: none; }
   #dtime, #dplan { display: none; }
+  @media (min-width: 900px) and (max-height: 900px) { #dSpark, #dSparkL { display: none !important; } .btn { min-height: 56px !important; } #shiftbar { min-height: 62px !important; padding: 10px 18px !important; } #shT { font-size: 22px !important; } .dt3 b { font-size: 20px !important; } #dtime { gap: 6px !important; padding: 10px 16px !important; } }
+  @media (min-width: 900px) and (max-height: 780px) { #dplan { display: none !important; } .dt3 em { display: none !important; } }
   @media (min-width: 900px) {
     body { display: grid; grid-template-columns: minmax(0, 1fr) 440px; grid-template-rows: auto auto auto auto auto auto auto minmax(0, 1fr); column-gap: 18px; row-gap: 10px; padding: 16px 22px; }
     header { grid-column: 1 / -1; grid-row: 1; padding: 6px 8px 6px 20px; }
@@ -358,13 +361,14 @@
     #dplan .pr { display: grid; grid-template-columns: 70px 1fr 56px; align-items: center; gap: 10px; font-size: 13px; } #dplan .pr b { text-align: right; font-variant-numeric: tabular-nums; }
     #dplan .pb { height: 8px; border-radius: 5px; background: rgba(255,255,255,.1); overflow: hidden; } #dplan .pb u { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, #34c446, #0a9673); transition: width .4s; }
     #dplan .pr.done b { color: #5df07a; }
-    .light #dSpark i { background: rgba(0,0,0,.1); } .light #dplan .pb { background: rgba(0,0,0,.08); }
+    .light #dSpark i { background: rgba(0,0,0,.1); } .light #dSpark i.on { background: linear-gradient(180deg, #3ad25a, #0a9673); }
+    #shM { display: none; } .light #dplan .pb { background: rgba(0,0,0,.08); }
   }
 </style>
 </head>
 <body>
 <header class="glass"><h1>SBERCUBE</h1><button class="pill rnd" id="syncBtn" aria-label="Прогресс"><i data-ic="sync"></i></button><button class="pill rnd" id="setBtn" aria-label="Настройки"><i data-ic="gear"></i></button></header>
-<div id="shiftbar" class="glass"><div id="shFill"></div><div class="shrow"><span id="shT"><i data-ic="timer"></i> Начать смену</span><span id="shS"></span></div></div>
+<div id="shiftbar" class="glass"><div id="shFill"></div><div class="shrow"><span id="shT"><i data-ic="timer"></i> Начать смену</span><span id="shS"></span></div><div id="shM"></div></div>
 <div id="sum" class="glass"></div>
 <div id="dtime" class="glass">
   <div class="dt3"><div><small>Сейчас</small><b id="dClock">—</b></div><div><small>Конец смены</small><b id="dEnd">—</b></div><div><small>Прошло</small><b id="dEl">—</b></div></div>
@@ -389,7 +393,7 @@
   <div class="mrow"><span>Тема</span><div class="seg glass"><button class="chip" data-theme="dark"><i data-ic="moon"></i> Тёмная</button><button class="chip" data-theme="light"><i data-ic="sun"></i> Светлая</button></div></div>
   <button class="pill" id="ecoBtn"><i data-ic="battery"></i> Экономия батареи: выкл</button>
   <button class="pill" id="reset"><i data-ic="trash"></i> Сбросить квадраты</button>
-  <small style="color:var(--muted);text-align:center">Версия 13</small>
+  <small style="color:var(--muted);text-align:center">Версия 14</small>
 </div>
 </div>
 <div id="selTools"><div id="hint"></div></div>
@@ -405,7 +409,7 @@
   </div>
   <button class="btn" style="--c:120,128,150;min-height:40px" id="undo"><i data-ic="undo"></i> Отменить</button>
 </div>
-<div id="keys"><kbd>1</kbd>–<kbd>6</kbd> звонок · <kbd>Shift</kbd>+<kbd>1</kbd>–<kbd>6</kbd> без окна · <kbd>1</kbd>–<kbd>5</kbd> продукт · <kbd>Q</kbd>–<kbd>Y</kbd> кросс · <kbd>Enter</kbd> записать · <kbd>Esc</kbd> отмена · <kbd>Backspace</kbd> отменить · <kbd>S</kbd> статистика · <kbd>T</kbd> смена</div>
+<div id="keys"><kbd>1</kbd>–<kbd>6</kbd> звонок · <kbd>Shift</kbd>+<kbd>1</kbd>–<kbd>6</kbd> без окна · <kbd>1</kbd>–<kbd>5</kbd> продукт · <kbd>Q</kbd>–<kbd>Y</kbd> кросс · <kbd>Enter</kbd> записать · <kbd>Esc</kbd> отмена · <kbd>Backspace</kbd> отменить · <kbd>S</kbd> статистика · <kbd>T</kbd> смена · <kbd>P</kbd> пауза</div>
 <div id="splash" class="ov"><div class="logo" id="logo"></div><h2>SBERCUBE</h2></div>
 <div id="setup" class="ov ovs"><div class="ovw" id="setupBody"></div></div>
 <div id="greet" class="ov"><div class="gem"><svg class="gup" viewBox="-6 0 120 100" aria-hidden="true">
@@ -671,7 +675,7 @@ function builderHTML() {
   const kind = bd.k;
   return `<div class="top"><span>${KEMO[kind]} ${KINDS[kind]}${sel >= 0 ? " · №" + (sel + 1) : ""}</span></div>
     ${WITH_MAIN.includes(kind) ? `<div id="mainRow" class="glass"><span>Основной:</span>${MAINS.map((n, i) => `<button class="chip${bd.m === i ? " on" : ""}" data-m="${i}">${MCHIP[i]}<kbd>${i + 1}</kbd></button>`).join("")}</div>` : ""}
-    <small>${hints[kind]}<br>Кросс: «Предл.» — предложил, отказали · «Со мной» — оформили со мной · «Сам» — СБОЛ</small>
+    <small>${hints[kind]}<br>Кросс: «Предл.» — предложил, отказали · «Со мной» — оформили со мной · «Сам» — СБОЛ<br><b style="color:#5df07a">Совет:</b> удерживай кнопку звонка — запишется сразу, без этого окна</small>
     ${PRODUCTS.map((n, p) => { const e = bd.x.find(a => a[0] === p); return `<div class="xr" style="--c:${PC[p]}"><span><i class="dot"></i>${n}<kbd>${"QWERTY"[p]}</kbd></span>${RES.map((r, j) => `<button class="rb${e && e[1] === j ? " on" : ""}" data-p="${p}" data-r="${j}">${r}</button>`).join("")}</div>`; }).join("")}
     <div class="row r2"><button class="btn" style="--c:120,128,150" data-b="cancel">Отмена</button><button class="btn" style="--c:31,168,85" data-b="ok">${ic("check")} Записать${bd.x.length ? " (+" + bd.x.length + ")" : ""}</button></div>`;
 }
@@ -786,6 +790,11 @@ function commit(rec) {
   if (isNew) celebrate(rec, counts().total); else lens(.7);
   if (!isNew) { const d = cells[i]; if (d && fancy()) restart(d, "wob"); }
 }
+const quick = k => commit({ k, m: WITH_MAIN.includes(k) && k < 2 ? lastM : -1, x: [] });
+document.querySelectorAll("[data-k]").forEach(b => { let lp = 0, fired = false;
+  b.addEventListener("pointerdown", () => { fired = false; clearTimeout(lp); lp = setTimeout(() => { fired = true; buzz(); quick(+b.dataset.k); toast(ic("check") + " Записано сразу"); }, 450); });
+  ["pointerup", "pointerleave", "pointercancel"].forEach(ev => b.addEventListener(ev, () => clearTimeout(lp)));
+  b.addEventListener("click", e => { if (fired) { e.stopImmediatePropagation(); fired = false; } }, true); });
 document.querySelectorAll("[data-k]").forEach(b => b.onclick = () => {
   const k = +b.dataset.k;
   if (k === 2 || k === 5) { commit({ k, m: -1, x: [] }); return; }
@@ -1039,7 +1048,14 @@ $("res").onclick = e => { if (e.target.closest('[data-res="close"]')) { closeOv(
 // ---------- ПК: время и план ----------
 const DESK = matchMedia("(min-width: 900px)");
 const hm = ms => { ms = Math.max(0, Math.floor(ms / 60000)); return `${Math.floor(ms / 60)}:${pad2(ms % 60)}`; };
+function lastCallT() { let lt = 0; calls.forEach(c => { if (c && c.t > lt) lt = c.t; }); return lt; }
+function updateMobileTime() {
+  const m = $("shM"); if (DESK.matches || !shift.start) { m.textContent = ""; return; }
+  const now = Date.now(), len = shift.hours * H, el = elapsed(), endMs = shift.start + len + shift.paused + (shift.pauseAt ? now - shift.pauseAt : 0), lt = lastCallT(), since = lt ? now - lt : 0;
+  m.innerHTML = `до <b>${hhmm(endMs)}</b>` + (el > 300000 ? ` · <b>${(topInfo.total / (el / H)).toFixed(1).replace(".", ",")}</b> зв/ч` : "") + (lt ? ` · <span class="${!shift.pauseAt && since > 5 * 60000 ? "warn" : ""}">последний ${since < 60000 ? "только что" : Math.floor(since / 60000) + " мин назад"}</span>` : "");
+}
 function updateDesk() {
+  updateMobileTime();
   if (!DESK.matches) return;
   const now = Date.now(); $("dClock").textContent = hhmm(now);
   const run = !!shift.start, len = shift.hours * H, el = elapsed(), hrs = el / H;
@@ -1047,7 +1063,7 @@ function updateDesk() {
   $("dEnd").textContent = run ? hhmm(endMs) : "—"; $("dEl").textContent = run ? hm(el) : "—";
   const tot = topInfo.total; $("dPace").textContent = run && el > 300000 ? (tot / hrs).toFixed(1).replace(".", ",") : "—";
   $("dProj").textContent = run && el > 300000 ? "≈ " + Math.round(tot / hrs * shift.hours) : "—";
-  let lt = 0; calls.forEach(c => { if (c && c.t > lt) lt = c.t; });
+  const lt = lastCallT();
   const since = lt ? now - lt : 0; $("dLast").textContent = lt ? (since < 60000 ? Math.floor(since / 1000) + " с" : hm(since).replace(/^0:/, "") + (since < 3600000 ? " мин" : "")) : "—";
   $("dLastE").textContent = lt ? "назад" : "звонков ещё нет"; $("dLast").classList.toggle("warn", run && !shift.pauseAt && since > 5 * 60000);
   // звонки по получасам смены
@@ -1078,7 +1094,7 @@ document.addEventListener("keydown", e => {
   if (on("res")) { if (ok || esc) click('#res [data-res="close"]'); return; }
   if (on("setup")) { if (ok) click('#setup [data-su="go"]'); return; }
   const building = panel === "build" && bd, cross = "KeyQ KeyW KeyE KeyR KeyT KeyY".split(" ").indexOf(e.code);
-  if (d && e.shiftKey && !building) { const k = d - 1; commit({ k, m: WITH_MAIN.includes(k) ? (k < 2 ? lastM : -1) : -1, x: [] }); }
+  if (d && e.shiftKey && !building) quick(d - 1);
   else if (d && building) { if (d <= 5) click(`#builder .chip[data-m="${d - 1}"]`); }
   else if (d) click(`#pad [data-k="${d - 1}"]`);
   else if (building && cross >= 0) { const i = bd.x.findIndex(a => a[0] === cross); if (i < 0) bd.x.push([cross, 0]); else if (bd.x[i][1] < 2) bd.x[i][1]++; else bd.x.splice(i, 1); render(); }
@@ -1086,6 +1102,7 @@ document.addEventListener("keydown", e => {
   else if (esc) { if (building) click('#builder [data-b="cancel"]'); else { sync.style.display = settings.style.display = "none"; sel = -1; openPanel("none"); } }
   else if (e.key === "Backspace" || e.key === "Delete") $("undo").click();
   else if (e.code === "KeyS" && !building) toggle("stats");
+  else if (e.code === "KeyP" && !building && shift.start) { const now = Date.now(); if (shift.pauseAt) { shift.paused += now - shift.pauseAt; shift.pauseAt = 0; toast(ic("play") + " Смена продолжается"); } else { shift.pauseAt = now; toast(ic("pause") + " Пауза"); } saveMeta(); syncTick(); render(); }
   else if (e.code === "KeyT" && !building) { if (shift.start) toggle("shift"); else openSetup(); }
   else return;
   e.preventDefault();
