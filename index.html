@@ -212,8 +212,9 @@
   .pc small { color: var(--muted); font-size: 12px; }
   .pc b { font-size: 22px; font-variant-numeric: tabular-nums; }
   .pc b em { font-style: normal; font-size: 12px; font-weight: 500; color: var(--muted); margin-left: 4px; }
-  .pc .pcl { font-size: 12px; line-height: 1.35; color: var(--muted); }
-  .pc .pcl b { font-size: 12px; color: var(--text); }
+  .pc .pcl, .prog .pcl { font-size: 12px; line-height: 1.35; color: var(--muted); }
+  .pc .pcl b, .prog .pcl b { font-size: 12px; color: var(--text); } .prog .pcl .ic { width: 1.1em; height: 1.1em; vertical-align: -.2em; }
+  .prog .pcx { margin-top: 6px; }
   .pcx { border-top: 1px solid rgba(255,255,255,.1); margin-top: 4px; padding-top: 6px; display: flex; flex-direction: column; gap: 5px; }
   .light .pcx { border-top-color: rgba(0,0,0,.08); }
   .xcs { display: flex; flex-wrap: wrap; gap: 4px; }
@@ -384,6 +385,15 @@
   #dHour .hh { display: flex; justify-content: space-between; color: var(--text); font-size: 14px; } #dHour .hh span { color: var(--muted); font-size: 12.5px; }
   #dHour .hk { display: flex; flex-wrap: wrap; gap: 4px 12px; } #dHour .hk span { display: inline-flex; align-items: center; gap: 5px; } #dHour .hk u { display: inline-block; flex: none; width: 8px; height: 8px; border-radius: 3px; }
   #dHour b { color: var(--text); font-weight: 600; }
+  /* график смен */
+  .mnav { display: flex; align-items: center; gap: 6px; } .mnav b { font-size: 14px; min-width: 112px; text-align: center; } .mnav .pill { width: 34px; height: 34px; padding: 0; justify-content: center; font-size: 18px; }
+  .tpair { display: flex; align-items: center; gap: 6px; } .tpair i { font-style: normal; color: var(--muted); } .tpair .pin { width: 92px; }
+  .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; } .cal > i { font-style: normal; font-size: 11px; color: var(--muted); text-align: center; padding-bottom: 2px; }
+  .sd { min-height: 46px; border: 1px solid rgba(255,255,255,.1); border-radius: 12px; background: rgba(255,255,255,.05); color: var(--text); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 2px 0; font: inherit; cursor: pointer; }
+  .sd b { font-size: 15px; font-weight: 600; } .sd small { font-size: 9px; opacity: .9; white-space: nowrap; }
+  .sd.on { background: linear-gradient(180deg, #34c446, #0a9673); color: #fff; border-color: transparent; } .sd.td { box-shadow: 0 0 0 2px #5df07a inset; }
+  .light .sd { background: rgba(0,0,0,.04); border-color: rgba(0,0,0,.08); } .light .sd.on { color: #fff; background: linear-gradient(180deg, #34c446, #0a9673); border-color: transparent; } .light .sd.td { box-shadow: 0 0 0 2px #15803d inset; }
+  .r3b { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; } .r3b .pill { justify-content: center; padding-left: 4px; padding-right: 4px; font-size: 12.5px; }
 </style>
 </head>
 <body>
@@ -413,7 +423,7 @@
   <div class="mrow"><span>Тема</span><div class="seg glass"><button class="chip" data-theme="auto">Авто</button><button class="chip" data-theme="dark"><i data-ic="moon"></i> Тёмная</button><button class="chip" data-theme="light"><i data-ic="sun"></i> Светлая</button></div></div>
   <button class="pill" id="ecoBtn"><i data-ic="battery"></i> Экономия батареи: выкл</button>
   <button class="pill" id="reset"><i data-ic="trash"></i> Сбросить квадраты</button>
-  <small style="color:var(--muted);text-align:center">Версия 29</small>
+  <small style="color:var(--muted);text-align:center">Версия 30</small>
 </div>
 </div>
 <div id="selTools"><div id="hint"></div></div>
@@ -432,6 +442,7 @@
 <div id="keys"><kbd>1</kbd>–<kbd>6</kbd> звонок · <kbd>Shift</kbd>+<kbd>1</kbd>–<kbd>6</kbd> без окна · <kbd>1</kbd>–<kbd>5</kbd> продукт · <kbd>Q</kbd>–<kbd>Y</kbd> кросс · <kbd>Enter</kbd> записать · <kbd>Esc</kbd> отмена · <kbd>Backspace</kbd> отменить · <kbd>S</kbd> статистика · <kbd>T</kbd> смена · <kbd>P</kbd> пауза</div>
 <div id="splash" class="ov"><div class="logo" id="logo"></div><h2>SBERCUBE</h2></div>
 <div id="setup" class="ov ovs"><div class="ovw" id="setupBody"></div></div>
+<div id="sched" class="ov ovs"><div class="ovw" id="schedBody"></div></div>
 <div id="greet" class="ov"><div class="gem"><svg class="gup" viewBox="-6 0 120 100" aria-hidden="true">
   <defs><linearGradient id="gupG" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#0a9673"/><stop offset="1" stop-color="#34c446"/></linearGradient></defs>
   <g class="gbars" fill="url(#gupG)"><rect class="gb" x="17" y="62" width="18" height="30" rx="6"/><rect class="gb" x="45" y="46" width="18" height="46" rx="6"/><rect class="gb" x="73" y="30" width="18" height="62" rx="6"/></g>
@@ -468,7 +479,9 @@ const ICONS = {
   check: '<path d="M20 6L9 17l-5-5"/>',
   x: '<path d="M18 6L6 18M6 6l12 12"/>',
   up: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
-  star: '<path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/>'
+  star: '<path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/>',
+  cal: '<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+  bell: '<path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>'
 };
 const ic = (n, cls = "") => `<svg class="ic ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
 document.querySelectorAll("i[data-ic]").forEach(e => { e.outerHTML = ic(e.dataset.ic, e.className); });
@@ -634,13 +647,13 @@ const hhmm = ts => new Date(ts).toLocaleTimeString("ru-RU", { hour: "2-digit", m
 let topInfo = { sales: 0, planSum: 0, total: 0 }, tickId = 0;
 function updateShift() {
   const len = shift.hours * H, el = elapsed(), rem = len - el;
-  if (!shift.start) { $("shT").innerHTML = ic("timer") + " Начать смену"; $("shFill").style.width = "0%"; }
+  if (!shift.start) { const nw = nextWin(Date.now()); $("shT").innerHTML = ic("timer") + (nw ? ` Смена ${dayWord(nw.S)}в ${hhmm(nw.S)}` : " Начать смену"); $("shFill").style.width = "0%"; }
   else {
     $("shT").innerHTML = ic(shift.pauseAt ? "pause" : "timer") + " " + (rem >= 0 ? fmt(rem) + "<small> осталось</small>" : "+" + fmt(-rem) + "<small> сверх смены</small>");
     $("shFill").style.width = Math.max(0, Math.min(100, rem / len * 100)) + "%";
     if (!shift.pauseAt) {
-      if (rem <= H && rem > 0 && shift.w < 1) { shift.w = 1; saveMeta(); toast(ic("timer") + " До конца смены остался час"); }
-      if (rem <= 0 && shift.w < 2) { shift.w = 2; saveMeta(); toast(ic("flag") + " Смена закончилась"); burst(innerWidth / 2, innerHeight * .4, 60, 1.3); buzz(); }
+      if (rem <= H && rem > 0 && shift.w < 1) { shift.w = 1; saveMeta(); toast(ic("timer") + " До конца смены остался час"); notify("До конца смены час", `Продаж ${topInfo.sales}${topInfo.planSum ? " из " + topInfo.planSum : ""}. Финишный рывок!`); }
+      if (rem <= 0 && shift.w < 2) { shift.w = 2; saveMeta(); toast(ic("flag") + " Смена закончилась"); notify("Смена закончилась", `Продаж ${topInfo.sales}${topInfo.planSum ? " из " + topInfo.planSum : ""}. Не забудь завершить смену и посмотреть итоги.`); burst(innerWidth / 2, innerHeight * .4, 60, 1.3); buzz(); }
     }
   }
   $("shS").textContent = `Продаж ${topInfo.sales}` + (topInfo.planSum ? ` / ${topInfo.planSum}` : "");
@@ -706,6 +719,7 @@ function shiftPanelHTML(o) {
   return `<div class="card glass">
       <div class="top"><span>Смена</span><span id="shLive" style="font-weight:500;color:var(--muted);font-size:13px"></span></div>
       <div class="btns">${main}${run || o.total ? `<button class="pill" data-sh="end">${ic("flag")} Завершить смену</button>` : ""}</div>
+      <button class="pill" data-sh="sched">${ic("cal")} График смен на месяц${schedCount() ? ` · ${schedCount()} дн.` : ""}</button>
       <div class="mrow"><span>Длина смены, часов</span><select class="hsel" id="shHours">${Array.from({ length: 12 }, (_, i) => i + 1).map(h => `<option value="${h}"${Math.round(shift.hours) === h ? " selected" : ""}>${h} ч</option>`).join("")}</select></div>
       <div class="mrow"><span>Начало смены</span><input class="pin" style="width:96px" id="shStart" type="time" value="${startVal}"></div>
       <small class="m" id="shPace"></small>
@@ -722,7 +736,7 @@ function shiftPanelHTML(o) {
 function snap(o) {
   const el = elapsed(), h = el > 600000 ? el / H : 0;
   return { d: Date.now(), h: +h.toFixed(2), t: o.total, p: o.pres, a: o.agree, s: o.sbol, l: o.sales, o: o.offers,
-    st: shift.start || 0, c: o.cnt.slice(), mb: o.mb.map(b => b.slice()), x: o.prod.map(q => [q.off, q.agr]), pl: plan.slice() };
+    st: shift.start || 0, c: o.cnt.slice(), mb: o.mb.map(b => b.slice()), mx: o.mx.map(a => a.map(q => q.slice())), x: o.prod.map(q => [q.off, q.agr]), pl: plan.slice() };
 }
 function histHTML(o) {
   const rows = hist.map((r, i) => ({ r, i })), cols = ["t", "a", "s", "l", "o"];
@@ -854,9 +868,11 @@ shiftpanel.onclick = e => {
   if (a === "save") { hist.push(snap(counts())); saveMeta(); render(); toast(ic("save") + " Смена сохранена"); return; }
   if (a === "now") { showResults(snap(counts()), false); return; }
   if (a === "setup") { openSetup(); return; }
+  if (a === "sched") { openSched(); return; }
   if (a === "end") {
     if (!closeArm) { closeArm = 1; b.textContent = "Точно? Нажми ещё раз"; setTimeout(() => { closeArm = 0; if (b.isConnected) b.innerHTML = ic("flag") + " Завершить смену"; }, 3000); return; }
     closeArm = 0; const r = snap(counts()); hist.push(r); clearAll();
+    { const w = curWin(Date.now()); schedDone = shift.auto || (w ? w.S : schedDone); saveSched(); }
     shift.start = 0; shift.pauseAt = 0; shift.paused = 0; shift.w = 0;
     save(); saveMeta(); syncTick(); openPanel("none"); showResults(r, true); return;
   }
@@ -995,7 +1011,7 @@ function boot() {
     return `<i style="--x:${Math.cos(a) * d | 0}px;--y:${Math.sin(a) * d | 0}px;--r:${(Math.random() * 360 - 180) | 0}deg;--d:${order.indexOf(i) * 110}ms"></i>`; }).join("");
   showOv("splash");
   let done = false;
-  const finish = () => { if (done) return; done = true; closeOv("splash"); setTimeout(() => { if (!shift.start) openSetup(); }, 300); };
+  const finish = () => { if (done) return; done = true; closeOv("splash"); setTimeout(() => { autoShift(); if (!shift.start && !schedCount()) openSetup(); }, 300); };
   $("splash").onclick = finish; setTimeout(finish, fancy() ? 2200 : 600);
   if (fancy()) setTimeout(() => { if (!done) burst(innerWidth / 2, innerHeight * .42, 40, .9); }, 1150);
 }
@@ -1011,19 +1027,23 @@ function renderSetup() {
     <div class="top"><span>${ic("target")} План продаж</span><span style="font-weight:500;color:var(--muted);font-size:13px">всего ${tot}</span></div>
     ${MAINS.map((n, i) => `<div class="mrow"><span>${n}</span><span class="step"><button class="pill" data-su="p${i}:-1">−</button><b>${su.pl[i]}</b><button class="pill" data-su="p${i}:1">+</button></span></div>`).join("")}
   </div>
-  <button class="btn gob" style="--c:31,168,85" data-su="go">▶ Начать смену</button>`;
+  <button class="btn gob" style="--c:31,168,85" data-su="go">▶ Начать смену</button>
+  <button class="pill" data-su="sched">${ic("cal")} Поставить график на месяц — смена будет включаться сама</button>`;
 }
 $("setup").onclick = e => {
   const b = e.target.closest("[data-su]"); if (!b) return;
   const [a, v] = b.dataset.su.split(":");
   if (a === "go") return startShift();
+  if (a === "sched") { closeOv("setup"); setTimeout(openSched, 200); return; }
   if (a[0] === "p") { const i = +a.slice(1); su.pl[i] = Math.max(0, su.pl[i] + +v); }
   buzz(); renderSetup();
 };
 function startShift() {
   shift.hours = su.h; plan = su.pl.slice();
-  shift.start = Date.now(); shift.pauseAt = 0; shift.paused = 0; shift.w = 0;
-  saveMeta(); syncTick(); closeOv("setup"); openPanel("none"); buzz();
+  shift.start = Date.now(); shift.pauseAt = 0; shift.paused = 0; shift.w = 0; shift.auto = 0;
+  saveMeta(); syncTick(); closeOv("setup"); openPanel("none"); buzz(); greet();
+}
+function greet() {
   setTimeout(() => {
     showOv("greet"); burst(innerWidth / 2, innerHeight * .4, 70, 1.4);
     setTimeout(() => { burst(innerWidth * .2, innerHeight * .55, 35, 1.1); burst(innerWidth * .8, innerHeight * .55, 35, 1.1); }, 350);
@@ -1052,10 +1072,10 @@ function resultsHTML(r, fin) {
   }
   if (r.mb) {
     const mx = Math.max(1, ...r.mb.map(b => b[1]));   // в старых сменах продуктов могло быть меньше
-    h += `<div class="card glass"><div class="top"><span>Продажи по продуктам</span>${planSum ? `<span style="font-weight:500;color:var(--muted);font-size:13px">${r.l} из ${planSum}</span>` : ""}</div>
+    h += `<div class="card glass"><div class="top"><span>Продукты и их кроссы</span>${planSum ? `<span style="font-weight:500;color:var(--muted);font-size:13px">${r.l} из ${planSum}</span>` : ""}</div>
       ${MAINS.map((n, i) => { const b = r.mb[i] || [0, 0, 0, 0, 0], pl = r.pl && r.pl[i] || 0, w = pl ? Math.min(100, b[1] / pl * 100) : b[1] / mx * 100;
         return `<div class="prog"><div class="ph"><span>${n}</span><b>${b[1]}${pl ? ` / ${pl}` : ""}${pl && b[1] >= pl ? ` <span style="color:#34c446">${ic("check")}</span>` : ""}</b></div><div class="bar rbar"><i style="--w:${w}%"></i></div>
-        <small class="m">дозвонов ${b[0]} · СБОЛ ${b[2]} · отказов ${b[3]} · сбоев ${b[4]}</small></div>`; }).join("")}</div>`;
+        <small class="m">дозвонов ${b[0]} · СБОЛ ${b[2]} · отказов ${b[3]} · сбоев ${b[4]}</small>${r.mx && b[0] ? crossLine(r.mx[i]) : ""}</div>`; }).join("")}</div>`;
   }
   if (r.x) {
     const used = PRODUCTS.map((n, i) => ({ n, i, off: r.x[i] ? r.x[i][0] : 0, agr: r.x[i] ? r.x[i][1] : 0 })).filter(q => q.off);
@@ -1070,6 +1090,117 @@ function showResults(r, fin) {
   if (fin) { buzz(); setTimeout(() => { burst(innerWidth * .3, innerHeight * .3, 45, 1.2); burst(innerWidth * .7, innerHeight * .3, 45, 1.2); }, 300); }
 }
 $("res").onclick = e => { if (e.target.closest('[data-res="close"]')) { closeOv("res"); render(); } };
+
+// ---------- график смен на месяц, автозапуск, напоминания ----------
+let sched = {}, schedT = [540, 1080], schedDone = 0, notifOn = false, schM = null;   // sched: "ГГГГ-ММ-ДД" → [начало, конец] в минутах
+{ const x = rd("sched2"); if (x && typeof x === "object" && !Array.isArray(x)) sched = x; const t = rdA("schedT"); if (t && t.length === 2) schedT = t;
+  schedDone = +localStorage.getItem("schedDone") || 0; notifOn = localStorage.getItem("notif") === "1"; }
+const saveSched = () => { try { localStorage.setItem("sched2", JSON.stringify(sched)); localStorage.setItem("schedT", JSON.stringify(schedT)); localStorage.setItem("schedDone", String(schedDone)); } catch (e) {} };
+const dkey = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+const tStr = m => `${pad2(Math.floor(m / 60) % 24)}:${pad2(m % 60)}`;
+const tShort = m => `${Math.floor(m / 60) % 24}${m % 60 ? ":" + pad2(m % 60) : ""}`;
+const schedCount = () => Object.keys(sched).length;
+const durH = v => (((v[1] - v[0]) + 1440) % 1440 || 1440) / 60;
+function winOf(d) { const v = sched[dkey(d)]; if (!v) return null; const b = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); const S = b + v[0] * 60000; return { S, E: S + durH(v) * H }; }
+function curWin(now) { for (const off of [0, -1]) { const d = new Date(now); d.setDate(d.getDate() + off); const w = winOf(d); if (w && now >= w.S && now < w.E) return w; } return null; }
+function nextWin(now) { for (let off = 0; off < 32; off++) { const d = new Date(now); d.setDate(d.getDate() + off); const w = winOf(d); if (w && w.S > now) return w; } return null; }
+function dayWord(ts) { const a = new Date(), b = new Date(ts); a.setHours(0, 0, 0, 0); b.setHours(0, 0, 0, 0); const n = Math.round((b - a) / 86400000);
+  return n === 0 ? "" : n === 1 ? "завтра " : b.toLocaleDateString("ru-RU", { day: "numeric", month: "short" }) + " "; }
+// смена сама включается в часы из графика; старая забытая смена сохраняется в историю
+function autoShift() {
+  const now = Date.now(), w = curWin(now);
+  if (w && w.S !== schedDone && shift.auto !== w.S) {
+    let go = !shift.start;
+    if (shift.start) { const end = shift.start + shift.hours * H + shift.paused + (shift.pauseAt ? now - shift.pauseAt : 0);
+      if (now >= end) { const r = snap(counts()); r.d = end; r.h = Math.min(r.h, shift.hours); hist.push(r); clearAll(); save(); go = true; } }
+    if (go) {
+      shift.start = w.S; shift.hours = +((w.E - w.S) / H).toFixed(2); shift.pauseAt = 0; shift.paused = 0; shift.w = 0; shift.auto = w.S;
+      saveMeta(); syncTick(); render(); toast(ic("timer") + ` Смена по графику: ${hhmm(w.S)}–${hhmm(w.E)}`);
+      notify("Смена началась", `${hhmm(w.S)}–${hhmm(w.E)}${planText()}. Хорошей смены!`); greet();
+    }
+  }
+  if (!shift.start) updateShift();
+}
+const planText = () => { const p = plan.reduce((a, b) => a + b, 0); return p ? ` · план ${p} ${p % 10 === 1 && p % 100 !== 11 ? "продажа" : [2, 3, 4].includes(p % 10) && ![12, 13, 14].includes(p % 100) ? "продажи" : "продаж"}` : ""; };
+setInterval(autoShift, 30000); document.addEventListener("visibilitychange", () => { if (!document.hidden) autoShift(); });
+// системные уведомления (пока приложение открыто или недавно свёрнуто)
+function notify(title, body) {
+  if (!notifOn || !("Notification" in window) || Notification.permission !== "granted") return;
+  const opt = { body, icon: "icon-192.png", badge: "icon-192.png", tag: title };
+  try { if (navigator.serviceWorker && navigator.serviceWorker.controller) navigator.serviceWorker.ready.then(r => r.showNotification(title, opt)); else new Notification(title, opt); } catch (e) {}
+}
+async function toggleNotif() {
+  if (notifOn) { notifOn = false; }
+  else if (!("Notification" in window)) { toast("Уведомления работают, когда приложение добавлено на экран «Домой»"); return; }
+  else { const p = Notification.permission === "default" ? await Notification.requestPermission() : Notification.permission;
+    if (p !== "granted") { toast("Уведомления запрещены в настройках телефона"); return; } notifOn = true; notify("Уведомления включены", "Буду напоминать про смену и план"); }
+  try { localStorage.setItem("notif", notifOn ? "1" : "0"); } catch (e) {} renderSched();
+}
+// файл для Календаря айфона: смены месяца с напоминаниями накануне в 20:00 и за 30 минут
+function icsFor(y, mo) {
+  const z = n => String(n).padStart(2, "0"), dt = t => { const d = new Date(t); return `${d.getFullYear()}${z(d.getMonth() + 1)}${z(d.getDate())}T${z(d.getHours())}${z(d.getMinutes())}00`; };
+  const p = plan.reduce((a, b) => a + b, 0), L = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//SBERCUBE//RU", "CALSCALE:GREGORIAN", "X-WR-CALNAME:Смены SBERCUBE"];
+  const days = new Date(y, mo + 1, 0).getDate(); let n = 0;
+  for (let d = 1; d <= days; d++) { const day = new Date(y, mo, d), w = winOf(day); if (!w) continue; n++;
+    const h = +((w.E - w.S) / H).toFixed(1), eve = new Date(y, mo, d - 1, 20, 0).getTime(), before = Math.max(1, Math.round((w.S - eve) / 60000));
+    const what = `${hhmm(w.S)}–${hhmm(w.E)} (${String(h).replace(".", ",")} ч)${p ? `, план ${p} продаж` : ""}`;
+    L.push("BEGIN:VEVENT", `UID:sbercube-${dkey(day)}@sbercube`, `DTSTAMP:${dt(Date.now())}`, `DTSTART:${dt(w.S)}`, `DTEND:${dt(w.E)}`,
+      `SUMMARY:Смена SBERCUBE${p ? ` · план ${p}` : ""}`, `DESCRIPTION:Смена ${what}`,
+      "BEGIN:VALARM", "ACTION:DISPLAY", `TRIGGER:-PT${before}M`, `DESCRIPTION:Завтра смена ${what}`, "END:VALARM",
+      "BEGIN:VALARM", "ACTION:DISPLAY", "TRIGGER:-PT30M", `DESCRIPTION:Через 30 минут смена ${what}`, "END:VALARM", "END:VEVENT"); }
+  L.push("END:VCALENDAR"); return { text: L.join("\r\n"), n };
+}
+function exportIcs() {
+  const { text, n } = icsFor(schM.getFullYear(), schM.getMonth()); if (!n) { toast("В этом месяце смен нет — сначала отметь дни"); return; }
+  const name = `SBERCUBE-${schM.getFullYear()}-${pad2(schM.getMonth() + 1)}.ics`, file = new File([text], name, { type: "text/calendar" });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) { navigator.share({ files: [file], title: "Смены SBERCUBE" }).catch(() => {}); return; }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(file); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+}
+function openSched() { const d = new Date(); schM = new Date(d.getFullYear(), d.getMonth(), 1); renderSched(); showOv("sched"); }
+function renderSched() {
+  if (!schM) return;
+  const y = schM.getFullYear(), mo = schM.getMonth(), days = new Date(y, mo + 1, 0).getDate(), first = (new Date(y, mo, 1).getDay() + 6) % 7, today = dkey(new Date());
+  let cells = "<span></span>".repeat(first), n = 0, hrs = 0;
+  for (let d = 1; d <= days; d++) { const k = dkey(new Date(y, mo, d)), v = sched[k]; if (v) { n++; hrs += durH(v); }
+    cells += `<button class="sd${v ? " on" : ""}${k === today ? " td" : ""}" data-sd="${k}"><b>${d}</b>${v ? `<small>${tShort(v[0])}–${tShort(v[1])}</small>` : ""}</button>`; }
+  const title = schM.toLocaleDateString("ru-RU", { month: "long", year: "numeric" }).replace(" г.", "");
+  const nw = nextWin(Date.now()), ns = !("Notification" in window) ? "только с экрана «Домой»" : notifOn && Notification.permission === "granted" ? "вкл" : "выкл";
+  $("schedBody").innerHTML = `<div class="card glass">
+    <div class="top"><span>${ic("cal")} График смен</span><span class="mnav"><button class="pill" data-sc="prev" aria-label="Прошлый месяц">‹</button><b>${title}</b><button class="pill" data-sc="next" aria-label="Следующий месяц">›</button></span></div>
+    <div class="mrow"><span>Время смены</span><span class="tpair"><input class="pin" type="time" id="scS" value="${tStr(schedT[0])}"><i>–</i><input class="pin" type="time" id="scE" value="${tStr(schedT[1])}"></span></div>
+    <small class="m">Нажми на день — поставишь смену на это время. Ещё раз — выходной. В эти дни смена включится сама, завершить можно раньше в «Смене».</small>
+    <div class="cal">${["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map(w => `<i>${w}</i>`).join("")}${cells}</div>
+    <div class="r3b"><button class="pill" data-sc="52">Будни 5/2</button><button class="pill" data-sc="22">2/2 с сегодня</button><button class="pill" data-sc="clr">Очистить</button></div>
+    <small class="m">Смен в месяце: <b>${n}</b> · часов: <b>${String(+hrs.toFixed(1)).replace(".", ",")}</b>${nw ? ` · ближайшая: <b>${dayWord(nw.S)}${hhmm(nw.S)}</b>` : ""}</small>
+  </div>
+  <div class="card glass">
+    <div class="top"><span>${ic("bell")} Напоминания</span></div>
+    <button class="pill" data-sc="ics">${ic("cal")} Добавить смены месяца в Календарь</button>
+    <small class="m">Календарь айфона напомнит накануне в 20:00 («Завтра смена 9–18, план N продаж») и за 30 минут до начала — даже когда приложение закрыто.</small>
+    <button class="pill" data-sc="notif">${ic("bell")} Уведомления приложения: ${ns}</button>
+    <small class="m">Начало смены по графику, «остался час», «смена закончилась» — пока приложение открыто или недавно свёрнуто.</small>
+  </div>
+  <button class="btn gob" style="--c:31,168,85" data-sc="done">Готово</button>`;
+}
+$("sched").onclick = e => {
+  const d = e.target.closest("[data-sd]"), b = e.target.closest("[data-sc]");
+  if (d) { const k = d.dataset.sd, v = sched[k]; if (v && v[0] === schedT[0] && v[1] === schedT[1]) delete sched[k]; else sched[k] = schedT.slice(); }
+  else if (b) {
+    const a = b.dataset.sc, y = schM.getFullYear(), mo = schM.getMonth(), days = new Date(y, mo + 1, 0).getDate();
+    if (a === "done") { closeOv("sched"); autoShift(); render(); return; }
+    if (a === "ics") { exportIcs(); return; }
+    if (a === "notif") { toggleNotif(); return; }
+    if (a === "prev" || a === "next") schM = new Date(y, mo + (a === "next" ? 1 : -1), 1);
+    else if (a === "52") for (let i = 1; i <= days; i++) { const dd = new Date(y, mo, i), wd = dd.getDay(); if (wd >= 1 && wd <= 5) sched[dkey(dd)] = schedT.slice(); else delete sched[dkey(dd)]; }
+    else if (a === "22") { const t = new Date(), from = t.getFullYear() === y && t.getMonth() === mo ? t.getDate() : 1;
+      for (let i = from; i <= days; i++) { const k = dkey(new Date(y, mo, i)); if ((i - from) % 4 < 2) sched[k] = schedT.slice(); else delete sched[k]; } }
+    else if (a === "clr") for (let i = 1; i <= days; i++) delete sched[dkey(new Date(y, mo, i))];
+    else return;
+  } else return;
+  saveSched(); renderSched(); buzz();
+};
+$("sched").onchange = e => { const t = e.target; if (t.id !== "scS" && t.id !== "scE") return; const [h, m] = (t.value || "").split(":").map(Number); if (isNaN(h) || isNaN(m)) return;
+  schedT[t.id === "scS" ? 0 : 1] = h * 60 + m; saveSched(); };
 
 // ---------- ПК: время и план ----------
 const hm = ms => { ms = Math.max(0, Math.floor(ms / 60000)); return `${Math.floor(ms / 60)}:${pad2(ms % 60)}`; };
@@ -1137,6 +1268,7 @@ document.addEventListener("keydown", e => {
   if (on("greet")) { $("greet").click(); return; }
   if (on("res")) { if (ok || esc) click('#res [data-res="close"]'); return; }
   if (on("setup")) { if (ok) click('#setup [data-su="go"]'); return; }
+  if (on("sched")) { if (ok || esc) click('#sched [data-sc="done"]'); return; }
   const building = panel === "build" && bd, cross = "KeyQ KeyW KeyE KeyR KeyT KeyY".split(" ").indexOf(e.code);
   if (d && e.shiftKey && !building) quick(d - 1);
   else if (d && building) { if (d <= 5) click(`#builder .chip[data-m="${d - 1}"]`); }
