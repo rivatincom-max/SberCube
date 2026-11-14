@@ -123,7 +123,7 @@
 
   /* ===== кнопки ===== */
   #pad { display: flex; flex-direction: column; gap: 6px; }
-  .row { display: grid; gap: 6px; } .r3 { grid-template-columns: repeat(3, 1fr); } .r2 { grid-template-columns: 1fr 1fr; }
+  .row { display: grid; gap: 6px; } .r3 { grid-template-columns: repeat(3, 1fr); } .r2 { grid-template-columns: 1fr 1fr; } .r2t { grid-template-columns: 1fr 1.35fr; }
   .btn { border: 1px solid rgba(255,255,255,.32); border-radius: 26px; padding: 6px 4px; min-height: 52px; font: 700 14px/1.15 inherit; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.25);
     background: linear-gradient(180deg, rgba(var(--c), .8), rgba(var(--c), .5)); box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 6px 16px rgba(var(--c), .2); transition: transform .18s var(--spring), filter .18s; }
   .btn:active { transform: scale(.94); filter: brightness(1.18); }
@@ -427,7 +427,7 @@
   <div class="mrow"><span>Тема</span><div class="seg glass"><button class="chip" data-theme="auto">Авто</button><button class="chip" data-theme="dark"><i data-ic="moon"></i> Тёмная</button><button class="chip" data-theme="light"><i data-ic="sun"></i> Светлая</button></div></div>
   <button class="pill" id="ecoBtn"><i data-ic="battery"></i> Экономия батареи: выкл</button>
   <button class="pill" id="reset"><i data-ic="trash"></i> Сбросить квадраты</button>
-  <small style="color:var(--muted);text-align:center">Версия 31</small>
+  <small style="color:var(--muted);text-align:center">Версия 32</small>
 </div>
 </div>
 <div id="selTools"><div id="hint"></div></div>
@@ -441,9 +441,9 @@
     <button class="btn" style="--c:93,107,130" data-k="4"><i data-ic="fail"></i> Сбой<kbd>5</kbd></button>
     <button class="btn" style="--c:230,126,34" data-k="5"><i data-ic="nolisten"></i> Не слушал<kbd>6</kbd></button>
   </div>
-  <button class="btn" style="--c:120,128,150;min-height:40px" id="undo"><i data-ic="undo"></i> Отменить</button>
+  <div class="row r2t"><button class="btn" style="--c:20,184,166;min-height:40px" data-k="6"><i data-ic="tm"></i> Заявка ТМ<kbd>7</kbd></button><button class="btn" style="--c:120,128,150;min-height:40px" id="undo"><i data-ic="undo"></i> Отменить</button></div>
 </div>
-<div id="keys"><kbd>1</kbd>–<kbd>6</kbd> звонок · <kbd>Shift</kbd>+<kbd>1</kbd>–<kbd>6</kbd> без окна · <kbd>1</kbd>–<kbd>5</kbd> продукт · <kbd>Q</kbd>–<kbd>Y</kbd> кросс · <kbd>Enter</kbd> записать · <kbd>Esc</kbd> отмена · <kbd>Backspace</kbd> отменить · <kbd>S</kbd> статистика · <kbd>T</kbd> смена · <kbd>P</kbd> пауза</div>
+<div id="keys"><kbd>1</kbd>–<kbd>7</kbd> звонок · <kbd>Shift</kbd>+<kbd>1</kbd>–<kbd>7</kbd> без окна · <kbd>1</kbd>–<kbd>5</kbd> продукт · <kbd>Q</kbd>–<kbd>Y</kbd> кросс · <kbd>Enter</kbd> записать · <kbd>Esc</kbd> отмена · <kbd>Backspace</kbd> отменить · <kbd>S</kbd> статистика · <kbd>T</kbd> смена · <kbd>P</kbd> пауза</div>
 <div id="splash" class="ov"><div class="logo" id="logo"></div><h2>SBERCUBE</h2></div>
 <div id="setup" class="ov ovs"><div class="ovw" id="setupBody"></div></div>
 <div id="sched" class="ov ovs"><div class="ovw" id="schedBody"></div></div>
@@ -485,19 +485,20 @@ const ICONS = {
   up: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
   star: '<path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/>',
   cal: '<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+  tm: '<path d="M7 3h10M7 21h10M8 3v3a4 4 0 0 0 8 0V3M8 21v-3a4 4 0 0 1 8 0v3"/>',
   bell: '<path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>'
 };
 const ic = (n, cls = "") => `<svg class="ic ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
 document.querySelectorAll("i[data-ic]").forEach(e => { e.outerHTML = ic(e.dataset.ic, e.className); });
-const KINDS = ["Продажа", "СБОЛ", "Перезвон", "Отказ", "Сбой звонка", "Отказ от презентации"];
-const KC = ["31,168,85", "59,130,246", "241,196,15", "231,76,60", "93,107,130", "230,126,34"];
-const KICON = ["sale", "sbol", "call", "refuse", "fail", "nolisten"], KEMO = KICON.map(n => ic(n));
+const KINDS = ["Продажа", "СБОЛ", "Перезвон", "Отказ", "Сбой звонка", "Отказ от презентации", "Заявка ТМ"];   // Заявка ТМ — открыл НС, но ещё не пополнил на 10 000 ₽: не продажа
+const KC = ["31,168,85", "59,130,246", "241,196,15", "231,76,60", "93,107,130", "230,126,34", "20,184,166"];
+const KICON = ["sale", "sbol", "call", "refuse", "fail", "nolisten", "tm"], KEMO = KICON.map(n => ic(n));
 const PRODUCTS = ["КК", "ПРАЙМ", "ЛУЧШИЙ%", "ВКЛАД", "НС", "ПК"];   // кросс-продукты
 const PC = ["168,85,247", "244,114,182", "34,211,238", "190,242,100", "129,140,248", "234,179,8"];                 // цвет каждого кросс-продукта
 const RES = ["Предл.", "Со мной", "Сам"];                                              // 0 предложил (отказ), 1 оформил со мной, 2 СБОЛ
 const MAINS = ["НС", "ПРАЙМ", "КК", "ВКЛАД", "ПК"];
 const MSH = ["НС", "ПР", "КК", "ВК", "ПК"], MCHIP = MAINS;   // MSH — метка в углу квадрата
-const WITH_MAIN = [0, 1, 3, 4];
+const WITH_MAIN = [0, 1, 3, 4, 6];
 const SAME_X = [4, 1, 0, 3, 5];   // индекс кросс-продукта, совпадающего с основным (такой кросс не предлагаем)   // у каких видов звонка выбирается основной продукт
 const TOTAL = 300, H = 3600000;
 const $ = id => document.getElementById(id);
@@ -618,19 +619,19 @@ function celebrate(rec, total) {
 
 // ---------- подсчёты ----------
 function counts() {
-  const cnt = new Array(6).fill(0), salesBy = MAINS.map(() => 0), selfBy = MAINS.map(() => 0); let salesNone = 0, selfNone = 0;
+  const cnt = new Array(KINDS.length).fill(0), salesBy = MAINS.map(() => 0), selfBy = MAINS.map(() => 0); let salesNone = 0, selfNone = 0;
   const co = PRODUCTS.map(() => [0, 0, 0]);   // из звонков: предложено, со мной, сам
   const mb = MAINS.map(() => [0, 0, 0, 0, 0]); // по основному продукту: дозвоны, продажи, СБОЛ, отказы, сбои
   const mx = MAINS.map(() => PRODUCTS.map(() => [0, 0])); // кросс внутри звонков по основному продукту: [предложено, согласий]
   // отчёт по продукту: дозвоны, презентации (продажа, СБОЛ, отказ; сбой — если успели предложить кросс), продажи, СБОЛ, кросс-предложения
-  const pp = MAINS.map(() => ({ d: 0, pres: 0, sale: 0, sbol: 0, off: 0, x: PRODUCTS.map(() => [0, 0, 0]) }));
+  const pp = MAINS.map(() => ({ d: 0, pres: 0, sale: 0, sbol: 0, tm: 0, off: 0, x: PRODUCTS.map(() => [0, 0, 0]) }));
   calls.forEach(c => {
     if (!c) return; cnt[c.k]++;
     if (c.m >= 0 && mb[c.m]) { const b = mb[c.m]; b[0]++; if (c.k === 0) b[1]++; else if (c.k === 1) b[2]++; else if (c.k === 3) b[3]++; else if (c.k === 4) b[4]++;
       c.x.forEach(([p, r]) => { if (p >= 0 && mx[c.m][p]) { mx[c.m][p][0]++; if (r > 0) mx[c.m][p][1]++; } }); }
     if (c.m >= 0 && pp[c.m]) { const q = pp[c.m], xs = c.x.filter(a => a[0] >= 0); q.d++;
-      if (c.k === 0 || c.k === 1 || c.k === 3 || (c.k === 4 && xs.length)) q.pres++;
-      if (c.k === 0) q.sale++; else if (c.k === 1) q.sbol++;
+      if (c.k === 0 || c.k === 1 || c.k === 3 || c.k === 6 || (c.k === 4 && xs.length)) q.pres++;
+      if (c.k === 0) q.sale++; else if (c.k === 1) q.sbol++; else if (c.k === 6) q.tm++;
       xs.forEach(([p, r]) => { if (!q.x[p]) return; q.off++; q.x[p][0]++; if (r === 1) q.x[p][1]++; else if (r === 2) q.x[p][2]++; }); }
     if (c.k === 0) { if (c.m >= 0) salesBy[c.m]++; else salesNone++; }
     else if (c.k === 1) { if (c.m >= 0) selfBy[c.m]++; else selfNone++; }
@@ -638,7 +639,7 @@ function counts() {
   });
   const total = cnt.reduce((a, b) => a + b, 0);
   const prod = PRODUCTS.map((_, i) => ({ off: pr[i][0] + co[i][0], agr: pr[i][1] + co[i][1] + co[i][2], self: co[i][2] }));
-  return { cnt, total, sales: cnt[0], sbol: cnt[1], salesBy, selfBy, salesNone, selfNone, prod, mb, mx, pp,
+  return { cnt, total, sales: cnt[0], sbol: cnt[1], tm: cnt[6], salesBy, selfBy, salesNone, selfNone, prod, mb, mx, pp,
     pres: total - cnt[4] - cnt[5],              // презентации: все, кроме сбоя и «не слушал»
     agree: cnt[0] + cnt[1],                     // согласия = продажи + СБОЛ
     offers: prod.reduce((a, x) => a + x.off, 0) };
@@ -646,7 +647,7 @@ function counts() {
 function statsText(o) {
   return [`Дозвоны: ${o.total}`, `Презентации: ${o.pres}`, `Согласия: ${o.agree}`,
     `Всего предложений по кросс-продуктам: ${o.offers} (${pct(o.offers, o.total)} от дозвонов)`,
-    `СБОЛ: ${o.sbol} (${pct(o.sbol, o.total)} от дозвона)`, `Основные продукты:`]
+    `СБОЛ: ${o.sbol} (${pct(o.sbol, o.total)} от дозвона)`, `Подписал договор: ${o.sales} (${pct(o.sales, o.total)} от дозвона)`].concat(o.tm ? [`Заявки ТМ (не пополнили): ${o.tm}`] : []).concat([`Основные продукты:`])
     .concat(MAINS.map((n, i) => { const b = o.mb[i]; return `${n}: дозвонов ${b[0]}, продаж ${b[1]}, СБОЛ ${b[2]}, отказов ${b[3]}, сбоев ${b[4]}`; })).concat([`Кросс-продукты:`])
     .concat(PRODUCTS.map((n, i) => `${n}: предложений ${o.prod[i].off} (${pct(o.prod[i].off, o.offers)} от дозвона), согласий ${o.prod[i].agr} (${pct(o.prod[i].agr, o.prod[i].off)} от предложений), из них сам ${o.prod[i].self}`)).join("\n");
 }
@@ -697,7 +698,7 @@ function renderGrid() {
   while (cells.length < n) { const d = document.createElement("div"); d.dataset.i = cells.length; grid.appendChild(d); cells.push(d); }
   for (let i = 0; i < n; i++) {
     const c = calls[i], d = cells[i];
-    const m = c && c.m >= 0 && WITH_MAIN.includes(c.k) && !(c.k < 2 && c.m === 0) ? MSH[c.m] : "";
+    const m = c && c.k === 6 ? "ТМ" : c && c.m >= 0 && WITH_MAIN.includes(c.k) && !(c.k < 2 && c.m === 0) ? MSH[c.m] : "";
     const key = (c ? JSON.stringify(c) : "") + "|" + (i === next && sel < 0) + "|" + (i === sel) + "|" + (i === lastI);
     if (d._k !== key || i === popIdx) {
       d._k = key;
@@ -715,7 +716,7 @@ function renderGrid() {
 grid.onclick = e => { const c = e.target.closest(".sq"); if (!c) return; const i = +c.dataset.i; sel = sel === i ? -1 : i; if (panel === "build") { panel = "none"; bd = null; } lens(.7); render(); };
 
 function builderHTML() {
-  const hints = ["Продажа: выбери основной продукт и кросс-продукты, которые предлагал.", "СБОЛ (клиент оформил сам): основной продукт и кросс, если был.", "", "Отказ: выбери продукт, от которого отказались (можно не выбирать). Кросс — если предлагал.", "Сбой звонка: выбери продукт, если успел его предложить. Если сбросили на кроссе — отметь, что предлагал."];
+  const hints = ["Продажа: выбери основной продукт и кросс-продукты, которые предлагал.", "СБОЛ (клиент оформил сам): основной продукт и кросс, если был.", "", "Отказ: выбери продукт, от которого отказались (можно не выбирать). Кросс — если предлагал.", "Сбой звонка: выбери продукт, если успел его предложить. Если сбросили на кроссе — отметь, что предлагал.", "", "Заявка ТМ: клиент открыл накопительный, но ещё не пополнил на 10 000 ₽ — в продажи не идёт. Когда пополнит, нажми на квадрат и выбери «Продажа»."];
   const kind = bd.k;
   return `<div class="top"><span>${KEMO[kind]} ${KINDS[kind]}${sel >= 0 ? " · №" + (sel + 1) : ""}</span></div>
     ${WITH_MAIN.includes(kind) ? `<div id="mainRow" class="glass"><span>Основной:</span>${MAINS.map((n, i) => `<button class="chip${bd.m === i ? " on" : ""}" data-m="${i}">${MCHIP[i]}<kbd>${i + 1}</kbd></button>`).join("")}</div>` : ""}
@@ -780,7 +781,7 @@ function donutHTML(cnt) {
   let acc = 0; const segs = [];
   cnt.forEach((n, i) => { if (!n) return; const a = acc / tot * 360, b = (acc += n) / tot * 360; segs.push(`rgb(${KC[i]}) ${a}deg ${b - gap}deg`, `transparent ${b - gap}deg ${b}deg`); });
   return `<div class="drow"><div class="dwrap"><div class="donut" style="background:${tot ? `conic-gradient(${segs.join(",")})` : "rgba(128,128,128,.25)"}"></div><div class="dmid"><b>${tot}</b><small>звонков</small></div></div>
-    <div class="dleg">${KINDS.map((n, i) => `<div><i class="dot" style="--c:${KC[i]}"></i><span>${n}</span><b>${cnt[i]}</b><small>${pct(cnt[i], tot)}</small></div>`).join("")}</div></div>`;
+    <div class="dleg">${KINDS.map((n, i) => `<div><i class="dot" style="--c:${KC[i]}"></i><span>${n}</span><b>${cnt[i] || 0}</b><small>${pct(cnt[i] || 0, tot)}</small></div>`).join("")}</div></div>`;
 }
 // отчёт по каждому основному продукту подряд — как в старой программе: цифры, кольцо «дозвоны / кросс-предложения», таблица кроссов
 function productsHTML(pp) {
@@ -800,6 +801,7 @@ function productsHTML(pp) {
       <div class="wide"><small>Всего предложений по кросс-продуктам</small><b>${q.off}</b><i>(${pct(q.off, q.d)} от дозвонов)</i></div>
       <div class="ln"><span>СБОЛ:</span><span><b>${q.sbol}</b><i>(${pct(q.sbol, q.d)} от дозвона)</i></span></div>
       <div class="ln"><span>Подписал договор:</span><span><b>${q.sale}</b><i>(${pct(q.sale, q.d)} от дозвона)</i></span></div>
+      ${q.tm ? `<div class="ln"><span>Заявки ТМ (не пополнили):</span><span><b>${q.tm}</b><i>(${pct(q.tm, q.d)} от дозвона)</i></span></div>` : ""}
       ${rows.length ? `<table><tr><th>Кросс-продукты</th><th>Предложений</th><th>Согласий</th></tr>
         ${rows.map(r => `<tr><td><i class="dot" style="--c:${PC[r.p]}"></i>${r.pn}</td><td><b>${r.v[0]}</b><i>(${pct(r.v[0], q.off)} от дозвона)</i></td><td><b>${r.v[1] + r.v[2]}</b><i>(${pct(r.v[1] + r.v[2], r.v[0])} от предложений${r.v[2] ? `, сам: ${r.v[2]}` : ""})</i></td></tr>`).join("")}</table>`
         : `<small class="m">Кросс к ${n} не предлагался.</small>`}
@@ -816,6 +818,7 @@ function statsHTML(o) {
       <div class="wide"><small>Всего предложений по кросс-продуктам</small><b>${o.offers}</b><i>(${pct(o.offers, o.total)} от дозвонов)</i></div>
       <div class="ln"><span>СБОЛ:</span><span><b>${o.sbol}</b><i>(${pct(o.sbol, o.total)} от дозвона)</i></span></div>
       <div class="ln"><span>Подписал договор:</span><span><b>${o.sales}</b><i>(${pct(o.sales, o.total)} от дозвона)</i></span></div>
+      ${o.tm ? `<div class="ln"><span>Заявки ТМ (не пополнили):</span><span><b>${o.tm}</b><i>(${pct(o.tm, o.total)} от дозвона)</i></span></div>` : ""}
       <div class="top"><span>Все звонки</span></div>${donutHTML(o.cnt)}
       ${o.salesNone || o.selfNone ? `<small class="m">Без основного продукта: продаж ${o.salesNone}, СБОЛ ${o.selfNone}</small>` : ""}
       <div class="top"><span>Все кросс-продукты</span></div>
@@ -862,12 +865,12 @@ function commit(rec) {
   const isNew = sel < 0; let i = sel;
   if (isNew) { i = nextIdx(); if (i < 0) { calls = calls.concat(blankCalls()); i = nextIdx(); } }
   rec.t = isNew ? Date.now() : (calls[i] && calls[i].t) || Date.now(); if (rec.m >= 0) lastM = rec.m;
-  calls[i] = rec; popIdx = i; popKind = rec.k >= 3 ? "shake" : "pop";
+  calls[i] = rec; popIdx = i; popKind = rec.k >= 3 && rec.k < 6 ? "shake" : "pop";
   sel = -1; bd = null; panel = "none"; save(); try { localStorage.setItem("lastM", lastM); } catch (e) {} render(); buzz();
   if (isNew) celebrate(rec, counts().total); else lens(.7);
   if (!isNew) { const d = cells[i]; if (d && fancy()) restart(d, "wob"); }
 }
-const quick = k => commit({ k, m: WITH_MAIN.includes(k) && k < 2 ? lastM : -1, x: [] });
+const quick = k => commit({ k, m: k === 6 ? 0 : WITH_MAIN.includes(k) && k < 2 ? lastM : -1, x: [] });
 document.querySelectorAll("[data-k]").forEach(b => { let lp = 0, fired = false;
   b.addEventListener("pointerdown", () => { fired = false; clearTimeout(lp); lp = setTimeout(() => { fired = true; buzz(); quick(+b.dataset.k); toast(ic("check") + " Записано сразу"); }, 450); });
   ["pointerup", "pointerleave", "pointercancel"].forEach(ev => b.addEventListener(ev, () => clearTimeout(lp)));
@@ -876,7 +879,7 @@ document.querySelectorAll("[data-k]").forEach(b => b.onclick = () => {
   const k = +b.dataset.k;
   if (k === 2 || k === 5) { commit({ k, m: -1, x: [] }); return; }
   const ex = sel >= 0 ? calls[sel] : null;
-  bd = { k, m: ex && ex.m >= 0 ? ex.m : k < 2 ? lastM : -1, x: ex ? ex.x.map(a => a.slice()) : [] };
+  bd = { k, m: ex && ex.m >= 0 ? ex.m : k === 6 ? 0 : k < 2 ? lastM : -1, x: ex ? ex.x.map(a => a.slice()) : [] };
   lens(.8); openPanel("build");
 });
 builder.onclick = e => {
@@ -1268,7 +1271,7 @@ function updateDesk() {
   renderHour();
 }
 // итоги выбранного часа под столбиками
-const KNAME = ["Продажа", "СБОЛ", "Перезвон", "Отказ", "Сбой", "Не слушал"], KCOL = ["31,168,85", "59,130,246", "241,196,15", "231,76,60", "93,107,130", "230,126,34"];
+const KNAME = ["Продажа", "СБОЛ", "Перезвон", "Отказ", "Сбой", "Не слушал", "Заявка ТМ"], KCOL = KC;
 var selHour = -1;
 function renderHour() {
   const el = $("dHour"); if (selHour < 0) { el.innerHTML = ""; return; }
@@ -1298,7 +1301,7 @@ setInterval(updateDesk, 1000); DESK.addEventListener("change", () => { render();
 document.addEventListener("keydown", e => {
   if (e.metaKey || e.ctrlKey || e.altKey || e.target.closest("input, textarea, select")) return;
   const on = id => $(id).classList.contains("on"), click = q => { const el = document.querySelector(q); if (el) el.click(); };
-  const ok = e.key === "Enter", esc = e.key === "Escape", dig = /^Digit([1-6])$/.exec(e.code), d = dig ? +dig[1] : 0;
+  const ok = e.key === "Enter", esc = e.key === "Escape", dig = /^Digit([1-7])$/.exec(e.code), d = dig ? +dig[1] : 0;
   if (on("splash")) { $("splash").click(); return; }
   if (on("greet")) { $("greet").click(); return; }
   if (on("res")) { if (ok || esc) click('#res [data-res="close"]'); return; }
