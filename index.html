@@ -377,6 +377,13 @@
     .light #dSpark i { background: rgba(0,0,0,.1); } .light #dSpark i.on { background: linear-gradient(180deg, #3ad25a, #0a9673); }
     #shM { display: none; } .light #dplan .pb { background: rgba(0,0,0,.08); }
   }
+  /* итоги часа по нажатию на столбик */
+  #dSpark { cursor: pointer; } #dSpark i { transition: height .3s, box-shadow .2s; } #dSpark i.sel { box-shadow: 0 0 0 2.5px #5df07a !important; filter: brightness(1.25); } .light #dSpark i.sel { box-shadow: 0 0 0 2.5px #15803d !important; }
+  #dHour:empty { display: none; } #dHour { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; padding: 10px 12px; border-radius: 14px; background: rgba(255,255,255,.07); font-size: 12.5px; color: var(--muted); }
+  .light #dHour { background: rgba(0,0,0,.05); }
+  #dHour .hh { display: flex; justify-content: space-between; color: var(--text); font-size: 14px; } #dHour .hh span { color: var(--muted); font-size: 12.5px; }
+  #dHour .hk { display: flex; flex-wrap: wrap; gap: 4px 12px; } #dHour .hk span { display: inline-flex; align-items: center; gap: 5px; } #dHour .hk u { display: inline-block; flex: none; width: 8px; height: 8px; border-radius: 3px; }
+  #dHour b { color: var(--text); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -386,7 +393,7 @@
 <div id="dtime" class="glass">
   <div class="dt3"><div><small>Сейчас</small><b id="dClock">—</b></div><div><small>Конец смены</small><b id="dEnd">—</b></div><div><small>Прошло</small><b id="dEl">—</b></div></div>
   <div class="dt3"><div><small>Темп</small><b id="dPace">—</b><em>звонков в час</em></div><div><small>Последний звонок</small><b id="dLast">—</b><em id="dLastE">назад</em></div><div><small>Прогноз к концу</small><b id="dProj">—</b><em>звонков</em></div></div>
-  <div id="dSpark"></div><div id="dSparkL"><span id="dS0"></span><span>звонки по часам</span><span id="dS1"></span></div>
+  <div id="dSpark"></div><div id="dSparkL"><span id="dS0"></span><span>звонки по часам</span><span id="dS1"></span></div><div id="dHour"></div>
 </div>
 <div id="dplan" class="glass"></div>
 <div id="main">
@@ -406,7 +413,7 @@
   <div class="mrow"><span>Тема</span><div class="seg glass"><button class="chip" data-theme="auto">Авто</button><button class="chip" data-theme="dark"><i data-ic="moon"></i> Тёмная</button><button class="chip" data-theme="light"><i data-ic="sun"></i> Светлая</button></div></div>
   <button class="pill" id="ecoBtn"><i data-ic="battery"></i> Экономия батареи: выкл</button>
   <button class="pill" id="reset"><i data-ic="trash"></i> Сбросить квадраты</button>
-  <small style="color:var(--muted);text-align:center">Версия 28</small>
+  <small style="color:var(--muted);text-align:center">Версия 29</small>
 </div>
 </div>
 <div id="selTools"><div id="hint"></div></div>
@@ -1089,9 +1096,28 @@ function updateDesk() {
   if (sp.children.length !== slots) sp.innerHTML = Array.from({ length: slots }, () => "<i></i>").join("");
   const cnt = new Array(slots).fill(0); if (run) calls.forEach(c => { if (c && c.t >= shift.start) { const k = Math.floor((c.t - shift.start) / 3600000); if (k >= 0 && k < slots) cnt[k]++; } });
   const mx = Math.max(4, ...cnt), cur = run ? Math.floor((now - shift.start) / 3600000) : -1;
-  [...sp.children].forEach((b, k) => { b.style.height = (cnt[k] ? 6 + cnt[k] / mx * 38 : 3) + "px"; b.className = (cnt[k] ? "on" : "") + (k === cur ? " now" : ""); b.title = `${run ? hhmm(shift.start + k * 3600000) : ""} — ${cnt[k]} зв.`; });
+  if (selHour >= slots || !run) selHour = -1;
+  [...sp.children].forEach((b, k) => { b.style.height = (cnt[k] ? 6 + cnt[k] / mx * 38 : 3) + "px"; b.className = (cnt[k] ? "on" : "") + (k === cur ? " now" : "") + (k === selHour ? " sel" : ""); b.title = `${run ? hhmm(shift.start + k * 3600000) : ""} — ${cnt[k]} зв.`; });
   $("dS0").textContent = run ? hhmm(shift.start) : ""; $("dS1").textContent = run ? hhmm(shift.start + len) : "";
+  renderHour();
 }
+// итоги выбранного часа под столбиками
+const KNAME = ["Продажа", "СБОЛ", "Перезвон", "Отказ", "Сбой", "Не слушал"], KCOL = ["31,168,85", "59,130,246", "241,196,15", "231,76,60", "93,107,130", "230,126,34"];
+var selHour = -1;
+function renderHour() {
+  const el = $("dHour"); if (selHour < 0) { el.innerHTML = ""; return; }
+  const a = shift.start + selHour * H, z = a + H, list = calls.filter(c => c && c.t >= a && c.t < z);
+  const byK = KNAME.map((_, k) => list.filter(c => c.k === k).length);
+  const sales = MAINS.map((n, m) => [n, list.filter(c => c.k === 0 && c.m === m).length]).filter(x => x[1]);
+  let off = 0, yes = 0; list.forEach(c => (c.x || []).forEach(x => { off++; if (x[1] > 0) yes++; }));
+  const n = list.length, w = n % 10 === 1 && n % 100 !== 11 ? "звонок" : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? "звонка" : "звонков";
+  el.innerHTML = `<div class="hh"><b>${hhmm(a)}–${hhmm(z)}</b><span>${n} ${w}</span></div>` +
+    (n ? `<div class="hk">${byK.map((v, k) => v ? `<span><u style="background:rgb(${KCOL[k]})"></u>${KNAME[k]} <b>${v}</b></span>` : "").join("")}</div>` +
+      `<div class="hs">${sales.length ? "Продажи: " + sales.map(x => `${x[0]} <b>${x[1]}</b>`).join(", ") : "Продаж нет"}${off ? ` · кросс: предложено <b>${off}</b>, согласие <b>${yes}</b>` : ""}</div>`
+      : `<div class="hs">В этот час звонков не было</div>`);
+}
+$("dSpark").onclick = e => { const sp = $("dSpark"), r = sp.getBoundingClientRect(), n = sp.children.length; if (!n || !shift.start) return;
+  const k = Math.min(n - 1, Math.max(0, Math.floor((e.clientX - r.left) / r.width * n))); selHour = selHour === k ? -1 : k; e.stopPropagation(); updateDesk(); renderHour(); buzz(); };
 function renderPlan(o) {
   if (!DESK.matches) return;
   const ps = plan.reduce((a, b) => a + b, 0);
