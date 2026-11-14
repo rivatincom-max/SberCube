@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
 <title>SBERCUBE</title>
-<script>try { const th = localStorage.getItem("theme"); if (th === "light") document.documentElement.classList.add("light"); if (th === "retro") document.documentElement.classList.add("light", "retro"); } catch (e) {}</script>
+<script>try { const th = localStorage.getItem("theme"); if (th === "light") document.documentElement.classList.add("light"); } catch (e) {}</script>
 <style>
   :root { --text: #f5f7fb; --muted: rgba(235,240,255,.62); --stroke: rgba(255,255,255,.2); --spring: cubic-bezier(.34, 1.56, .64, 1); }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -372,59 +372,6 @@
     .light #dSpark i { background: rgba(0,0,0,.1); } .light #dSpark i.on { background: linear-gradient(180deg, #3ad25a, #0a9673); }
     #shM { display: none; } .light #dplan .pb { background: rgba(0,0,0,.08); }
   }
-  /* ===== тема «2011»: как Facebook/Instagram на iOS 5 — полосатый фон, белые карточки, глянцевая шапка и тёмный таб-бар ===== */
-  html.retro { background: #c5ccd4; }
-  .retro body { --text: #1c1c1c; --muted: #4c566c; --stroke: #abb3bb; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; text-shadow: 0 1px 0 rgba(255,255,255,.85); }
-  .retro body::before { background: repeating-linear-gradient(90deg, #c5ccd4 0 5px, #cbd2d9 5px 7px); }
-  .retro body::after { background: linear-gradient(180deg, #2f8f3a, #237a2d); }
-  /* белые «сгруппированные» карточки iOS */
-  .retro .glass, .retro .sheet, .retro .sheet.glass, .retro .panel.glass { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none;
-    border: 1px solid #abb3bb; outline: none; border-radius: 10px; box-shadow: 0 1px 0 rgba(255,255,255,.7), 0 1px 2px rgba(0,0,0,.08); }
-  .retro .glass::after { display: none; }
-  .retro .sheet .card + .card { border-top: 1px solid #d9dde1; }
-  .retro .card.glass, .retro .pc, .retro .legend div { background: #f7f7f7; border: 1px solid #d0d4d8; box-shadow: none; }
-  /* шапка — глянцевая панель навигации */
-  .retro header.glass { background: linear-gradient(180deg, #6cc46c 0%, #3ca447 50%, #2f9a3a 51%, #2a8f35 100%); border: 1px solid #1d6a26; border-radius: 10px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 1px 3px rgba(0,0,0,.35); }
-  .retro h1 { color: #fff; text-shadow: 0 -1px 0 rgba(0,0,0,.4); letter-spacing: 0; }
-  .retro header .pill { border-radius: 7px !important; color: #fff; border: 1px solid #1d6a26; text-shadow: 0 -1px 0 rgba(0,0,0,.4);
-    background: linear-gradient(180deg, #5cb85c 0%, #2e9338 50%, #258430 51%, #2c8f36 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 1px 0 rgba(255,255,255,.25); }
-  .retro #keys, .retro header #keys { color: rgba(255,255,255,.85); text-shadow: 0 -1px 0 rgba(0,0,0,.35); }
-  /* глянцевые цветные кнопки */
-  .retro .btn, .retro .abtn, .retro .mbtn { border-radius: 10px !important; border: 1px solid rgba(0,0,0,.45) !important; color: #fff; text-shadow: 0 -1px 0 rgba(0,0,0,.45);
-    background: linear-gradient(180deg, rgba(255,255,255,.45) 0%, rgba(255,255,255,.12) 49%, rgba(0,0,0,.04) 50%, rgba(0,0,0,.14) 100%), rgb(var(--c)) !important;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.65), 0 1px 2px rgba(0,0,0,.35) !important; }
-  .retro .btn::after, .retro .abtn::after, .retro .mbtn::after { display: none; }
-  .retro .btn:active { transform: none; box-shadow: inset 0 2px 6px rgba(0,0,0,.5) !important; filter: brightness(.9); }
-  .retro .btn.lt { color: #4a3a00; text-shadow: 0 1px 0 rgba(255,255,255,.5); }
-  /* серые кнопки iOS 5 */
-  .retro .pill, .retro .rb, .retro .chip { border-radius: 8px; border: 1px solid #8f97a0; color: #333;
-    background: linear-gradient(180deg, #fff 0%, #f1f1f1 50%, #e3e3e3 51%, #ececec 100%); box-shadow: inset 0 1px 0 #fff, 0 1px 1px rgba(0,0,0,.12); }
-  .retro .pill.rnd { border-radius: 50%; }
-  .retro .rb.on, .retro .chip.on { background: linear-gradient(180deg, #7fd07f, #3aa84a 50%, #2a983a 51%, #36a346); color: #fff; border-color: #1d6a26; text-shadow: 0 -1px 0 rgba(0,0,0,.4); box-shadow: inset 0 1px 3px rgba(0,0,0,.35); }
-  .retro .seg, .retro #mainRow { background: #dfe3e7; border: 1px solid #8f97a0; border-radius: 9px; box-shadow: inset 0 1px 2px rgba(0,0,0,.15), 0 1px 0 #fff; outline: none; }
-  /* полоса смены — прогресс-бар с полосками */
-  .retro #shiftbar { border-radius: 10px; background: linear-gradient(180deg, #e9ecef, #fff); border: 1px solid #8f97a0; box-shadow: inset 0 2px 4px rgba(0,0,0,.18), 0 1px 0 #fff; }
-  .retro #shFill { border-radius: 9px; background: repeating-linear-gradient(-45deg, rgba(255,255,255,.35) 0 10px, rgba(255,255,255,0) 10px 20px), linear-gradient(180deg, #b7ecb7, #7fd07f 50%, #6cc46c 51%, #7ccd7c);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.7), inset 0 -1px 0 rgba(0,0,0,.12); }
-  /* квадраты — глянцевые «иконки» 2011 */
-  .retro .sq { border-radius: 18%; } .retro .sq.o, .retro .sq:not(.f) { background: #e4e8ec; border: 1px solid #b4bcc4; box-shadow: inset 0 2px 3px rgba(0,0,0,.14), 0 1px 0 #fff; }
-  .retro .sq.f { border: 1px solid rgba(0,0,0,.45); color: #fff; background: linear-gradient(180deg, rgba(255,255,255,.55) 0%, rgba(255,255,255,.14) 48%, rgba(0,0,0,0) 50%, rgba(0,0,0,.1) 100%), rgb(var(--c));
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.75), 0 2px 3px rgba(0,0,0,.35); text-shadow: 0 -1px 0 rgba(0,0,0,.45); }
-  .retro .sq.next, .retro .sq.next:not(.f) { border: 2px solid #3ca447; } .retro .sq.f::before { display: none; }
-  .retro .bar, .retro .pb, .retro .prow .pb, .retro #dplan .pb { background: #dfe3e7; box-shadow: inset 0 1px 2px rgba(0,0,0,.2); }
-  .retro .bar i, .retro .pb u { background: linear-gradient(180deg, #8fe08f, #3aa84a 50%, #2a983a 51%, #36a346) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,.5); }
-  .retro .pin, .retro .mrow input, .retro #sync textarea, .retro .hsel { background-color: #fff; color: #222; border: 1px solid #8f97a0; border-radius: 6px; box-shadow: inset 0 2px 3px rgba(0,0,0,.15); text-shadow: none; }
-  /* нижние кнопки — тёмный глянцевый таб-бар, как у Instagram */
-  .retro #pad { padding: 8px; border-radius: 12px; border: 1px solid #000; background: linear-gradient(180deg, #4a4a4a 0%, #2c2c2c 50%, #1e1e1e 51%, #151515 100%);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 1px 3px rgba(0,0,0,.4); }
-  .retro #toast { background: rgba(0,0,0,.75); color: #fff; text-shadow: 0 -1px 0 #000; border: 0; border-radius: 10px; outline: none; box-shadow: 0 4px 10px rgba(0,0,0,.4); }
-  .retro .ov:not(#splash):not(#greet) { background: rgba(0,0,0,.45); -webkit-backdrop-filter: none; backdrop-filter: none; }
-  .retro #dSpark i { background: #dfe3e7; box-shadow: inset 0 1px 2px rgba(0,0,0,.2); } .retro #dSpark i.on { background: linear-gradient(180deg, #8fe08f, #2a983a); box-shadow: inset 0 1px 0 rgba(255,255,255,.5); }
-  .retro kbd { background: linear-gradient(180deg, #fff, #ddd); color: #333; border: 1px solid #888; text-shadow: none; box-shadow: 0 1px 0 #666; }
-  .retro .btn kbd { opacity: .85; }
-  .retro .fx, .retro #fxb { display: none; }
-  .retro #shM, .retro #shT small, .retro #shS { color: #34413a; } .retro #shM .warn { color: #a84a00; } .retro #shT { color: #10200f; }
 </style>
 </head>
 <body>
@@ -434,7 +381,7 @@
 <div id="dtime" class="glass">
   <div class="dt3"><div><small>Сейчас</small><b id="dClock">—</b></div><div><small>Конец смены</small><b id="dEnd">—</b></div><div><small>Прошло</small><b id="dEl">—</b></div></div>
   <div class="dt3"><div><small>Темп</small><b id="dPace">—</b><em>звонков в час</em></div><div><small>Последний звонок</small><b id="dLast">—</b><em id="dLastE">назад</em></div><div><small>Прогноз к концу</small><b id="dProj">—</b><em>звонков</em></div></div>
-  <div id="dSpark"></div><div id="dSparkL"><span id="dS0"></span><span>звонки по получасам</span><span id="dS1"></span></div>
+  <div id="dSpark"></div><div id="dSparkL"><span id="dS0"></span><span>звонки по часам</span><span id="dS1"></span></div>
 </div>
 <div id="dplan" class="glass"></div>
 <div id="main">
@@ -451,10 +398,10 @@
 </div>
 <div id="settings" class="glass sheet">
   <div class="mrow"><b>Настройки</b></div>
-  <div class="mrow"><span>Тема</span><div class="seg glass"><button class="chip" data-theme="dark"><i data-ic="moon"></i> Тёмная</button><button class="chip" data-theme="light"><i data-ic="sun"></i> Светлая</button><button class="chip" data-theme="retro">2011</button></div></div>
+  <div class="mrow"><span>Тема</span><div class="seg glass"><button class="chip" data-theme="dark"><i data-ic="moon"></i> Тёмная</button><button class="chip" data-theme="light"><i data-ic="sun"></i> Светлая</button></div></div>
   <button class="pill" id="ecoBtn"><i data-ic="battery"></i> Экономия батареи: выкл</button>
   <button class="pill" id="reset"><i data-ic="trash"></i> Сбросить квадраты</button>
-  <small style="color:var(--muted);text-align:center">Версия 17</small>
+  <small style="color:var(--muted);text-align:center">Версия 18</small>
 </div>
 </div>
 <div id="selTools"><div id="hint"></div></div>
@@ -955,11 +902,11 @@ const settings = $("settings");
 function sheet(el) { const show = el.style.display !== "flex"; sync.style.display = settings.style.display = "none"; if (show) el.style.display = "flex"; }
 $("syncBtn").onclick = () => { sheet(sync); msg.textContent = ""; };
 $("setBtn").onclick = () => sheet(settings);
-let theme = "dark"; try { const th = localStorage.getItem("theme"); theme = th === "light" || th === "retro" ? th : "dark"; } catch (e) {}
+let theme = "dark"; try { const th = localStorage.getItem("theme"); theme = th === "light" ? th : "dark"; } catch (e) {}
 function applyTheme() {
-  document.documentElement.classList.toggle("light", theme === "light" || theme === "retro"); document.documentElement.classList.toggle("retro", theme === "retro");
+  document.documentElement.classList.toggle("light", theme === "light");
   document.querySelectorAll("[data-theme]").forEach(b => b.classList.toggle("on", b.dataset.theme === theme));
-  document.querySelector('meta[name="theme-color"]').content = theme === "light" ? "#eef5f0" : theme === "retro" ? "#2f8f3a" : "#000000";
+  document.querySelector('meta[name="theme-color"]').content = theme === "light" ? "#eef5f0" : "#000000";
 }
 settings.onclick = e => { const b = e.target.closest("[data-theme]"); if (!b) return; theme = b.dataset.theme; try { localStorage.setItem("theme", theme); } catch (e) {} applyTheme(); buzz(); };
 $("exp").onclick = () => {
@@ -1128,12 +1075,12 @@ function updateDesk() {
   const lt = lastCallT();
   const since = lt ? now - lt : 0; $("dLast").textContent = lt ? (since < 60000 ? Math.floor(since / 1000) + " с" : hm(since).replace(/^0:/, "") + (since < 3600000 ? " мин" : "")) : "—";
   $("dLastE").textContent = lt ? "назад" : "звонков ещё нет"; $("dLast").classList.toggle("warn", run && !shift.pauseAt && since > 5 * 60000);
-  // звонки по получасам смены
-  const slots = Math.max(1, Math.round(shift.hours * 2)), sp = $("dSpark");
+  // звонки по часам смены
+  const slots = Math.max(1, Math.ceil(shift.hours)), sp = $("dSpark");
   if (sp.children.length !== slots) sp.innerHTML = Array.from({ length: slots }, () => "<i></i>").join("");
-  const cnt = new Array(slots).fill(0); if (run) calls.forEach(c => { if (c && c.t >= shift.start) { const k = Math.floor((c.t - shift.start) / 1800000); if (k >= 0 && k < slots) cnt[k]++; } });
-  const mx = Math.max(4, ...cnt), cur = run ? Math.floor((now - shift.start) / 1800000) : -1;
-  [...sp.children].forEach((b, k) => { b.style.height = (cnt[k] ? 6 + cnt[k] / mx * 38 : 3) + "px"; b.className = (cnt[k] ? "on" : "") + (k === cur ? " now" : ""); b.title = `${run ? hhmm(shift.start + k * 1800000) : ""} — ${cnt[k]} зв.`; });
+  const cnt = new Array(slots).fill(0); if (run) calls.forEach(c => { if (c && c.t >= shift.start) { const k = Math.floor((c.t - shift.start) / 3600000); if (k >= 0 && k < slots) cnt[k]++; } });
+  const mx = Math.max(4, ...cnt), cur = run ? Math.floor((now - shift.start) / 3600000) : -1;
+  [...sp.children].forEach((b, k) => { b.style.height = (cnt[k] ? 6 + cnt[k] / mx * 38 : 3) + "px"; b.className = (cnt[k] ? "on" : "") + (k === cur ? " now" : ""); b.title = `${run ? hhmm(shift.start + k * 3600000) : ""} — ${cnt[k]} зв.`; });
   $("dS0").textContent = run ? hhmm(shift.start) : ""; $("dS1").textContent = run ? hhmm(shift.start + len) : "";
 }
 function renderPlan(o) {
