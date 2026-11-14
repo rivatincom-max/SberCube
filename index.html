@@ -312,20 +312,53 @@
   .light body.eco .sheet { background: rgba(246,250,247,.99); }
   /* ===== десктоп: слева сетка звонков, справа панель управления ===== */
   kbd { display: none; } #keys { display: none; }
+  #dtime, #dplan { display: none; }
   @media (min-width: 900px) {
-    body { display: grid; grid-template-columns: minmax(0, 1fr) 420px; grid-template-rows: auto auto auto auto auto auto 1fr; column-gap: 16px; row-gap: 10px; padding: 16px 20px; }
-    header { grid-column: 1 / -1; grid-row: 1; }
-    #main { grid-column: 1; grid-row: 2 / 8; min-height: 0; }
-    #shiftbar { grid-column: 2; grid-row: 2; } #sum { grid-column: 2; grid-row: 3; } #selTools { grid-column: 2; grid-row: 4; }
-    #builder { grid-column: 2; grid-row: 5; max-height: calc(100dvh - 250px); overflow-y: auto; } #pad { grid-column: 2; grid-row: 6; }
-    #keys { display: block; grid-column: 2; grid-row: 7; align-self: end; font-size: 12px; line-height: 1.9; color: var(--muted); text-align: center; }
-    #grid { grid-template-columns: repeat(auto-fill, 96px); grid-auto-rows: 96px; justify-content: center; gap: 10px; padding: 4px; }
-    .sheet { left: 0; right: 0; margin: 0 auto; width: min(100%, 780px); }
-    .btn { min-height: 64px; font-size: 15px; cursor: pointer; } .pill, .chip, .rb, .sq, #shiftbar, #sum { cursor: pointer; }
-    .btn:hover, .pill:hover, .rb:hover { filter: brightness(1.12); } .sq:hover { filter: brightness(1.15); }
+    body { display: grid; grid-template-columns: minmax(0, 1fr) 440px; grid-template-rows: auto auto auto auto auto auto auto minmax(0, 1fr); column-gap: 18px; row-gap: 10px; padding: 16px 22px; }
+    header { grid-column: 1 / -1; grid-row: 1; padding: 6px 8px 6px 20px; }
+    #main { grid-column: 1; grid-row: 2 / 9; min-height: 0; }
+    #shiftbar { grid-column: 2; grid-row: 2; } #dtime { grid-column: 2; grid-row: 3; } #sum { grid-column: 2; grid-row: 4; } body.building #sum { display: none; } #selTools { grid-column: 2; grid-row: 5; }
+    #builder { grid-column: 2; grid-row: 3 / 9; align-self: start; max-height: 100%; overflow-y: auto; } #pad { grid-column: 2; grid-row: 6; } #dplan { grid-column: 2; grid-row: 7; }
+    #keys { display: block; grid-column: 1 / -1; grid-row: 1; align-self: center; justify-self: center; z-index: 3; pointer-events: none; max-width: calc(100% - 340px); font-size: 11.5px; line-height: 1.9; color: var(--muted); text-align: center; }
+    #shiftbar { min-height: 70px; flex-shrink: 0; } #sum, #dtime, #dplan, #pad { min-height: max-content; }
+    body.building #dtime, body.building #dplan { display: none; } #builder > small { display: none; }
+    body.building #dplan { display: none; }
+    /* сетка: крупные квадраты с номером звонка */
+    #grid { grid-template-columns: repeat(auto-fill, 92px); grid-auto-rows: 92px; justify-content: center; align-content: start; gap: 10px; padding: 6px 4px 30px; scroll-snap-type: none; }
+    .sq { border-radius: 24px; } .sq[data-n]::before { content: attr(data-n); position: absolute; right: 9px; bottom: 6px; z-index: 2; font: 600 11px/1 inherit; color: rgba(255,255,255,.28); }
+    .sq.f[data-n]::before { color: rgba(255,255,255,.75); } .sq.f.x[data-n]::before { bottom: auto; top: 6px; } .sq.lt[data-n]::before { color: rgba(16,19,26,.6); }
+    .sq.last { box-shadow: 0 0 0 3px rgba(255,255,255,.85), 0 0 24px rgba(var(--c), .6); }
+    .light .sq[data-n]::before { color: rgba(0,0,0,.3); }
+    .sheet { left: 0; right: 0; margin: 0 auto; width: min(100%, 820px); }
+    /* кнопки звонков: 2 столбца, крупнее */
+    #pad .r3 { grid-template-columns: 1fr 1fr; gap: 8px; } #pad { gap: 8px; }
+    .btn { min-height: 66px; font-size: 17px; cursor: pointer; justify-content: flex-start; } #pad .btn[data-k] { display: flex; align-items: center; gap: 10px; padding: 0 18px; }
+    #pad .btn[data-k] .ic { width: 1.35em; height: 1.35em; }
+    .pill, .chip, .rb, .sq, #shiftbar, #sum, #dtime, #dplan { cursor: pointer; }
+    .btn:hover, .pill:hover, .rb:hover, .chip:hover { filter: brightness(1.15); } .sq:hover { filter: brightness(1.18); transform: translateY(-2px); transition: transform .15s; }
     kbd { display: inline-block; min-width: 18px; padding: 1px 5px; border-radius: 6px; font: 600 11px/1.5 inherit; text-align: center; background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.25); color: inherit; }
-    .btn kbd { position: absolute; right: 7px; top: 5px; z-index: 1; text-shadow: none; font-size: 10px; min-width: 15px; padding: 0 4px; opacity: .85; }
+    .btn kbd { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); z-index: 1; text-shadow: none; font-size: 12px; min-width: 22px; padding: 2px 6px; opacity: .9; }
+    .chip kbd, .xr kbd { margin-left: 5px; font-size: 10px; min-width: 14px; padding: 0 4px; opacity: .8; }
     .light kbd { background: rgba(255,255,255,.6); border-color: rgba(0,0,0,.15); }
+    /* окно записи на ПК: компактнее */
+    #builder { gap: 8px; } #builder small { font-size: 11.5px; } .xr { grid-template-columns: 1.2fr repeat(3, 1fr); } .rb { padding: 9px 2px; }
+    /* время */
+    #shiftbar { padding: 14px 20px; } #shT { font-size: 26px; }
+    #dtime { display: flex; flex-direction: column; gap: 10px; border-radius: 28px; padding: 14px 18px 12px; }
+    .dt3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .dt3 small { display: block; font-size: 11.5px; color: var(--muted); } .dt3 b { display: block; font-size: 24px; font-variant-numeric: tabular-nums; letter-spacing: -.3px; line-height: 1.25; }
+    .dt3 em { display: block; font-style: normal; font-size: 11px; color: var(--muted); }
+    #dLast.warn { color: #ffb86b; }
+    #dSpark { display: flex; align-items: flex-end; gap: 3px; height: 44px; } #dSpark i { flex: 1; min-height: 3px; border-radius: 3px; background: rgba(255,255,255,.12); }
+    #dSpark i.on { background: linear-gradient(180deg, #3ad25a, #0a9673); } #dSpark i.now { box-shadow: 0 0 0 2px rgba(255,255,255,.7); }
+    #dSparkL { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--muted); }
+    /* план */
+    #dplan { display: flex; flex-direction: column; gap: 8px; border-radius: 28px; padding: 14px 18px; }
+    #dplan .top { display: flex; justify-content: space-between; font-weight: 700; font-size: 15px; } #dplan .top span:last-child { color: var(--muted); font-weight: 500; font-size: 13px; }
+    #dplan .pr { display: grid; grid-template-columns: 70px 1fr 56px; align-items: center; gap: 10px; font-size: 13px; } #dplan .pr b { text-align: right; font-variant-numeric: tabular-nums; }
+    #dplan .pb { height: 8px; border-radius: 5px; background: rgba(255,255,255,.1); overflow: hidden; } #dplan .pb u { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, #34c446, #0a9673); transition: width .4s; }
+    #dplan .pr.done b { color: #5df07a; }
+    .light #dSpark i { background: rgba(0,0,0,.1); } .light #dplan .pb { background: rgba(0,0,0,.08); }
   }
 </style>
 </head>
@@ -333,6 +366,12 @@
 <header class="glass"><h1>SBERCUBE</h1><button class="pill rnd" id="syncBtn" aria-label="Прогресс"><i data-ic="sync"></i></button><button class="pill rnd" id="setBtn" aria-label="Настройки"><i data-ic="gear"></i></button></header>
 <div id="shiftbar" class="glass"><div id="shFill"></div><div class="shrow"><span id="shT"><i data-ic="timer"></i> Начать смену</span><span id="shS"></span></div></div>
 <div id="sum" class="glass"></div>
+<div id="dtime" class="glass">
+  <div class="dt3"><div><small>Сейчас</small><b id="dClock">—</b></div><div><small>Конец смены</small><b id="dEnd">—</b></div><div><small>Прошло</small><b id="dEl">—</b></div></div>
+  <div class="dt3"><div><small>Темп</small><b id="dPace">—</b><em>звонков в час</em></div><div><small>Последний звонок</small><b id="dLast">—</b><em id="dLastE">назад</em></div><div><small>Прогноз к концу</small><b id="dProj">—</b><em>звонков</em></div></div>
+  <div id="dSpark"></div><div id="dSparkL"><span id="dS0"></span><span>звонки по получасам</span><span id="dS1"></span></div>
+</div>
+<div id="dplan" class="glass"></div>
 <div id="main">
 <div id="grid"></div>
 <div id="stats" class="sheet"></div>
@@ -350,7 +389,7 @@
   <div class="mrow"><span>Тема</span><div class="seg glass"><button class="chip" data-theme="dark"><i data-ic="moon"></i> Тёмная</button><button class="chip" data-theme="light"><i data-ic="sun"></i> Светлая</button></div></div>
   <button class="pill" id="ecoBtn"><i data-ic="battery"></i> Экономия батареи: выкл</button>
   <button class="pill" id="reset"><i data-ic="trash"></i> Сбросить квадраты</button>
-  <small style="color:var(--muted);text-align:center">Версия 12</small>
+  <small style="color:var(--muted);text-align:center">Версия 13</small>
 </div>
 </div>
 <div id="selTools"><div id="hint"></div></div>
@@ -366,7 +405,7 @@
   </div>
   <button class="btn" style="--c:120,128,150;min-height:40px" id="undo"><i data-ic="undo"></i> Отменить</button>
 </div>
-<div id="keys">Клавиши: <kbd>1</kbd>–<kbd>6</kbd> вид звонка (в окне записи — основной продукт) · <kbd>Enter</kbd> записать · <kbd>Esc</kbd> отмена · <kbd>Backspace</kbd> отменить последний</div>
+<div id="keys"><kbd>1</kbd>–<kbd>6</kbd> звонок · <kbd>Shift</kbd>+<kbd>1</kbd>–<kbd>6</kbd> без окна · <kbd>1</kbd>–<kbd>5</kbd> продукт · <kbd>Q</kbd>–<kbd>Y</kbd> кросс · <kbd>Enter</kbd> записать · <kbd>Esc</kbd> отмена · <kbd>Backspace</kbd> отменить · <kbd>S</kbd> статистика · <kbd>T</kbd> смена</div>
 <div id="splash" class="ov"><div class="logo" id="logo"></div><h2>SBERCUBE</h2></div>
 <div id="setup" class="ov ovs"><div class="ovw" id="setupBody"></div></div>
 <div id="greet" class="ov"><div class="gem"><svg class="gup" viewBox="-6 0 120 100" aria-hidden="true">
@@ -606,17 +645,19 @@ function cellHTML(c) {
   return `<span class="t">${nx ? "+" + nx : ""}</span>` + (nx ? `<div class="xb">${c.x.map(([p, r]) => `<i class="r${r}" style="--c:${p >= 0 ? PC[p] : "205,210,225"}"></i>`).join("")}</div>` : "");
 }
 function renderGrid() {
-  const n = calls.length, next = nextIdx();
+  const n = calls.length, next = nextIdx(), lastI = lastIdx();
   while (cells.length < n) { const d = document.createElement("div"); d.dataset.i = cells.length; grid.appendChild(d); cells.push(d); }
   for (let i = 0; i < n; i++) {
     const c = calls[i], d = cells[i];
     const m = c && c.m >= 0 && WITH_MAIN.includes(c.k) && !(c.k < 2 && c.m === 0) ? MSH[c.m] : "";
-    const key = (c ? JSON.stringify(c) : "") + "|" + (i === next && sel < 0) + "|" + (i === sel);
+    const key = (c ? JSON.stringify(c) : "") + "|" + (i === next && sel < 0) + "|" + (i === sel) + "|" + (i === lastI);
     if (d._k !== key || i === popIdx) {
       d._k = key;
       d.className = "sq" + (c ? " f" + (c.k === 2 ? " lt" : "") + (c.x.length ? " x" : "") : "") + (i === next && sel < 0 ? " next" : "") + (i === sel ? " sel" : "") + (i === popIdx ? " " + popKind : "");
       if (c) { d.style.setProperty("--c", KC[c.k]); d.innerHTML = cellHTML(c); } else { d.style.removeProperty("--c"); d.textContent = ""; }
       if (m) d.dataset.m = m; else delete d.dataset.m;
+      d.dataset.n = i + 1; if (i === lastI && c) d.classList.add("last");
+      d.title = c ? `№${i + 1} · ${KINDS[c.k]}${c.m >= 0 && WITH_MAIN.includes(c.k) ? " · " + MAINS[c.m] : ""}${c.x.length ? " · кросс: " + c.x.map(([p, r]) => (p >= 0 ? PRODUCTS[p] : "?") + " — " + RES[r]).join(", ") : ""}${c.t ? " · " + hhmm(c.t) : ""}` : `№${i + 1}`;
     }
   }
   popIdx = -1;
@@ -629,9 +670,9 @@ function builderHTML() {
   const hints = ["Продажа: выбери основной продукт и кросс-продукты, которые предлагал.", "СБОЛ (клиент оформил сам): основной продукт и кросс, если был.", "", "Отказ: выбери продукт, от которого отказались (можно не выбирать). Кросс — если предлагал.", "Сбой звонка: выбери продукт, если успел его предложить. Если сбросили на кроссе — отметь, что предлагал."];
   const kind = bd.k;
   return `<div class="top"><span>${KEMO[kind]} ${KINDS[kind]}${sel >= 0 ? " · №" + (sel + 1) : ""}</span></div>
-    ${WITH_MAIN.includes(kind) ? `<div id="mainRow" class="glass"><span>Основной:</span>${MAINS.map((n, i) => `<button class="chip${bd.m === i ? " on" : ""}" data-m="${i}">${MCHIP[i]}</button>`).join("")}</div>` : ""}
+    ${WITH_MAIN.includes(kind) ? `<div id="mainRow" class="glass"><span>Основной:</span>${MAINS.map((n, i) => `<button class="chip${bd.m === i ? " on" : ""}" data-m="${i}">${MCHIP[i]}<kbd>${i + 1}</kbd></button>`).join("")}</div>` : ""}
     <small>${hints[kind]}<br>Кросс: «Предл.» — предложил, отказали · «Со мной» — оформили со мной · «Сам» — СБОЛ</small>
-    ${PRODUCTS.map((n, p) => { const e = bd.x.find(a => a[0] === p); return `<div class="xr" style="--c:${PC[p]}"><span><i class="dot"></i>${n}</span>${RES.map((r, j) => `<button class="rb${e && e[1] === j ? " on" : ""}" data-p="${p}" data-r="${j}">${r}</button>`).join("")}</div>`; }).join("")}
+    ${PRODUCTS.map((n, p) => { const e = bd.x.find(a => a[0] === p); return `<div class="xr" style="--c:${PC[p]}"><span><i class="dot"></i>${n}<kbd>${"QWERTY"[p]}</kbd></span>${RES.map((r, j) => `<button class="rb${e && e[1] === j ? " on" : ""}" data-p="${p}" data-r="${j}">${r}</button>`).join("")}</div>`; }).join("")}
     <div class="row r2"><button class="btn" style="--c:120,128,150" data-b="cancel">Отмена</button><button class="btn" style="--c:31,168,85" data-b="ok">${ic("check")} Записать${bd.x.length ? " (+" + bd.x.length + ")" : ""}</button></div>`;
 }
 function shiftPanelHTML(o) {
@@ -730,15 +771,18 @@ function render() {
     };
   }
   if (showShift) shiftpanel.innerHTML = shiftPanelHTML(o);
+  document.body.classList.toggle("building", !!building); if (typeof renderPlan === "function") { renderPlan(o); updateDesk(); }
   updateShift();
 }
 
 // ---------- ввод звонка ----------
+let lastM = 0; try { lastM = Math.max(0, +localStorage.getItem("lastM") || 0); } catch (e) {}
 function commit(rec) {
   const isNew = sel < 0; let i = sel;
   if (isNew) { i = nextIdx(); if (i < 0) { calls = calls.concat(blankCalls()); i = nextIdx(); } }
+  rec.t = isNew ? Date.now() : (calls[i] && calls[i].t) || Date.now(); if (rec.m >= 0) lastM = rec.m;
   calls[i] = rec; popIdx = i; popKind = rec.k >= 3 ? "shake" : "pop";
-  sel = -1; bd = null; panel = "none"; save(); render(); buzz();
+  sel = -1; bd = null; panel = "none"; save(); try { localStorage.setItem("lastM", lastM); } catch (e) {} render(); buzz();
   if (isNew) celebrate(rec, counts().total); else lens(.7);
   if (!isNew) { const d = cells[i]; if (d && fancy()) restart(d, "wob"); }
 }
@@ -746,7 +790,7 @@ document.querySelectorAll("[data-k]").forEach(b => b.onclick = () => {
   const k = +b.dataset.k;
   if (k === 2 || k === 5) { commit({ k, m: -1, x: [] }); return; }
   const ex = sel >= 0 ? calls[sel] : null;
-  bd = { k, m: ex && ex.m >= 0 ? ex.m : k < 2 ? 0 : -1, x: ex ? ex.x.map(a => a.slice()) : [] };
+  bd = { k, m: ex && ex.m >= 0 ? ex.m : k < 2 ? lastM : -1, x: ex ? ex.x.map(a => a.slice()) : [] };
   lens(.8); openPanel("build");
 });
 builder.onclick = e => {
@@ -992,20 +1036,57 @@ function showResults(r, fin) {
 }
 $("res").onclick = e => { if (e.target.closest('[data-res="close"]')) { closeOv("res"); render(); } };
 
+// ---------- ПК: время и план ----------
+const DESK = matchMedia("(min-width: 900px)");
+const hm = ms => { ms = Math.max(0, Math.floor(ms / 60000)); return `${Math.floor(ms / 60)}:${pad2(ms % 60)}`; };
+function updateDesk() {
+  if (!DESK.matches) return;
+  const now = Date.now(); $("dClock").textContent = hhmm(now);
+  const run = !!shift.start, len = shift.hours * H, el = elapsed(), hrs = el / H;
+  const endMs = shift.start + len + shift.paused + (shift.pauseAt ? now - shift.pauseAt : 0);
+  $("dEnd").textContent = run ? hhmm(endMs) : "—"; $("dEl").textContent = run ? hm(el) : "—";
+  const tot = topInfo.total; $("dPace").textContent = run && el > 300000 ? (tot / hrs).toFixed(1).replace(".", ",") : "—";
+  $("dProj").textContent = run && el > 300000 ? "≈ " + Math.round(tot / hrs * shift.hours) : "—";
+  let lt = 0; calls.forEach(c => { if (c && c.t > lt) lt = c.t; });
+  const since = lt ? now - lt : 0; $("dLast").textContent = lt ? (since < 60000 ? Math.floor(since / 1000) + " с" : hm(since).replace(/^0:/, "") + (since < 3600000 ? " мин" : "")) : "—";
+  $("dLastE").textContent = lt ? "назад" : "звонков ещё нет"; $("dLast").classList.toggle("warn", run && !shift.pauseAt && since > 5 * 60000);
+  // звонки по получасам смены
+  const slots = Math.max(1, Math.round(shift.hours * 2)), sp = $("dSpark");
+  if (sp.children.length !== slots) sp.innerHTML = Array.from({ length: slots }, () => "<i></i>").join("");
+  const cnt = new Array(slots).fill(0); if (run) calls.forEach(c => { if (c && c.t >= shift.start) { const k = Math.floor((c.t - shift.start) / 1800000); if (k >= 0 && k < slots) cnt[k]++; } });
+  const mx = Math.max(4, ...cnt), cur = run ? Math.floor((now - shift.start) / 1800000) : -1;
+  [...sp.children].forEach((b, k) => { b.style.height = (cnt[k] ? 6 + cnt[k] / mx * 38 : 3) + "px"; b.className = (cnt[k] ? "on" : "") + (k === cur ? " now" : ""); b.title = `${run ? hhmm(shift.start + k * 1800000) : ""} — ${cnt[k]} зв.`; });
+  $("dS0").textContent = run ? hhmm(shift.start) : ""; $("dS1").textContent = run ? hhmm(shift.start + len) : "";
+}
+function renderPlan(o) {
+  if (!DESK.matches) return;
+  const ps = plan.reduce((a, b) => a + b, 0);
+  $("dplan").innerHTML = `<div class="top"><span>${ps ? "План продаж" : "Продажи по продуктам"}</span><span>${o.sales}${ps ? " из " + ps : ""}</span></div>` +
+    MAINS.map((n, i) => { const v = o.salesBy[i], g = plan[i]; return `<div class="pr${g && v >= g ? " done" : ""}"><span>${n}</span><div class="pb"><u style="width:${g ? Math.min(100, v / g * 100) : (o.sales ? v / o.sales * 100 : 0)}%"></u></div><b>${v}${g ? " / " + g : ""}</b></div>`; }).join("");
+}
+$("dtime").onclick = () => shift.start ? toggle("shift") : openSetup();
+$("dplan").onclick = () => toggle("shift");
+setInterval(updateDesk, 1000); DESK.addEventListener("change", () => { render(); updateDesk(); });
+
 // ---------- клавиатура (десктоп) ----------
 document.addEventListener("keydown", e => {
   if (e.metaKey || e.ctrlKey || e.altKey || e.target.closest("input, textarea, select")) return;
-  const on = id => $(id).classList.contains("on"), click = sel => { const el = document.querySelector(sel); if (el) el.click(); };
-  const ok = e.key === "Enter", esc = e.key === "Escape";
+  const on = id => $(id).classList.contains("on"), click = q => { const el = document.querySelector(q); if (el) el.click(); };
+  const ok = e.key === "Enter", esc = e.key === "Escape", dig = /^Digit([1-6])$/.exec(e.code), d = dig ? +dig[1] : 0;
   if (on("splash")) { $("splash").click(); return; }
   if (on("greet")) { $("greet").click(); return; }
   if (on("res")) { if (ok || esc) click('#res [data-res="close"]'); return; }
   if (on("setup")) { if (ok) click('#setup [data-su="go"]'); return; }
-  const building = panel === "build" && bd;
-  if (/^[1-6]$/.test(e.key)) { click(building ? `#builder .chip[data-m="${e.key - 1}"]` : `#pad [data-k="${e.key - 1}"]`); }
+  const building = panel === "build" && bd, cross = "KeyQ KeyW KeyE KeyR KeyT KeyY".split(" ").indexOf(e.code);
+  if (d && e.shiftKey && !building) { const k = d - 1; commit({ k, m: WITH_MAIN.includes(k) ? (k < 2 ? lastM : -1) : -1, x: [] }); }
+  else if (d && building) { if (d <= 5) click(`#builder .chip[data-m="${d - 1}"]`); }
+  else if (d) click(`#pad [data-k="${d - 1}"]`);
+  else if (building && cross >= 0) { const i = bd.x.findIndex(a => a[0] === cross); if (i < 0) bd.x.push([cross, 0]); else if (bd.x[i][1] < 2) bd.x[i][1]++; else bd.x.splice(i, 1); render(); }
   else if (ok && building) click('#builder [data-b="ok"]');
   else if (esc) { if (building) click('#builder [data-b="cancel"]'); else { sync.style.display = settings.style.display = "none"; sel = -1; openPanel("none"); } }
   else if (e.key === "Backspace" || e.key === "Delete") $("undo").click();
+  else if (e.code === "KeyS" && !building) toggle("stats");
+  else if (e.code === "KeyT" && !building) { if (shift.start) toggle("shift"); else openSetup(); }
   else return;
   e.preventDefault();
 });
