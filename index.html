@@ -123,7 +123,7 @@
 
   /* ===== кнопки ===== */
   #pad { display: flex; flex-direction: column; gap: 6px; }
-  .row { display: grid; gap: 6px; } .r3 { grid-template-columns: repeat(3, 1fr); } .r2 { grid-template-columns: 1fr 1fr; } .r2t { grid-template-columns: 1fr 1.35fr; }
+  .row { display: grid; gap: 6px; } .r3 { grid-template-columns: repeat(3, 1fr); } .r2 { grid-template-columns: 1fr 1fr; } .r2t { grid-template-columns: 1fr 1fr; } .r2t .btn { min-height: 44px !important; height: 44px; }
   .btn { border: 1px solid rgba(255,255,255,.32); border-radius: 26px; padding: 6px 4px; min-height: 52px; font: 700 14px/1.15 inherit; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.25);
     background: linear-gradient(180deg, rgba(var(--c), .8), rgba(var(--c), .5)); box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 6px 16px rgba(var(--c), .2); transition: transform .18s var(--spring), filter .18s; }
   .btn:active { transform: scale(.94); filter: brightness(1.18); }
@@ -350,7 +350,7 @@
     .light .sq[data-n]::before { color: rgba(0,0,0,.3); }
     .sheet { left: 0; right: 0; margin: 0 auto; width: min(100%, 820px); }
     /* кнопки звонков: 2 столбца, крупнее */
-    #pad .r3 { grid-template-columns: 1fr 1fr; gap: 8px; } #pad { gap: 8px; }
+    #pad .r3, #pad .r2t { grid-template-columns: 1fr 1fr; gap: 8px; } #pad .r2t .btn { min-height: 52px !important; height: 52px; } #pad .r2t #undo { justify-content: flex-start; padding: 0 18px; gap: 10px; } #pad { gap: 8px; }
     .btn { min-height: 66px; font-size: 17px; cursor: pointer; justify-content: flex-start; } #pad .btn[data-k] { display: flex; align-items: center; gap: 10px; padding: 0 18px; }
     #pad .btn[data-k] .ic { width: 1.35em; height: 1.35em; }
     .pill, .chip, .rb, .sq, #shiftbar, #sum, #dtime, #dplan { cursor: pointer; }
@@ -398,6 +398,15 @@
   .r3b { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; } .r3b .pill { justify-content: center; padding-left: 4px; padding-right: 4px; font-size: 12.5px; }
   /* отчёт по продукту */
   .prep table { margin-top: 2px; }
+  .pk3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; } .pk3 div { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 12px; background: rgba(255,255,255,.05); }
+  .pk3 b { font-size: 22px; line-height: 1; } .pk3 small { font-size: 11px; color: var(--muted); } .light .pk3 div { background: rgba(0,0,0,.04); }
+  .pdrow .dwrap { width: 104px; height: 104px; } .pdrow .dmid b { font-size: 24px; } .pdrow .dleg { gap: 4px; }
+  .dleg .sep { border-top: 1px solid rgba(255,255,255,.1); padding-top: 4px; margin-top: 2px; } .light .dleg .sep { border-top-color: rgba(0,0,0,.08); }
+  .pxl { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid rgba(255,255,255,.1); padding-top: 8px; } .light .pxl { border-top-color: rgba(0,0,0,.08); }
+  .pxh { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+  .pxr { display: grid; grid-template-columns: 9px minmax(0, 1fr) auto 46px; column-gap: 7px; align-items: center; font-size: 13.5px; }
+  .pxr .dot { width: 9px; height: 9px; margin: 0; } .pxr b { text-align: right; font-variant-numeric: tabular-nums; } .pxr small { text-align: right; font-size: 11px; color: var(--muted); }
+  .pxr em { font-style: normal; font-size: 11px; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -427,7 +436,7 @@
   <div class="mrow"><span>Тема</span><div class="seg glass"><button class="chip" data-theme="auto">Авто</button><button class="chip" data-theme="dark"><i data-ic="moon"></i> Тёмная</button><button class="chip" data-theme="light"><i data-ic="sun"></i> Светлая</button></div></div>
   <button class="pill" id="ecoBtn"><i data-ic="battery"></i> Экономия батареи: выкл</button>
   <button class="pill" id="reset"><i data-ic="trash"></i> Сбросить квадраты</button>
-  <small style="color:var(--muted);text-align:center">Версия 32</small>
+  <small style="color:var(--muted);text-align:center">Версия 33</small>
 </div>
 </div>
 <div id="selTools"><div id="hint"></div></div>
@@ -719,7 +728,7 @@ function builderHTML() {
   const hints = ["Продажа: выбери основной продукт и кросс-продукты, которые предлагал.", "СБОЛ (клиент оформил сам): основной продукт и кросс, если был.", "", "Отказ: выбери продукт, от которого отказались (можно не выбирать). Кросс — если предлагал.", "Сбой звонка: выбери продукт, если успел его предложить. Если сбросили на кроссе — отметь, что предлагал.", "", "Заявка ТМ: клиент открыл накопительный, но ещё не пополнил на 10 000 ₽ — в продажи не идёт. Когда пополнит, нажми на квадрат и выбери «Продажа»."];
   const kind = bd.k;
   return `<div class="top"><span>${KEMO[kind]} ${KINDS[kind]}${sel >= 0 ? " · №" + (sel + 1) : ""}</span></div>
-    ${WITH_MAIN.includes(kind) ? `<div id="mainRow" class="glass"><span>Основной:</span>${MAINS.map((n, i) => `<button class="chip${bd.m === i ? " on" : ""}" data-m="${i}">${MCHIP[i]}<kbd>${i + 1}</kbd></button>`).join("")}</div>` : ""}
+    ${kind === 6 ? `<div id="mainRow" class="glass"><span>Основной:</span><button class="chip on" disabled>НС — накопительный</button></div>` : WITH_MAIN.includes(kind) ? `<div id="mainRow" class="glass"><span>Основной:</span>${MAINS.map((n, i) => `<button class="chip${bd.m === i ? " on" : ""}" data-m="${i}">${MCHIP[i]}<kbd>${i + 1}</kbd></button>`).join("")}</div>` : ""}
     <small>${hints[kind]}<br>Кросс: «Предл.» — предложил, отказали · «Со мной» — оформили со мной · «Сам» — СБОЛ<br><b style="color:#5df07a">Совет:</b> удерживай кнопку звонка — запишется сразу, без этого окна</small>
     ${PRODUCTS.map((n, p) => { if (bd.m >= 0 && SAME_X[bd.m] === p) return ""; const e = bd.x.find(a => a[0] === p); return `<div class="xr" style="--c:${PC[p]}"><span><i class="dot"></i>${n}<kbd>${"QWERTY"[p]}</kbd></span>${RES.map((r, j) => `<button class="rb${e && e[1] === j ? " on" : ""}" data-p="${p}" data-r="${j}">${r}</button>`).join("")}</div>`; }).join("")}
     <div class="row r2"><button class="btn" style="--c:120,128,150" data-b="cancel">Отмена</button><button class="btn" style="--c:31,168,85" data-b="ok">${ic("check")} Записать${bd.x.length ? " (+" + bd.x.length + ")" : ""}</button></div>`;
@@ -793,17 +802,16 @@ function productsHTML(pp) {
     const ring = fr ? `conic-gradient(#3fd062 0deg, #0a9673 ${fr - g}deg, transparent ${fr - g}deg ${fr}deg, rgba(150,160,175,.55) ${fr}deg ${360 - g}deg, transparent ${360 - g}deg)` : "rgba(150,160,175,.55)";
     rows = PRODUCTS.map((pn, p) => ({ pn, p, v: q.x[p] })).filter(r => r.p !== SAME_X[i] && r.v && r.v[0]);
     return `<div class="card glass prep">
-      <div class="top"><span>${n}</span><span class="m" style="font-weight:500;font-size:13px">отчёт по продукту</span></div>
-      <div class="kpis"><div class="kpi"><small>Дозвоны по проекту</small><b>${q.d}</b></div><div class="kpi"><small>Презентации по проекту</small><b>${q.pres}</b></div><div class="kpi"><small>Согласия по проекту</small><b>${q.sale + q.sbol}</b></div></div>
-      <div class="drow"><div class="dwrap"><div class="donut" style="background:${ring}"></div><div class="dmid"><b>${q.d}</b><small>дозвонов</small></div></div>
+      <div class="top"><span>${n}</span></div>
+      <div class="pk3"><div><b>${q.d}</b><small>Дозвоны</small></div><div><b>${q.pres}</b><small>Презентации</small></div><div><b>${q.sale + q.sbol}</b><small>Согласия</small></div></div>
+      <div class="drow pdrow"><div class="dwrap"><div class="donut" style="background:${ring}"></div><div class="dmid"><b>${q.d}</b><small>дозвонов</small></div></div>
         <div class="dleg"><div><i class="dot" style="--c:150,160,175"></i><span>Дозвоны</span><b>${q.d}</b><small></small></div>
-          <div><i class="dot" style="--c:33,170,80"></i><span>Кросс-предложения</span><b>${q.off}</b><small>${pct(q.off, q.d)}</small></div></div></div>
-      <div class="wide"><small>Всего предложений по кросс-продуктам</small><b>${q.off}</b><i>(${pct(q.off, q.d)} от дозвонов)</i></div>
-      <div class="ln"><span>СБОЛ:</span><span><b>${q.sbol}</b><i>(${pct(q.sbol, q.d)} от дозвона)</i></span></div>
-      <div class="ln"><span>Подписал договор:</span><span><b>${q.sale}</b><i>(${pct(q.sale, q.d)} от дозвона)</i></span></div>
-      ${q.tm ? `<div class="ln"><span>Заявки ТМ (не пополнили):</span><span><b>${q.tm}</b><i>(${pct(q.tm, q.d)} от дозвона)</i></span></div>` : ""}
-      ${rows.length ? `<table><tr><th>Кросс-продукты</th><th>Предложений</th><th>Согласий</th></tr>
-        ${rows.map(r => `<tr><td><i class="dot" style="--c:${PC[r.p]}"></i>${r.pn}</td><td><b>${r.v[0]}</b><i>(${pct(r.v[0], q.off)} от дозвона)</i></td><td><b>${r.v[1] + r.v[2]}</b><i>(${pct(r.v[1] + r.v[2], r.v[0])} от предложений${r.v[2] ? `, сам: ${r.v[2]}` : ""})</i></td></tr>`).join("")}</table>`
+          <div><i class="dot" style="--c:33,170,80"></i><span>Кроссы</span><b>${q.off}</b><small>${pct(q.off, q.d)}</small></div>
+          <div class="sep"><i></i><span>СБОЛ</span><b>${q.sbol}</b><small>${pct(q.sbol, q.d)}</small></div>
+          <div><i></i><span>Договор</span><b>${q.sale}</b><small>${pct(q.sale, q.d)}</small></div>
+          ${q.tm ? `<div><i></i><span>Заявки ТМ</span><b>${q.tm}</b><small>${pct(q.tm, q.d)}</small></div>` : ""}</div></div>
+      ${rows.length ? `<div class="pxl"><div class="pxh"><span>Кроссы</span><span>согласились / предложено</span></div>
+        ${rows.map(r => `<div class="pxr"><i class="dot" style="--c:${PC[r.p]}"></i><span>${r.pn}${r.v[2] ? ` <em>сам ${r.v[2]}</em>` : ""}</span><b>${r.v[1] + r.v[2]} / ${r.v[0]}</b><small>${pct(r.v[1] + r.v[2], r.v[0])}</small></div>`).join("")}</div>`
         : `<small class="m">Кросс к ${n} не предлагался.</small>`}
     </div>`; }).join("") + (empty.length ? `<small class="m" style="text-align:center">Без звонков: ${empty.join(", ")}</small>` : "");
 }
@@ -862,6 +870,7 @@ const DESK = matchMedia("(min-width: 900px)");
 // ---------- ввод звонка ----------
 let lastM = 0; try { lastM = Math.max(0, +localStorage.getItem("lastM") || 0); } catch (e) {}
 function commit(rec) {
+  if (rec.k === 6) { rec.m = 0; rec.x = rec.x.filter(a => a[0] !== SAME_X[0]); }   // Заявка ТМ — только по накопительному (НС)
   const isNew = sel < 0; let i = sel;
   if (isNew) { i = nextIdx(); if (i < 0) { calls = calls.concat(blankCalls()); i = nextIdx(); } }
   rec.t = isNew ? Date.now() : (calls[i] && calls[i].t) || Date.now(); if (rec.m >= 0) lastM = rec.m;
@@ -879,11 +888,11 @@ document.querySelectorAll("[data-k]").forEach(b => b.onclick = () => {
   const k = +b.dataset.k;
   if (k === 2 || k === 5) { commit({ k, m: -1, x: [] }); return; }
   const ex = sel >= 0 ? calls[sel] : null;
-  bd = { k, m: ex && ex.m >= 0 ? ex.m : k === 6 ? 0 : k < 2 ? lastM : -1, x: ex ? ex.x.map(a => a.slice()) : [] };
+  bd = { k, m: k === 6 ? 0 : ex && ex.m >= 0 ? ex.m : k < 2 ? lastM : -1, x: ex ? ex.x.map(a => a.slice()) : [] };
   lens(.8); openPanel("build");
 });
 builder.onclick = e => {
-  const chip = e.target.closest(".chip"); if (chip) { const m = +chip.dataset.m; bd.m = bd.k >= 3 && bd.m === m ? -1 : m; if (bd.m >= 0) bd.x = bd.x.filter(a => a[0] !== SAME_X[bd.m]); buzz(); return render(); }
+  const chip = e.target.closest(".chip"); if (chip && bd.k !== 6) { const m = +chip.dataset.m; bd.m = bd.k >= 3 && bd.m === m ? -1 : m; if (bd.m >= 0) bd.x = bd.x.filter(a => a[0] !== SAME_X[bd.m]); buzz(); return render(); }
   const rb = e.target.closest(".rb");
   if (rb) {
     const p = +rb.dataset.p, r = +rb.dataset.r, i = bd.x.findIndex(a => a[0] === p);
