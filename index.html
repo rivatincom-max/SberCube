@@ -436,7 +436,7 @@
   <div class="mrow"><span>Тема</span><div class="seg glass"><button class="chip" data-theme="auto">Авто</button><button class="chip" data-theme="dark"><i data-ic="moon"></i> Тёмная</button><button class="chip" data-theme="light"><i data-ic="sun"></i> Светлая</button></div></div>
   <button class="pill" id="ecoBtn"><i data-ic="battery"></i> Экономия батареи: выкл</button>
   <button class="pill" id="reset"><i data-ic="trash"></i> Сбросить квадраты</button>
-  <small style="color:var(--muted);text-align:center">Версия 33</small>
+  <small style="color:var(--muted);text-align:center">Версия 34</small>
 </div>
 </div>
 <div id="selTools"><div id="hint"></div></div>
@@ -500,6 +500,7 @@ const ICONS = {
 const ic = (n, cls = "") => `<svg class="ic ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
 document.querySelectorAll("i[data-ic]").forEach(e => { e.outerHTML = ic(e.dataset.ic, e.className); });
 const KINDS = ["Продажа", "СБОЛ", "Перезвон", "Отказ", "Сбой звонка", "Отказ от презентации", "Заявка ТМ"];   // Заявка ТМ — открыл НС, но ещё не пополнил на 10 000 ₽: не продажа
+const KSHORT = ["Продажа", "СБОЛ", "Перезвон", "Отказ", "Сбой", "Не слушал", "Заявка ТМ"];   // короткие подписи
 const KC = ["31,168,85", "59,130,246", "241,196,15", "231,76,60", "93,107,130", "230,126,34", "20,184,166"];
 const KICON = ["sale", "sbol", "call", "refuse", "fail", "nolisten", "tm"], KEMO = KICON.map(n => ic(n));
 const PRODUCTS = ["КК", "ПРАЙМ", "ЛУЧШИЙ%", "ВКЛАД", "НС", "ПК"];   // кросс-продукты
@@ -818,21 +819,13 @@ function productsHTML(pp) {
 function statsHTML(o) {
   return `<div class="card glass">
       <div class="top"><span>Статистика</span><button id="copyStat">Копировать статистику</button></div>
-      <div class="kpis">
-        <div class="kpi"><small>Дозвоны по проекту</small><b>${o.total}</b></div>
-        <div class="kpi"><small>Презентации по проекту</small><b>${o.pres}</b></div>
-        <div class="kpi"><small>Согласия по проекту</small><b>${o.agree}</b></div>
-      </div>
-      <div class="wide"><small>Всего предложений по кросс-продуктам</small><b>${o.offers}</b><i>(${pct(o.offers, o.total)} от дозвонов)</i></div>
-      <div class="ln"><span>СБОЛ:</span><span><b>${o.sbol}</b><i>(${pct(o.sbol, o.total)} от дозвона)</i></span></div>
-      <div class="ln"><span>Подписал договор:</span><span><b>${o.sales}</b><i>(${pct(o.sales, o.total)} от дозвона)</i></span></div>
-      ${o.tm ? `<div class="ln"><span>Заявки ТМ (не пополнили):</span><span><b>${o.tm}</b><i>(${pct(o.tm, o.total)} от дозвона)</i></span></div>` : ""}
-      <div class="top"><span>Все звонки</span></div>${donutHTML(o.cnt)}
+      <div class="pk3"><div><b>${o.total}</b><small>Дозвоны</small></div><div><b>${o.pres}</b><small>Презентации</small></div><div><b>${o.agree}</b><small>Согласия</small></div></div>
+      <div class="drow pdrow"><div class="dwrap">${donutHTML(o.cnt).match(/<div class="donut"[^>]*><\/div>/)[0]}<div class="dmid"><b>${o.total}</b><small>звонков</small></div></div>
+        <div class="dleg">${KINDS.map((n, i) => o.cnt[i] ? `<div><i class="dot" style="--c:${KC[i]}"></i><span>${KSHORT[i]}</span><b>${o.cnt[i]}</b><small>${pct(o.cnt[i], o.total)}</small></div>` : "").join("")}
+          <div class="sep"><i></i><span>Кроссы</span><b>${o.offers}</b><small>${pct(o.offers, o.total)}</small></div></div></div>
       ${o.salesNone || o.selfNone ? `<small class="m">Без основного продукта: продаж ${o.salesNone}, СБОЛ ${o.selfNone}</small>` : ""}
-      <div class="top"><span>Все кросс-продукты</span></div>
-      <table><tr><th>Кросс-продукты</th><th>Предложений</th><th>Согласий</th></tr>
-        ${PRODUCTS.map((n, i) => `<tr><td><i class="dot" style="--c:${PC[i]}"></i>${n}</td><td><b>${o.prod[i].off}</b><i>(${pct(o.prod[i].off, o.offers)} от дозвона)</i></td><td><b>${o.prod[i].agr}</b><i>(${pct(o.prod[i].agr, o.prod[i].off)} от предложений${o.prod[i].self ? `, сам: ${o.prod[i].self}` : ""})</i></td></tr>`).join("")}
-      </table>
+      ${o.offers ? `<div class="pxl"><div class="pxh"><span>Все кроссы</span><span>согласились / предложено</span></div>
+        ${PRODUCTS.map((n, i) => { const q = o.prod[i]; return q.off ? `<div class="pxr"><i class="dot" style="--c:${PC[i]}"></i><span>${n}${q.self ? ` <em>сам ${q.self}</em>` : ""}</span><b>${q.agr} / ${q.off}</b><small>${pct(q.agr, q.off)}</small></div>` : ""; }).join("")}</div>` : `<small class="m">Кросс пока не предлагался.</small>`}
     </div>
     ${productsHTML(o.pp)}
     <small class="m">Нижняя полоска квадрата — кросс-продукты (цвет продукта): тусклая — предложил, отказали; яркая — оформили со мной; с белой рамкой — СБОЛ.</small>`;
