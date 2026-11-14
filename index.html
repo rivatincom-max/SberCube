@@ -277,15 +277,17 @@
   .rhead b { font-size: 22px; }
   .kpi i.m { display: block; font-style: normal; font-size: 12px; color: var(--muted); }
   .drow { display: flex; align-items: center; gap: 14px; }
-  .dwrap { position: relative; width: 132px; height: 132px; flex: none; }
+  .dwrap { position: relative; width: 124px; height: 124px; flex: none; }
   .donut { position: absolute; inset: 0; border-radius: 50%; -webkit-mask: radial-gradient(circle, transparent 57%, #000 58%); mask: radial-gradient(circle, transparent 57%, #000 58%); animation: donutIn 1s var(--spring) both .15s; }
   @keyframes donutIn { from { transform: rotate(-120deg) scale(.6); opacity: 0; } }
-  .dmid { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .dmid b { font-size: 26px; } .dmid small { font-size: 11px; color: var(--muted); }
-  .dleg { flex: 1; display: flex; flex-direction: column; gap: 5px; font-size: 13px; min-width: 0; }
-  .dleg div { display: flex; align-items: center; gap: 2px; }
-  .dleg span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .dleg small { color: var(--muted); width: 48px; text-align: right; font-size: 11px; }
+  .dmid { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; text-align: center; }
+  .dmid b { font-size: 26px; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -.5px; } .dmid small { font-size: 10.5px; color: var(--muted); line-height: 1.1; }
+  .dleg { flex: 1; display: flex; flex-direction: column; gap: 6px; font-size: 13px; min-width: 0; }
+  .dleg div { display: grid; grid-template-columns: 9px minmax(0, 1fr) auto 46px; column-gap: 7px; align-items: center; }
+  .dleg .dot { width: 9px; height: 9px; margin: 0; }
+  .dleg span { line-height: 1.2; overflow-wrap: break-word; }
+  .dleg b { text-align: right; font-variant-numeric: tabular-nums; }
+  .dleg small { color: var(--muted); text-align: right; font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .rbar i { width: var(--w); animation: grow 1s cubic-bezier(.2,.9,.3,1) both .3s; }
   @keyframes grow { from { width: 0; } }
   .lnk { text-decoration: underline; text-decoration-color: rgba(52,196,70,.7); text-underline-offset: 3px; }
@@ -394,6 +396,8 @@
   .sd.on { background: linear-gradient(180deg, #34c446, #0a9673); color: #fff; border-color: transparent; } .sd.td { box-shadow: 0 0 0 2px #5df07a inset; }
   .light .sd { background: rgba(0,0,0,.04); border-color: rgba(0,0,0,.08); } .light .sd.on { color: #fff; background: linear-gradient(180deg, #34c446, #0a9673); border-color: transparent; } .light .sd.td { box-shadow: 0 0 0 2px #15803d inset; }
   .r3b { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; } .r3b .pill { justify-content: center; padding-left: 4px; padding-right: 4px; font-size: 12.5px; }
+  /* отчёт по продукту */
+  .prep table { margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -423,7 +427,7 @@
   <div class="mrow"><span>Тема</span><div class="seg glass"><button class="chip" data-theme="auto">Авто</button><button class="chip" data-theme="dark"><i data-ic="moon"></i> Тёмная</button><button class="chip" data-theme="light"><i data-ic="sun"></i> Светлая</button></div></div>
   <button class="pill" id="ecoBtn"><i data-ic="battery"></i> Экономия батареи: выкл</button>
   <button class="pill" id="reset"><i data-ic="trash"></i> Сбросить квадраты</button>
-  <small style="color:var(--muted);text-align:center">Версия 30</small>
+  <small style="color:var(--muted);text-align:center">Версия 31</small>
 </div>
 </div>
 <div id="selTools"><div id="hint"></div></div>
@@ -493,7 +497,8 @@ const PC = ["168,85,247", "244,114,182", "34,211,238", "190,242,100", "129,140,2
 const RES = ["Предл.", "Со мной", "Сам"];                                              // 0 предложил (отказ), 1 оформил со мной, 2 СБОЛ
 const MAINS = ["НС", "ПРАЙМ", "КК", "ВКЛАД", "ПК"];
 const MSH = ["НС", "ПР", "КК", "ВК", "ПК"], MCHIP = MAINS;   // MSH — метка в углу квадрата
-const WITH_MAIN = [0, 1, 3, 4];   // у каких видов звонка выбирается основной продукт
+const WITH_MAIN = [0, 1, 3, 4];
+const SAME_X = [4, 1, 0, 3, 5];   // индекс кросс-продукта, совпадающего с основным (такой кросс не предлагаем)   // у каких видов звонка выбирается основной продукт
 const TOTAL = 300, H = 3600000;
 const $ = id => document.getElementById(id);
 const pad2 = n => String(n).padStart(2, "0");
@@ -617,17 +622,23 @@ function counts() {
   const co = PRODUCTS.map(() => [0, 0, 0]);   // из звонков: предложено, со мной, сам
   const mb = MAINS.map(() => [0, 0, 0, 0, 0]); // по основному продукту: дозвоны, продажи, СБОЛ, отказы, сбои
   const mx = MAINS.map(() => PRODUCTS.map(() => [0, 0])); // кросс внутри звонков по основному продукту: [предложено, согласий]
+  // отчёт по продукту: дозвоны, презентации (продажа, СБОЛ, отказ; сбой — если успели предложить кросс), продажи, СБОЛ, кросс-предложения
+  const pp = MAINS.map(() => ({ d: 0, pres: 0, sale: 0, sbol: 0, off: 0, x: PRODUCTS.map(() => [0, 0, 0]) }));
   calls.forEach(c => {
     if (!c) return; cnt[c.k]++;
     if (c.m >= 0 && mb[c.m]) { const b = mb[c.m]; b[0]++; if (c.k === 0) b[1]++; else if (c.k === 1) b[2]++; else if (c.k === 3) b[3]++; else if (c.k === 4) b[4]++;
       c.x.forEach(([p, r]) => { if (p >= 0 && mx[c.m][p]) { mx[c.m][p][0]++; if (r > 0) mx[c.m][p][1]++; } }); }
+    if (c.m >= 0 && pp[c.m]) { const q = pp[c.m], xs = c.x.filter(a => a[0] >= 0); q.d++;
+      if (c.k === 0 || c.k === 1 || c.k === 3 || (c.k === 4 && xs.length)) q.pres++;
+      if (c.k === 0) q.sale++; else if (c.k === 1) q.sbol++;
+      xs.forEach(([p, r]) => { if (!q.x[p]) return; q.off++; q.x[p][0]++; if (r === 1) q.x[p][1]++; else if (r === 2) q.x[p][2]++; }); }
     if (c.k === 0) { if (c.m >= 0) salesBy[c.m]++; else salesNone++; }
     else if (c.k === 1) { if (c.m >= 0) selfBy[c.m]++; else selfNone++; }
     c.x.forEach(([p, r]) => { if (p >= 0) { co[p][0]++; if (r === 1) co[p][1]++; if (r === 2) co[p][2]++; } });
   });
   const total = cnt.reduce((a, b) => a + b, 0);
   const prod = PRODUCTS.map((_, i) => ({ off: pr[i][0] + co[i][0], agr: pr[i][1] + co[i][1] + co[i][2], self: co[i][2] }));
-  return { cnt, total, sales: cnt[0], sbol: cnt[1], salesBy, selfBy, salesNone, selfNone, prod, mb, mx,
+  return { cnt, total, sales: cnt[0], sbol: cnt[1], salesBy, selfBy, salesNone, selfNone, prod, mb, mx, pp,
     pres: total - cnt[4] - cnt[5],              // презентации: все, кроме сбоя и «не слушал»
     agree: cnt[0] + cnt[1],                     // согласия = продажи + СБОЛ
     offers: prod.reduce((a, x) => a + x.off, 0) };
@@ -709,7 +720,7 @@ function builderHTML() {
   return `<div class="top"><span>${KEMO[kind]} ${KINDS[kind]}${sel >= 0 ? " · №" + (sel + 1) : ""}</span></div>
     ${WITH_MAIN.includes(kind) ? `<div id="mainRow" class="glass"><span>Основной:</span>${MAINS.map((n, i) => `<button class="chip${bd.m === i ? " on" : ""}" data-m="${i}">${MCHIP[i]}<kbd>${i + 1}</kbd></button>`).join("")}</div>` : ""}
     <small>${hints[kind]}<br>Кросс: «Предл.» — предложил, отказали · «Со мной» — оформили со мной · «Сам» — СБОЛ<br><b style="color:#5df07a">Совет:</b> удерживай кнопку звонка — запишется сразу, без этого окна</small>
-    ${PRODUCTS.map((n, p) => { const e = bd.x.find(a => a[0] === p); return `<div class="xr" style="--c:${PC[p]}"><span><i class="dot"></i>${n}<kbd>${"QWERTY"[p]}</kbd></span>${RES.map((r, j) => `<button class="rb${e && e[1] === j ? " on" : ""}" data-p="${p}" data-r="${j}">${r}</button>`).join("")}</div>`; }).join("")}
+    ${PRODUCTS.map((n, p) => { if (bd.m >= 0 && SAME_X[bd.m] === p) return ""; const e = bd.x.find(a => a[0] === p); return `<div class="xr" style="--c:${PC[p]}"><span><i class="dot"></i>${n}<kbd>${"QWERTY"[p]}</kbd></span>${RES.map((r, j) => `<button class="rb${e && e[1] === j ? " on" : ""}" data-p="${p}" data-r="${j}">${r}</button>`).join("")}</div>`; }).join("")}
     <div class="row r2"><button class="btn" style="--c:120,128,150" data-b="cancel">Отмена</button><button class="btn" style="--c:31,168,85" data-b="ok">${ic("check")} Записать${bd.x.length ? " (+" + bd.x.length + ")" : ""}</button></div>`;
 }
 function shiftPanelHTML(o) {
@@ -736,7 +747,7 @@ function shiftPanelHTML(o) {
 function snap(o) {
   const el = elapsed(), h = el > 600000 ? el / H : 0;
   return { d: Date.now(), h: +h.toFixed(2), t: o.total, p: o.pres, a: o.agree, s: o.sbol, l: o.sales, o: o.offers,
-    st: shift.start || 0, c: o.cnt.slice(), mb: o.mb.map(b => b.slice()), mx: o.mx.map(a => a.map(q => q.slice())), x: o.prod.map(q => [q.off, q.agr]), pl: plan.slice() };
+    st: shift.start || 0, c: o.cnt.slice(), mb: o.mb.map(b => b.slice()), mx: o.mx.map(a => a.map(q => q.slice())), pp: JSON.parse(JSON.stringify(o.pp)), x: o.prod.map(q => [q.off, q.agr]), pl: plan.slice() };
 }
 function histHTML(o) {
   const rows = hist.map((r, i) => ({ r, i })), cols = ["t", "a", "s", "l", "o"];
@@ -763,6 +774,37 @@ function crossLine(x) {
   return `<div class="pcx"><span class="pcl">${ic("cross")} кросс: согласий <b>${agr}</b> из <b>${off}</b></span>
     <div class="xcs">${x.map((q, p) => q[0] ? `<span class="xc"><i class="dot" style="--c:${PC[p]}"></i>${PRODUCTS[p]} ${q[1]}/${q[0]}</span>` : "").join("")}</div></div>`;
 }
+// кольцо «из чего сложились звонки» по видам звонка
+function donutHTML(cnt) {
+  const tot = cnt.reduce((a, b) => a + b, 0), nz = cnt.filter(Boolean).length, gap = nz > 1 ? 2 : 0;
+  let acc = 0; const segs = [];
+  cnt.forEach((n, i) => { if (!n) return; const a = acc / tot * 360, b = (acc += n) / tot * 360; segs.push(`rgb(${KC[i]}) ${a}deg ${b - gap}deg`, `transparent ${b - gap}deg ${b}deg`); });
+  return `<div class="drow"><div class="dwrap"><div class="donut" style="background:${tot ? `conic-gradient(${segs.join(",")})` : "rgba(128,128,128,.25)"}"></div><div class="dmid"><b>${tot}</b><small>звонков</small></div></div>
+    <div class="dleg">${KINDS.map((n, i) => `<div><i class="dot" style="--c:${KC[i]}"></i><span>${n}</span><b>${cnt[i]}</b><small>${pct(cnt[i], tot)}</small></div>`).join("")}</div></div>`;
+}
+// отчёт по каждому основному продукту подряд — как в старой программе: цифры, кольцо «дозвоны / кросс-предложения», таблица кроссов
+function productsHTML(pp) {
+  if (!pp) return "";
+  const used = MAINS.map((n, i) => ({ n, i, q: pp[i] })).filter(o => o.q && o.q.d), empty = MAINS.filter((n, i) => !pp[i] || !pp[i].d);
+  if (!used.length) return `<div class="card glass"><div class="top"><span>По продуктам</span></div><small class="m">Пока нет звонков с основным продуктом.</small></div>`;
+  return used.map(({ n, i, q }) => {
+    const fr = q.d + q.off ? q.off / (q.d + q.off) * 360 : 0, g = q.off ? 2 : 0;   // серое — дозвоны, зелёное с градиентом — кросс-предложения
+    const ring = fr ? `conic-gradient(#3fd062 0deg, #0a9673 ${fr - g}deg, transparent ${fr - g}deg ${fr}deg, rgba(150,160,175,.55) ${fr}deg ${360 - g}deg, transparent ${360 - g}deg)` : "rgba(150,160,175,.55)";
+    rows = PRODUCTS.map((pn, p) => ({ pn, p, v: q.x[p] })).filter(r => r.p !== SAME_X[i] && r.v && r.v[0]);
+    return `<div class="card glass prep">
+      <div class="top"><span>${n}</span><span class="m" style="font-weight:500;font-size:13px">отчёт по продукту</span></div>
+      <div class="kpis"><div class="kpi"><small>Дозвоны по проекту</small><b>${q.d}</b></div><div class="kpi"><small>Презентации по проекту</small><b>${q.pres}</b></div><div class="kpi"><small>Согласия по проекту</small><b>${q.sale + q.sbol}</b></div></div>
+      <div class="drow"><div class="dwrap"><div class="donut" style="background:${ring}"></div><div class="dmid"><b>${q.d}</b><small>дозвонов</small></div></div>
+        <div class="dleg"><div><i class="dot" style="--c:150,160,175"></i><span>Дозвоны</span><b>${q.d}</b><small></small></div>
+          <div><i class="dot" style="--c:33,170,80"></i><span>Кросс-предложения</span><b>${q.off}</b><small>${pct(q.off, q.d)}</small></div></div></div>
+      <div class="wide"><small>Всего предложений по кросс-продуктам</small><b>${q.off}</b><i>(${pct(q.off, q.d)} от дозвонов)</i></div>
+      <div class="ln"><span>СБОЛ:</span><span><b>${q.sbol}</b><i>(${pct(q.sbol, q.d)} от дозвона)</i></span></div>
+      <div class="ln"><span>Подписал договор:</span><span><b>${q.sale}</b><i>(${pct(q.sale, q.d)} от дозвона)</i></span></div>
+      ${rows.length ? `<table><tr><th>Кросс-продукты</th><th>Предложений</th><th>Согласий</th></tr>
+        ${rows.map(r => `<tr><td><i class="dot" style="--c:${PC[r.p]}"></i>${r.pn}</td><td><b>${r.v[0]}</b><i>(${pct(r.v[0], q.off)} от дозвона)</i></td><td><b>${r.v[1] + r.v[2]}</b><i>(${pct(r.v[1] + r.v[2], r.v[0])} от предложений${r.v[2] ? `, сам: ${r.v[2]}` : ""})</i></td></tr>`).join("")}</table>`
+        : `<small class="m">Кросс к ${n} не предлагался.</small>`}
+    </div>`; }).join("") + (empty.length ? `<small class="m" style="text-align:center">Без звонков: ${empty.join(", ")}</small>` : "");
+}
 function statsHTML(o) {
   return `<div class="card glass">
       <div class="top"><span>Статистика</span><button id="copyStat">Копировать статистику</button></div>
@@ -773,16 +815,15 @@ function statsHTML(o) {
       </div>
       <div class="wide"><small>Всего предложений по кросс-продуктам</small><b>${o.offers}</b><i>(${pct(o.offers, o.total)} от дозвонов)</i></div>
       <div class="ln"><span>СБОЛ:</span><span><b>${o.sbol}</b><i>(${pct(o.sbol, o.total)} от дозвона)</i></span></div>
-      <div class="top"><span>Основные продукты</span></div>
-      <div class="pgrid">${MAINS.map((n, i) => { const b = o.mb[i]; return `<div class="pc"><small>${n}</small><b>${b[0]}<em>дозвонов</em></b>
-        <div class="pcl">${ic("sale")} продаж <b>${b[1]}</b> · ${ic("sbol")} СБОЛ <b>${b[2]}</b><br>${ic("refuse")} отказов <b>${b[3]}</b> · ${ic("fail")} сбоев <b>${b[4]}</b></div>
-        <div class="bar"><i style="width:${b[0] ? (b[1] + b[2]) / b[0] * 100 : 0}%"></i></div><div class="pcl">конверсия ${pct(b[1] + b[2], b[0])}</div>${crossLine(o.mx[i])}</div>`; }).join("")}</div>
+      <div class="ln"><span>Подписал договор:</span><span><b>${o.sales}</b><i>(${pct(o.sales, o.total)} от дозвона)</i></span></div>
+      <div class="top"><span>Все звонки</span></div>${donutHTML(o.cnt)}
       ${o.salesNone || o.selfNone ? `<small class="m">Без основного продукта: продаж ${o.salesNone}, СБОЛ ${o.selfNone}</small>` : ""}
+      <div class="top"><span>Все кросс-продукты</span></div>
       <table><tr><th>Кросс-продукты</th><th>Предложений</th><th>Согласий</th></tr>
         ${PRODUCTS.map((n, i) => `<tr><td><i class="dot" style="--c:${PC[i]}"></i>${n}</td><td><b>${o.prod[i].off}</b><i>(${pct(o.prod[i].off, o.offers)} от дозвона)</i></td><td><b>${o.prod[i].agr}</b><i>(${pct(o.prod[i].agr, o.prod[i].off)} от предложений${o.prod[i].self ? `, сам: ${o.prod[i].self}` : ""})</i></td></tr>`).join("")}
       </table>
     </div>
-    <div class="legend">${KINDS.map((n, i) => `<div style="border-bottom:3px solid rgb(${KC[i]})"><b>${o.cnt[i]}</b>${n}</div>`).join("")}</div>
+    ${productsHTML(o.pp)}
     <small class="m">Нижняя полоска квадрата — кросс-продукты (цвет продукта): тусклая — предложил, отказали; яркая — оформили со мной; с белой рамкой — СБОЛ.</small>`;
 }
 function render() {
@@ -839,7 +880,7 @@ document.querySelectorAll("[data-k]").forEach(b => b.onclick = () => {
   lens(.8); openPanel("build");
 });
 builder.onclick = e => {
-  const chip = e.target.closest(".chip"); if (chip) { const m = +chip.dataset.m; bd.m = bd.k >= 3 && bd.m === m ? -1 : m; buzz(); return render(); }
+  const chip = e.target.closest(".chip"); if (chip) { const m = +chip.dataset.m; bd.m = bd.k >= 3 && bd.m === m ? -1 : m; if (bd.m >= 0) bd.x = bd.x.filter(a => a[0] !== SAME_X[bd.m]); buzz(); return render(); }
   const rb = e.target.closest(".rb");
   if (rb) {
     const p = +rb.dataset.p, r = +rb.dataset.r, i = bd.x.findIndex(a => a[0] === p);
@@ -1062,15 +1103,9 @@ function resultsHTML(r, fin) {
     <div class="kpis">${kpi("Дозвоны", r.t)}${kpi("Продажи", r.l, planSum ? `план ${planSum}` : "")}${kpi("СБОЛ", r.s)}</div>
     <div class="kpis">${kpi("Согласия", r.a)}${kpi("Конверсия", pct(r.a, r.t), "согласия / дозвоны")}${kpi("Кросс", r.o, "предложений")}</div>
   </div>`;
-  if (r.c) {
-    const tot = r.c.reduce((a, b) => a + b, 0), nz = r.c.filter(Boolean).length, gap = nz > 1 ? 2 : 0;
-    let acc = 0; const segs = [];
-    r.c.forEach((n, i) => { if (!n) return; const a = acc / tot * 360, b = (acc += n) / tot * 360; segs.push(`rgb(${KC[i]}) ${a}deg ${b - gap}deg`, `transparent ${b - gap}deg ${b}deg`); });
-    h += `<div class="card glass"><div class="top"><span>Из чего сложились звонки</span></div>
-      <div class="drow"><div class="dwrap"><div class="donut" style="background:${tot ? `conic-gradient(${segs.join(",")})` : "rgba(128,128,128,.25)"}"></div><div class="dmid"><b>${tot}</b><small>звонков</small></div></div>
-      <div class="dleg">${KINDS.map((n, i) => `<div><i class="dot" style="--c:${KC[i]}"></i><span>${n}</span><b>${r.c[i]}</b><small>${pct(r.c[i], tot)}</small></div>`).join("")}</div></div></div>`;
-  }
-  if (r.mb) {
+  if (r.c) h += `<div class="card glass"><div class="top"><span>Из чего сложились звонки</span></div>${donutHTML(r.c)}</div>`;
+  if (r.pp) h += `<div class="top" style="padding:4px 4px 0"><span>По продуктам</span></div>` + productsHTML(r.pp);
+  if (r.mb && !r.pp) {
     const mx = Math.max(1, ...r.mb.map(b => b[1]));   // в старых сменах продуктов могло быть меньше
     h += `<div class="card glass"><div class="top"><span>Продукты и их кроссы</span>${planSum ? `<span style="font-weight:500;color:var(--muted);font-size:13px">${r.l} из ${planSum}</span>` : ""}</div>
       ${MAINS.map((n, i) => { const b = r.mb[i] || [0, 0, 0, 0, 0], pl = r.pl && r.pl[i] || 0, w = pl ? Math.min(100, b[1] / pl * 100) : b[1] / mx * 100;
@@ -1273,7 +1308,7 @@ document.addEventListener("keydown", e => {
   if (d && e.shiftKey && !building) quick(d - 1);
   else if (d && building) { if (d <= 5) click(`#builder .chip[data-m="${d - 1}"]`); }
   else if (d) click(`#pad [data-k="${d - 1}"]`);
-  else if (building && cross >= 0) { const i = bd.x.findIndex(a => a[0] === cross); if (i < 0) bd.x.push([cross, 0]); else if (bd.x[i][1] < 2) bd.x[i][1]++; else bd.x.splice(i, 1); render(); }
+  else if (building && cross >= 0 && !(bd.m >= 0 && SAME_X[bd.m] === cross)) { const i = bd.x.findIndex(a => a[0] === cross); if (i < 0) bd.x.push([cross, 0]); else if (bd.x[i][1] < 2) bd.x[i][1]++; else bd.x.splice(i, 1); render(); }
   else if (ok && building) click('#builder [data-b="ok"]');
   else if (esc) { if (building) click('#builder [data-b="cancel"]'); else { sync.style.display = settings.style.display = "none"; sel = -1; openPanel("none"); } }
   else if (e.key === "Backspace" || e.key === "Delete") $("undo").click();
