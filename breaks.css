@@ -1,0 +1,60 @@
+#breaksDialog {
+  color: var(--text);
+  color-scheme: dark;
+  background: #102019;
+  border: 1px solid var(--stroke);
+  border-radius: 24px;
+  width: min(520px, calc(100% - 20px));
+  max-height: calc(100% - 24px);
+  padding: 16px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+.light #breaksDialog { color-scheme: light; background: #f1faf4; }
+#breaksDialog::backdrop { background: rgba(0,0,0,.56); }
+#breaksDialog [hidden] { display: none !important; }
+#breaksDialog h2, #breaksDialog p { margin: 0; }
+#breaksDialog h2 { font-size: 20px; }
+#breaksDialog .bt-head, #breaksDialog .bt-actions, #breaksDialog .bt-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+#breaksDialog .bt-actions { flex-wrap: wrap; margin-top: 12px; }
+#breaksDialog .bt-head { margin-bottom: 12px; }
+#breaksDialog .bt-grid, #breaksDialog .bt-edit-times {
+  display: grid; gap: 8px; grid-template-columns: repeat(2, minmax(0,1fr));
+}
+#breaksDialog .bt-box, #breaksDialog .bt-row, #breaksDialog fieldset {
+  border-radius: 16px; border: 1px solid var(--stroke); padding: 10px;
+}
+#breaksDialog .bt-box { background: rgba(93,174,122,.13); overflow-wrap: anywhere; }
+#breaksDialog .bt-label, #breaksDialog .bt-detail { color: var(--muted); font-size: 14px; }
+#breaksDialog .bt-clock { font-size: clamp(23px,7vw,38px); font-weight: 740; font-variant-numeric: tabular-nums; white-space: nowrap; }
+#breaksDialog .bt-list { display: grid; gap: 6px; margin-top: 10px; }
+#breaksDialog .bt-row[data-active] { border-color: #27a75b; }
+#breaksDialog .bt-ring {
+  width: 42px; aspect-ratio: 1; position: relative; display: grid; place-items: center;
+  flex: none; font-size: 11px; font-weight: 700;
+}
+#breaksDialog .bt-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+#breaksDialog .bt-ring circle { fill: none; stroke: #688675; stroke-width: 5; }
+#breaksDialog .bt-ring .bt-fill {
+  stroke: #35c777; stroke-dasharray: 100; stroke-dashoffset: 100;
+  filter: drop-shadow(0 0 3px #35c777);
+}
+#breaksDialog .bt-ring span { position: relative; }
+#breaksDialog .bt-field { display: grid; gap: 4px; min-width: 0; font-size: 14px; }
+#breaksDialog input, #breaksDialog select {
+  width: 100%; min-width: 0; font: inherit; font-size: 16px; color: var(--text);
+  background: transparent; border: 1px solid var(--stroke); border-radius: 9px; padding: 6px;
+}
+#breaksDialog .bt-date { margin-bottom: 10px; }
+#breaksDialog fieldset { min-width: 0; margin: 0; }
+#breaksDialog .bt-type { grid-column: 1 / -1; }
+#breaksDialog .bt-error { margin-top: 8px; color: #ffa59e; }
+.light #breaksDialog .bt-error { color: #9e2c23; }
+@media (max-width: 374px) {
+  #breaksDialog { padding: 10px; }
+  #breaksDialog .bt-box { padding: 7px; }
+}
+#breaksDialog .bt-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
