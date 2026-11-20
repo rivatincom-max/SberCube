@@ -422,7 +422,7 @@
 <link rel="stylesheet" href="breaks.css">
 </head>
 <body>
-<header class="glass"><h1>SBERCUBE</h1><button class="pill rnd" type="button" data-open-breaks aria-label="Перерывы" title="Перерывы"><i data-ic="timer"></i></button><button class="pill rnd" id="syncBtn" aria-label="Прогресс"><i data-ic="sync"></i></button><button class="pill rnd" id="setBtn" aria-label="Настройки"><i data-ic="gear"></i></button></header>
+<header class="glass"><h1>SBERCUBE</h1><button class="pill rnd" type="button" id="breaksBtn" aria-controls="breaksPanel" aria-expanded="false" aria-label="Перерывы" title="Перерывы"><i data-ic="timer"></i></button><button class="pill rnd" id="syncBtn" aria-label="Прогресс"><i data-ic="sync"></i></button><button class="pill rnd" id="setBtn" aria-label="Настройки"><i data-ic="gear"></i></button></header>
 <div id="shiftbar" class="glass"><div id="shFill"></div><div class="shrow"><span id="shT"><i data-ic="timer"></i> Начать смену</span><span id="shS"></span></div><div id="shM"></div></div>
 <div id="sum" class="glass"></div>
 <div id="dtime" class="glass">
@@ -435,6 +435,67 @@
 <div id="grid"></div>
 <div id="stats" class="sheet"></div>
 <div id="shiftpanel" class="sheet"></div>
+<section id="breaksPanel" class="glass sheet" aria-labelledby="btHeading" hidden>
+  <div class="bt-head top">
+    <h2 id="btHeading">Перерывы</h2>
+    <button class="pill" id="btClose" type="button">Закрыть</button>
+  </div>
+  <label class="bt-field bt-date">Дата смены · Екатеринбург<input id="btDate" type="date"></label>
+  <div id="btOverview">
+    <div class="bt-grid">
+      <div class="bt-box card glass">
+        <p id="btPhase" class="bt-label" aria-live="polite"></p>
+        <div id="btCountdown" class="bt-clock">
+          <span id="btCountdownText" class="bt-sr"></span>
+          <span id="btDigits" aria-hidden="true"><span data-bt-digit>0</span><span data-bt-digit>0</span>:<span data-bt-digit>0</span><span data-bt-digit>0</span>:<span data-bt-digit>0</span><span data-bt-digit>0</span></span>
+        </div>
+        <p id="btTarget" class="bt-detail"></p>
+      </div>
+      <div class="bt-box card glass">
+        <p id="btShiftPhase" class="bt-label" aria-live="polite"></p>
+        <p id="btShiftCountdown" class="bt-clock"></p>
+        <p id="btShiftRange" class="bt-detail"></p>
+      </div>
+    </div>
+    <div class="bt-actions"><button class="pill" id="btEdit" type="button">Настроить расписание</button></div>
+    <div id="btList" class="bt-list" aria-label="Перерывы на выбранную дату"></div>
+  </div>
+  <form id="btForm" hidden>
+    <div class="bt-edit-times">
+      <label class="bt-field">Начало смены<input name="shiftStart" type="time" required></label>
+      <label class="bt-field">Конец смены<input name="shiftEnd" type="time" required></label>
+    </div>
+    <div class="bt-list" id="btRows"></div>
+    <p class="bt-error" id="btError" role="alert"></p>
+    <div class="bt-actions">
+      <button class="pill" id="btAdd" type="button">Добавить перерыв</button>
+      <button class="pill" id="btCancel" type="button">Отмена</button>
+      <button class="pill" type="submit">Сохранить</button>
+    </div>
+  </form>
+  <template id="btCardTemplate">
+    <div class="bt-row card glass">
+      <div><b></b><br><small class="bt-detail"></small></div>
+      <div class="bt-ring" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <svg aria-hidden="true" viewBox="0 0 72 72">
+          <circle cx="36" cy="36" r="31"></circle>
+          <circle class="bt-fill" cx="36" cy="36" r="31" pathLength="100" transform="rotate(-90 36 36)"></circle>
+        </svg>
+        <span aria-hidden="true">0%</span>
+      </div>
+    </div>
+  </template>
+  <template id="btRowTemplate">
+    <fieldset class="card glass"><legend>Перерыв</legend>
+      <div class="bt-edit-times">
+        <label class="bt-field bt-type">Тип<select name="type"><option value="lunch">Обед</option><option value="personal">Личная необходимость</option></select></label>
+        <label class="bt-field">Начало перерыва<input name="from" type="time" required></label>
+        <label class="bt-field">Конец перерыва<input name="to" type="time" required></label>
+      </div>
+      <div class="bt-actions"><button class="pill" type="button">Удалить перерыв</button></div>
+    </fieldset>
+  </template>
+</section>
 <div id="sync" class="glass sheet">
   <div class="mrow"><b>Прогресс</b><small class="m">перенос данных</small></div>
   <textarea id="code" placeholder="Здесь будет код прогресса. Чтобы загрузить — вставь код сюда."></textarea>
@@ -448,7 +509,7 @@
   <div class="mrow"><span>Тема</span><div class="seg glass"><button class="chip" data-theme="auto">Авто</button><button class="chip" data-theme="dark"><i data-ic="moon"></i> Тёмная</button><button class="chip" data-theme="light"><i data-ic="sun"></i> Светлая</button></div></div>
   <button class="pill" id="ecoBtn"><i data-ic="battery"></i> Экономия батареи: выкл</button>
   <button class="pill" id="reset"><i data-ic="trash"></i> Сбросить квадраты</button>
-  <small style="color:var(--muted);text-align:center">Версия 37</small>
+  <small style="color:var(--muted);text-align:center">Версия 38</small>
 </div>
 </div>
 <div id="selTools"><div id="hint"></div></div>
@@ -706,7 +767,11 @@ function syncTick() {
 document.addEventListener("visibilitychange", () => { if (document.hidden) parts = []; syncTick(); });
 
 // ---------- панели ----------
-function openPanel(name) { panel = name; lastFocus = -2; render(); }
+function openPanel(name) {
+  panel = name; lastFocus = -2;
+  if (name === "breaks") sync.style.display = settings.style.display = "none";
+  render();
+}
 const toggle = n => openPanel(panel === n ? "none" : n);
 
 // ---------- отрисовка ----------
@@ -854,7 +919,13 @@ function render() {
   topInfo = { sales: o.sales, planSum: plan.reduce((a, b) => a + b, 0), total: o.total };
   sum.innerHTML = `<span>Дозвоны <b>${o.total}</b></span><span>Согл. <b>${o.agree}</b></span><span>СБОЛ <b>${o.sbol}</b></span><span>Кросс <b>${o.offers}</b></span>`;
   if (fancy()) sum.querySelectorAll("b").forEach((el, i) => { if (prevSum[i] !== undefined && prevSum[i] !== el.textContent) el.classList.add("bump"); prevSum[i] = el.textContent; });
-  const showStats = panel === "stats", showShift = panel === "shift";
+  const showStats = panel === "stats", showShift = panel === "shift", showBreaks = panel === "breaks";
+  const breaksPanel = $("breaksPanel");
+  if (breaksPanel.hidden === showBreaks) {
+    breaksPanel.hidden = !showBreaks;
+    $("breaksBtn").setAttribute("aria-expanded", showBreaks);
+    breaksPanel.dispatchEvent(new Event("breaks-visibility"));
+  }
   if (showStats && stats.style.display !== "flex") { stats.style.animation = "none"; void stats.offsetWidth; stats.style.animation = ""; stats.classList.add("enter"); clearTimeout(stats.et); stats.et = setTimeout(() => stats.classList.remove("enter"), 1400); }
   stats.style.display = showStats ? "flex" : "none"; shiftpanel.style.display = showShift ? "flex" : "none";
   if (showStats) {
@@ -985,7 +1056,7 @@ $("ecoBtn").onclick = () => { eco = !eco; try { localStorage.setItem("eco", eco 
 // перенос прогресса: KV4 (новый); KV1–KV3 тоже принимаются
 const sync = $("sync"), code = $("code"), msg = $("msg");
 const settings = $("settings");
-function sheet(el) { const show = el.style.display !== "flex"; sync.style.display = settings.style.display = "none"; if (show) el.style.display = "flex"; }
+function sheet(el) { if (panel === "breaks") openPanel("none"); const show = el.style.display !== "flex"; sync.style.display = settings.style.display = "none"; if (show) el.style.display = "flex"; }
 $("syncBtn").onclick = () => { sheet(sync); msg.textContent = ""; };
 $("setBtn").onclick = () => sheet(settings);
 let theme = "auto"; try { const th = localStorage.getItem("theme"); theme = th === "light" || th === "dark" ? th : "auto"; } catch (e) {}
@@ -1035,7 +1106,7 @@ document.addEventListener("dblclick", e => e.preventDefault());
 function swipeClose(el, close) {
   let y0 = 0, dy = 0, on = false;
   el.addEventListener("touchstart", e => {
-    if (e.touches.length !== 1 || e.target.closest("textarea,input")) return;
+    if (e.touches.length !== 1 || e.target.closest("textarea,input,select,button")) return;
     y0 = e.touches[0].clientY; dy = 0; on = el.scrollTop <= 0; el.style.transition = "none";
   }, { passive: true });
   el.addEventListener("touchmove", e => {
@@ -1054,6 +1125,7 @@ function swipeClose(el, close) {
 }
 swipeClose(stats, () => openPanel("none"));
 swipeClose(shiftpanel, () => openPanel("none"));
+swipeClose($("breaksPanel"), () => { if (panel === "breaks") openPanel("none"); });
 swipeClose(builder, () => { bd = null; openPanel("none"); });
 swipeClose(sync, () => { sync.style.display = "none"; });
 swipeClose(settings, () => { settings.style.display = "none"; });
@@ -1085,7 +1157,6 @@ function renderSetup() {
     ${MAINS.map((n, i) => `<div class="mrow"><span>${n}</span><span class="step"><button class="pill" data-su="p${i}:-1">−</button><b>${su.pl[i]}</b><button class="pill" data-su="p${i}:1">+</button></span></div>`).join("")}
   </div>
   <button class="btn gob" style="--c:31,168,85" data-su="go">▶ Начать смену</button>
-  <button class="pill" type="button" data-open-breaks>${ic("timer")} Перерывы</button>
   <button class="pill" data-su="sched">${ic("cal")} Поставить график на месяц — смена будет включаться сама</button>`;
 }
 $("setup").onclick = e => {
@@ -1312,7 +1383,7 @@ setInterval(updateDesk, 1000); DESK.addEventListener("change", () => { render();
 
 // ---------- клавиатура (десктоп) ----------
 document.addEventListener("keydown", e => {
-  if ($("breaksDialog").open || e.metaKey || e.ctrlKey || e.altKey || e.target.closest("input, textarea, select")) return;
+  if (e.metaKey || e.ctrlKey || e.altKey || e.target.closest("input, textarea, select")) return;
   const on = id => $(id).classList.contains("on"), click = q => { const el = document.querySelector(q); if (el) el.click(); };
   const ok = e.key === "Enter", esc = e.key === "Escape", dig = /^Digit([1-7])$/.exec(e.code), d = dig ? +dig[1] : 0;
   if (on("splash")) { $("splash").click(); return; }
@@ -1339,67 +1410,6 @@ applyTheme(); applyEco(); render(); syncTick(); boot();
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
 if ("serviceWorker" in navigator) { try { navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(r => document.addEventListener("visibilitychange", () => { if (!document.hidden) r.update(); })).catch(() => {}); } catch (e) {} }
 </script>
-<dialog id="breaksDialog" aria-labelledby="btHeading">
-  <div class="bt-head">
-    <h2 id="btHeading">Перерывы</h2>
-    <button class="pill" id="btClose" type="button" autofocus>Закрыть</button>
-  </div>
-  <label class="bt-field bt-date">Дата смены · Екатеринбург<input id="btDate" type="date"></label>
-  <div id="btOverview">
-    <div class="bt-grid">
-      <div class="bt-box">
-        <p id="btPhase" class="bt-label" aria-live="polite"></p>
-        <div id="btCountdown" class="bt-clock">
-          <span id="btCountdownText" class="bt-sr"></span>
-          <span id="btDigits" aria-hidden="true"><span data-bt-digit>0</span><span data-bt-digit>0</span>:<span data-bt-digit>0</span><span data-bt-digit>0</span>:<span data-bt-digit>0</span><span data-bt-digit>0</span></span>
-        </div>
-        <p id="btTarget" class="bt-detail"></p>
-      </div>
-      <div class="bt-box">
-        <p id="btShiftPhase" class="bt-label" aria-live="polite"></p>
-        <p id="btShiftCountdown" class="bt-clock"></p>
-        <p id="btShiftRange" class="bt-detail"></p>
-      </div>
-    </div>
-    <div id="btList" class="bt-list" aria-label="Перерывы на выбранную дату"></div>
-    <div class="bt-actions"><button class="pill" id="btEdit" type="button">Настроить расписание</button></div>
-  </div>
-  <form id="btForm" hidden>
-    <div class="bt-edit-times">
-      <label class="bt-field">Начало смены<input name="shiftStart" type="time" required></label>
-      <label class="bt-field">Конец смены<input name="shiftEnd" type="time" required></label>
-    </div>
-    <div class="bt-list" id="btRows"></div>
-    <p class="bt-error" id="btError" role="alert"></p>
-    <div class="bt-actions">
-      <button class="pill" id="btAdd" type="button">Добавить перерыв</button>
-      <button class="pill" id="btCancel" type="button">Отмена</button>
-      <button class="pill" type="submit">Сохранить</button>
-    </div>
-  </form>
-  <template id="btCardTemplate">
-    <div class="bt-row">
-      <div><b></b><br><small class="bt-detail"></small></div>
-      <div class="bt-ring" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-        <svg aria-hidden="true" viewBox="0 0 72 72">
-          <circle cx="36" cy="36" r="31"></circle>
-          <circle class="bt-fill" cx="36" cy="36" r="31" pathLength="100" transform="rotate(-90 36 36)"></circle>
-        </svg>
-        <span aria-hidden="true">0%</span>
-      </div>
-    </div>
-  </template>
-  <template id="btRowTemplate">
-    <fieldset><legend>Перерыв</legend>
-      <div class="bt-edit-times">
-        <label class="bt-field bt-type">Тип<select name="type"><option value="lunch">Обед</option><option value="personal">Личная необходимость</option></select></label>
-        <label class="bt-field">Начало перерыва<input name="from" type="time" required></label>
-        <label class="bt-field">Конец перерыва<input name="to" type="time" required></label>
-      </div>
-      <div class="bt-actions"><button class="pill" type="button">Удалить перерыв</button></div>
-    </fieldset>
-  </template>
-</dialog>
 <script src="breaks.js"></script>
 </body>
 </html>

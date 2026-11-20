@@ -1,6 +1,7 @@
 (() => {
-  const dialog = document.querySelector("#breaksDialog");
-  const find = selector => dialog.querySelector(selector);
+  const panelElement = document.querySelector("#breaksPanel");
+  const launchButton = document.querySelector("#breaksBtn");
+  const find = selector => panelElement.querySelector(selector);
   const dateField = find("#btDate");
   const overview = find("#btOverview");
   const form = find("#btForm");
@@ -106,7 +107,7 @@
     const next = timings.periods.find(item => now < item.end);
     const active = next && now >= next.start;
     const beforeShift = now < timings.start;
-    updateText(shiftPhase, beforeShift ? "До начала смены" : now < timings.end ? "До конца смены" : "Смена закончилась");
+    updateText(shiftPhase, beforeShift ? "До начала по графику" : now < timings.end ? "До конца по графику" : "Смена по графику закончилась");
     updateText(shiftClock, countdown((beforeShift ? timings.start : timings.end) - now));
     updateText(phase, next ? (active ? "До конца перерыва" : "До перерыва") : (cards.length ? "Все перерывы закончились" : "Нет перерывов"));
     updateText(target, next ? typeNames[next.type] + " · " + next.from + "–" + next.to : "");
@@ -176,19 +177,22 @@
     form.elements.shiftStart.focus();
   }
 
-  document.addEventListener("click", event => {
-    if (!event.target.closest("[data-open-breaks]") || dialog.open) return;
-    dateField.value = today();
+  launchButton.onclick = () => toggle("breaks");
+  find("#btClose").onclick = () => {
+    openPanel("none");
+    launchButton.focus();
+  };
+  panelElement.addEventListener("breaks-visibility", () => {
+    clearInterval(timer);
+    if (panelElement.hidden) return;
+    dateField.value = dateField.value || today();
     dateField.disabled = false;
     overview.hidden = false;
     form.hidden = true;
+    panelElement.scrollTop = 0;
     loadDate();
-    dialog.showModal();
-    clearInterval(timer);
     timer = setInterval(render, 250);
   });
-  find("#btClose").onclick = () => dialog.close();
-  dialog.addEventListener("close", () => { if (!dialog.open) clearInterval(timer); });
   dateField.addEventListener("change", loadDate);
   find("#btEdit").onclick = () => showEditor(true);
   find("#btCancel").onclick = () => showEditor(false);
